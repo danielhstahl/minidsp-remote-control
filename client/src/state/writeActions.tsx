@@ -18,7 +18,6 @@ const initialState = {
 export const writeReducer = (state: HtxWrite, action: Action) => {
     switch (action.type) {
         case WriteAction.UPDATE:
-            console.log("got here")
             return action.value;
         default:
             return state;

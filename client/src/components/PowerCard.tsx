@@ -22,7 +22,6 @@ const SOURCE = "Source"
 const PRESET = "Preset"
 
 const PowerCard = ({ power, onSourceChange, source, preset, onPresetChange }: PowerInputs) => {
-    console.log(preset)
     return <Paper
         sx={{
             p: 2,

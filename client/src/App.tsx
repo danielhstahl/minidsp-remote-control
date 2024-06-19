@@ -53,7 +53,6 @@ function App() {
     writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, volume } })
     postRequest({ volume })
   }
-  console.log(writeParams)
 
   return (
     <ThemeProvider theme={mdTheme}>
