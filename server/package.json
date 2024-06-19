@@ -1,0 +1,17 @@
+{
+  "name": "minidsp_server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "IP=192.168.88.253 node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@fastify/http-proxy": "^9.5.0",
+    "@fastify/websocket": "^10.0.1",
+    "fastify": "^4.28.0"
+  }
+}
