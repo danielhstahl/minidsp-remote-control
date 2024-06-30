@@ -94,7 +94,7 @@ function powerStatus(usbIndex) {
                 rej(err)
             }
             else {
-                res(stdout)
+                res(stdout.search("off") === -1 ? "on" : "off")
             }
         }))
 }
