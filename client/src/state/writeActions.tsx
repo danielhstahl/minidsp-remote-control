@@ -1,4 +1,4 @@
-import { HtxWrite, Source, Preset } from "../services/api";
+import { HtxWrite, Source, Preset, Power } from "../services/api";
 import { useReducer, useContext, createContext, PropsWithChildren } from "react"
 
 export enum WriteAction {
@@ -11,7 +11,8 @@ type Action = {
 const initialState = {
     preset: Preset.preset1,
     source: Source.USB,
-    volume: -127
+    volume: -127,
+    power: Power.On
 }
 
 

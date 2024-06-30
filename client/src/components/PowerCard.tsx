@@ -4,24 +4,24 @@ import Paper from '@mui/material/Paper';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
-import { Source, Preset } from '../services/api'
+import { Source, Preset, Power } from '../services/api'
 import Grid from '@mui/system/Unstable_Grid'
 import Select from '@mui/material/Select';
 
 
 interface PowerInputs {
     //onPowerToggle: () => void,
-    power: boolean,
-    onSourceChange: (source: Source) => void,
-    source: Source,
+    power: Power,
+    //onSourceChange: (source: Source) => void,
+    //source: Source,
     preset: Preset,
-    onPresetChange: (preset: Preset) => void
-
+    onPresetChange: (preset: Preset) => void,
+    onPowerToggle: (power: Power) => void
 }
 const SOURCE = "Source"
 const PRESET = "Preset"
 
-const PowerCard = ({ power, onSourceChange, source, preset, onPresetChange }: PowerInputs) => {
+const PowerCard = ({ power, /*onSourceChange, source,*/ preset, onPresetChange, onPowerToggle }: PowerInputs) => {
     return <Paper
         sx={{
             p: 2,
@@ -34,24 +34,11 @@ const PowerCard = ({ power, onSourceChange, source, preset, onPresetChange }: Po
                 display: "flex",
             }}>
                 <FormControlLabel
-                    control={<Switch checked={power} onChange={() => { }} />}
+                    control={<Switch checked={power === Power.On} onChange={(_, checked) => onPowerToggle(checked ? Power.On : Power.Off)} />}
                     label="Power"
                 />
             </Grid>
-            <Grid xs={6}>
-                <FormControl size="small" fullWidth >
-                    <InputLabel id="source-select-label">{SOURCE}</InputLabel>
-                    <Select
-                        labelId="source-select-label"
-                        id="source-select"
-                        value={source}
-                        label={SOURCE}
-                        onChange={e => onSourceChange(e.target.value as Source)}
-                    >
-                        {Object.values(Source).map((v) => <MenuItem key={v} value={v}>{v}</MenuItem>)}
-                    </Select>
-                </FormControl>
-            </Grid>
+
             <Grid xs={6}></Grid>
             <Grid xs={6}>
                 <FormControl size="small" fullWidth >
@@ -70,5 +57,20 @@ const PowerCard = ({ power, onSourceChange, source, preset, onPresetChange }: Po
         </Grid>
     </Paper >
 }
-
+/**
+ * <Grid xs={6}>
+    <FormControl size="small" fullWidth >
+        <InputLabel id="source-select-label">{SOURCE}</InputLabel>
+        <Select
+            labelId="source-select-label"
+            id="source-select"
+            value={source}
+            label={SOURCE}
+            onChange={e => onSourceChange(e.target.value as Source)}
+        >
+            {Object.values(Source).map((v) => <MenuItem key={v} value={v}>{v}</MenuItem>)}
+        </Select>
+    </FormControl>
+</Grid>
+*/
 export default PowerCard

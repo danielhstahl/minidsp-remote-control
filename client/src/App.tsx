@@ -9,7 +9,9 @@ import Grid from '@mui/material/Grid';
 import {
   Source,
   Power,
-  postRequest,
+  setVolume,
+  setPreset,
+  setPower,
   Preset,
   getWebSocket,
   HtxWrite,
@@ -41,17 +43,24 @@ function App() {
     })
   }, [writeDispatch])
 
-  const updateSource = (source: Source) => {
+  /*const updateSource = (source: Source) => {
     writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, source } })
     postRequest({ source })
-  }
+  }*/
   const updatePreset = (preset: Preset) => {
     writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, preset } })
-    postRequest({ preset })
+    setPreset(preset)
   }
   const updateVolume = (volume: number) => {
     writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, volume } })
-    postRequest({ volume })
+    //postRequest({ volume })
+    setVolume(volume)
+  }
+
+  const updatePower = (power: Power) => {
+    writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, power } })
+    //postRequest({ volume })
+    setPower(power)
   }
 
   return (
@@ -76,12 +85,12 @@ function App() {
             <Grid container spacing={3}>
               <Grid item xs={12} md={12} lg={12}>
                 <StatusCard
-                  //onPowerToggle={onPowerToggle}
-                  power={true}
-                  onSourceChange={updateSource}
+                  onPowerToggle={updatePower}
+                  power={writeParams.power}
+                  //onSourceChange={updateSource}
                   preset={writeParams.preset}
                   onPresetChange={updatePreset}
-                  source={writeParams.source}
+                //source={writeParams.source}
                 />
               </Grid>
 

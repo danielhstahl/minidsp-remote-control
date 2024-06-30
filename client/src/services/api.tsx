@@ -1,6 +1,6 @@
 export enum Power {
-    On = "On",
-    Off = "Off",
+    On = "on",
+    Off = "off",
 }
 
 export enum Source {
@@ -25,27 +25,41 @@ export interface HtxReadOnly {
 };
 
 export interface HtxWrite {
-    //power: Power; // hmm
+    power: Power; // hmm
     source: Source;
     volume: number;
     preset: Preset;
 }
 
 export const getWebSocket = (cb: (currentStatus: HtxWrite) => void) => {
-    const socket = new WebSocket(process.env.NODE_ENV === 'production' ? '/ws' : 'ws://localhost:4000/ws')
+    const socket = new WebSocket(process.env.NODE_ENV === 'production' ? '/ws' : `${process.env.REACT_APP_PROXY?.replace("http", "ws")}/ws`)
     socket.addEventListener("message", (event) => {
-        const { source, volume, preset } = JSON.parse(event.data)
-        cb({ source, volume, preset })
+        console.log(event.data)
+        const { source, volume, preset, power } = JSON.parse(event.data)
+        cb({ source, volume, preset, power })
     })
 }
 
-interface Body {
+/*interface Body {
     [key: string]: string | number
-}
-export const postRequest = (body: Body) => {
+}*/
+/*export const postRequest = (body: Body) => {
     const fullUrl = `/api/devices/0/config`
     return fetch(fullUrl, { method: "POST", body: JSON.stringify({ master_status: body }) })
+}*/
+
+export const setVolume = (volume: number) => {
+    return fetch(`/volume/${volume}`, { method: "POST" })
 }
+
+export const setPreset = (preset: number) => {
+    return fetch(`/preset/${preset}`, { method: "POST" })
+}
+export const setPower = (powerToTurnTo: Power) => {
+    //const endpoint = turnPowerOn ? "on" : "off"
+    return fetch(`/power/${powerToTurnTo}`, { method: "POST" })
+}
+
 
 /*
 export const getWrite = () => fetch("/info").then(res => res.json()).then(r => {
