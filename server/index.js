@@ -2,7 +2,7 @@
 const Fastify = require('fastify')
 const { execFile } = require('child_process');
 const { env: { USB_INDEX } } = require("process")
-
+const path = require("path")
 const fastify = Fastify({
     logger: true
 })
