@@ -1,0 +1,46 @@
+on:
+    release:
+        types: [published]
+  
+jobs:
+    build_server:
+        name: release
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write # release changes require contents write
+        defaults:
+            run:
+                working-directory: ./server
+        steps:
+        - uses: actions/checkout@v4
+
+        - name: install
+          run: npm ci
+
+        - name: test
+          run: npm test
+        
+    build_ui:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write # release changes require contents write
+        defaults:
+            run:
+                working-directory: ./client
+        steps:
+        - uses: actions/checkout@v4
+
+        - name: install deps
+          run: npm ci
+
+        - name: compile
+          run: npm run build
+  
+        - name: package
+          run: tar czvf minidsp-ui.tar.gz build
+    
+        - name: upload artifact
+          env:
+            GITHUB_TOKEN: ${{ github.token }}
+          run: |
+            gh release upload ${{ github.event.release.tag_name }} avprocessor-ui.tar.gz

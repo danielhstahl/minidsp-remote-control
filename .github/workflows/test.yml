@@ -1,0 +1,27 @@
+on: push
+  
+jobs:
+  run_server_tests:
+    name: Run rust test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./server
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install 
+      run: npm ci
+
+  run_ui_tests:
+    name: Run UI tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./client
+    steps:
+    - uses: actions/checkout@v4
+    - name: install deps
+      run: npm ci
+    - name: run tests
+      run: npm run test -- --coverage .

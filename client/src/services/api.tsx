@@ -25,16 +25,15 @@ export interface HtxReadOnly {
 };
 
 export interface HtxWrite {
-    power: Power; // hmm
+    power: Power;
     source: Source;
     volume: number;
     preset: Preset;
 }
 
 export const getWebSocket = (cb: (currentStatus: HtxWrite) => void) => {
-    const socket = new WebSocket(process.env.NODE_ENV === 'production' ? '/ws' : `${process.env.REACT_APP_PROXY?.replace("http", "ws")}/ws`)
+    const socket = new WebSocket(process.env.NODE_ENV === 'production' ? '/ws' : `${process.env.REACT_APP_PROXY?.replace("http", "ws") || "ws://localhost"}/ws`)
     socket.addEventListener("message", (event) => {
-        console.log(event.data)
         const { source, volume, preset, power } = JSON.parse(event.data)
         cb({ source, volume, preset, power })
     })
