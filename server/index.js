@@ -147,7 +147,7 @@ fastify.register(async function (fastify) {
             ]).then(([minidsp, power]) => {
                 const { preset, mute, source, volume } = minidsp
                 socket.send(JSON.stringify({ preset, source, volume, power }))
-            })
+            }).catch(console.err)
         }, 3000)
         socket.on("close", () => {
             console.log("closing...")
