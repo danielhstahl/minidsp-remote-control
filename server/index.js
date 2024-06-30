@@ -1,15 +1,15 @@
 'use strict'
 const Fastify = require('fastify')
-const http = require('http');
+//const http = require('http');
 //const httpProxy = require('@fastify/http-proxy')
 const { exec } = require('child_process');
-const { env: { PORT, IP, USB_INDEX } } = require("process")
+const { env: { /*PORT, IP,*/ USB_INDEX } } = require("process")
 
 const fastify = Fastify({
     logger: true
 })
 
-const upstream = `http://${IP || "localhost"}:${PORT || 5380}`
+//const upstream = `http://${IP || "localhost"}:${PORT || 5380}`
 const usbIndex = USB_INDEX || 2
 /*fastify.register(httpProxy, {
     upstream,
@@ -17,12 +17,12 @@ const usbIndex = USB_INDEX || 2
 });*/
 fastify.register(require('@fastify/websocket'))
 
-const options = {
+/*const options = {
     hostname: IP || "localhost",
     port: PORT || 5380,
     path: '/devices/0',
     //method: 'POST',
-};
+};*/
 /*
 function httpGet(options) {
     return new Promise((resolve, reject) => {
@@ -178,7 +178,7 @@ fastify.register(async function (fastify) {
 
 // Run the server!
 try {
-    fastify.listen({ port: 4000 })
+    fastify.listen({ port: 4000, host: '0.0.0.0' })
 } catch (err) {
     fastify.log.error(err)
     process.exit(1)
