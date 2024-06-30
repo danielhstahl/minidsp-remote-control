@@ -2,7 +2,7 @@
 const Fastify = require('fastify')
 //const http = require('http');
 //const httpProxy = require('@fastify/http-proxy')
-const { exec } = require('child_process');
+const { exec, execFile } = require('child_process');
 const { env: { /*PORT, IP,*/ USB_INDEX } } = require("process")
 
 const fastify = Fastify({
@@ -51,57 +51,67 @@ function httpGet(options) {
 //uhubctl is assumed to be in your path, and index.js needs to run as root
 //see https://www.byfarthersteps.com/6802/
 function powerOff(usbIndex) {
-    return new Promise((res, rej) => exec(`uhubctl -l 1-1 -p ${usbIndex} -a off`, (err, stdout, stderr) => {
-        if (err) {
-            rej(err)
-        }
-        else {
-            res(stdout)
-        }
-    }))
+    return new Promise((res, rej) => execFile(
+        `uhubctl`,
+        ['-l', '1-1', '-p', usbIndex, '-a', 'off'],
+        (err, stdout, stderr) => {
+            if (err) {
+                rej(err)
+            }
+            else {
+                res(stdout)
+            }
+        }))
 }
 
 //for me usbIndex is "2", run `uhubctl` to get a list of usb ports
 //uhubctl is assumed to be in your path, and index.js needs to run as root
 //see https://www.byfarthersteps.com/6802/
 function powerOn(usbIndex) {
-    return new Promise((res, rej) => exec(`uhubctl -l 1-1 -p ${usbIndex} -a on`, (err, stdout, stderr) => {
-        if (err) {
-            rej(err)
-        }
-        else {
-            res(stdout)
-        }
-    }))
+    return new Promise((res, rej) => execFile(
+        `uhubctl`,
+        ['-l', '1-1', '-p', usbIndex, '-a', 'on'],
+        (err, stdout, stderr) => {
+            if (err) {
+                rej(err)
+            }
+            else {
+                res(stdout)
+            }
+        }))
+
 }
 
 //for me usbIndex is "2", run `uhubctl` to get a list of usb ports
 //uhubctl is assumed to be in your path, and index.js needs to run as root
 //see https://www.byfarthersteps.com/6802/
 function powerStatus(usbIndex) {
-    return new Promise((res, rej) => exec(`uhubctl -l 1-1 -p ${usbIndex}`, (err, stdout, stderr) => {
-        if (err) {
-            rej(err)
-        }
-        else {
-            res(stdout.search("off") === -1 ? "off" : "on")
-        }
-    }))
+    return new Promise((res, rej) => execFile(
+        `uhubctl`,
+        ['-l', '1-1', '-p', usbIndex],
+        (err, stdout, stderr) => {
+            if (err) {
+                rej(err)
+            }
+            else {
+                res(stdout)
+            }
+        }))
 }
 
 function minidspStatus() {
-    return new Promise((res, rej) => exec(`minidsp -o json`, (err, stdout, stderr) => {
+    return new Promise((res, rej) => execFile(`minidsp`, ['-o', 'json'], (err, stdout, stderr) => {
         if (err) {
             rej(err)
         }
         else {
-            res(JSON.parse(stdout))
+            res(JSON.parse(stdout).master)
         }
     }))
 }
 
 function setMinidspVol(gain) {
-    return new Promise((res, rej) => exec(`minidsp gain -- ${gain}`, (err, stdout, stderr) => {
+    return new Promise((res, rej) => execFile(`minidsp`, ['gain', '--', gain], (err, stdout, stderr) => {
         if (err) {
             rej(err)
         }
@@ -112,7 +122,7 @@ function setMinidspVol(gain) {
 }
 
 function setMinidspPreset(preset) { //0 indexed
-    return new Promise((res, rej) => exec(`minidsp config ${preset}`, (err, stdout, stderr) => {
+    return new Promise((res, rej) => execFile(`minidsp`, ['config', preset], (err, stdout, stderr) => {
         if (err) {
             rej(err)
         }
