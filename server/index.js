@@ -143,6 +143,11 @@ fastify.register(async function (fastify) {
     })
 })
 
+fastify.register(require('@fastify/static'), {
+    root: path.join(__dirname, 'build'),
+    prefix: '/', // optional: default '/'
+})
+
 // Run the server!
 try {
     fastify.listen({ port: 4000, host: '0.0.0.0' })
