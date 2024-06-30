@@ -79,7 +79,7 @@ function setMinidspVol(gain) {
             rej(err)
         }
         else {
-            res(JSON.parse(stdout))
+            res()
         }
     }))
 }
@@ -90,7 +90,7 @@ function setMinidspPreset(preset) { //0 indexed
             rej(err)
         }
         else {
-            res(JSON.parse(stdout))
+            res()
         }
     }))
 }
