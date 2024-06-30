@@ -7,7 +7,6 @@ import Toolbar from '@mui/material/Toolbar';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import {
-  Source,
   Power,
   setVolume,
   setPreset,
@@ -19,7 +18,6 @@ import {
 import StatusCard from './components/PowerCard';
 import VolumeCard from './components/VolumeCard';
 import AppBar from './components/AppBar';
-import SourceCard from './components/SourceCard';
 import { WriteAction, useWriteParams } from './state/writeActions';
 
 const mdTheme = createTheme();
@@ -43,23 +41,18 @@ function App() {
     })
   }, [writeDispatch])
 
-  /*const updateSource = (source: Source) => {
-    writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, source } })
-    postRequest({ source })
-  }*/
+
   const updatePreset = (preset: Preset) => {
     writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, preset } })
     setPreset(preset)
   }
   const updateVolume = (volume: number) => {
     writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, volume } })
-    //postRequest({ volume })
     setVolume(volume)
   }
 
   const updatePower = (power: Power) => {
     writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, power } })
-    //postRequest({ volume })
     setPower(power)
   }
 
@@ -87,10 +80,8 @@ function App() {
                 <StatusCard
                   onPowerToggle={updatePower}
                   power={writeParams.power}
-                  //onSourceChange={updateSource}
                   preset={writeParams.preset}
                   onPresetChange={updatePreset}
-                //source={writeParams.source}
                 />
               </Grid>
 

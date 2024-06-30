@@ -40,14 +40,6 @@ export const getWebSocket = (cb: (currentStatus: HtxWrite) => void) => {
     })
 }
 
-/*interface Body {
-    [key: string]: string | number
-}*/
-/*export const postRequest = (body: Body) => {
-    const fullUrl = `/api/devices/0/config`
-    return fetch(fullUrl, { method: "POST", body: JSON.stringify({ master_status: body }) })
-}*/
-
 export const setVolume = (volume: number) => {
     return fetch(`/volume/${volume}`, { method: "POST" })
 }
@@ -56,15 +48,6 @@ export const setPreset = (preset: number) => {
     return fetch(`/preset/${preset}`, { method: "POST" })
 }
 export const setPower = (powerToTurnTo: Power) => {
-    //const endpoint = turnPowerOn ? "on" : "off"
     return fetch(`/power/${powerToTurnTo}`, { method: "POST" })
 }
-
-
-/*
-export const getWrite = () => fetch("/info").then(res => res.json()).then(r => {
-    const { power, source, volume, mode } = r
-    const convertedMode = mode !== Mode.stereo ? Mode.auto : Mode.stereo
-    return { power, source, volume, mode: convertedMode } as XmcWrite
-})*/
 

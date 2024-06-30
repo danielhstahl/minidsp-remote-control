@@ -4,24 +4,20 @@ import Paper from '@mui/material/Paper';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
-import { Source, Preset, Power } from '../services/api'
+import { Preset, Power } from '../services/api'
 import Grid from '@mui/system/Unstable_Grid'
 import Select from '@mui/material/Select';
 
 
 interface PowerInputs {
-    //onPowerToggle: () => void,
     power: Power,
-    //onSourceChange: (source: Source) => void,
-    //source: Source,
     preset: Preset,
     onPresetChange: (preset: Preset) => void,
     onPowerToggle: (power: Power) => void
 }
-const SOURCE = "Source"
 const PRESET = "Preset"
 
-const PowerCard = ({ power, /*onSourceChange, source,*/ preset, onPresetChange, onPowerToggle }: PowerInputs) => {
+const PowerCard = ({ power, preset, onPresetChange, onPowerToggle }: PowerInputs) => {
     return <Paper
         sx={{
             p: 2,
