@@ -33,7 +33,7 @@ jobs:
           run: npm run build
   
         - name: package
-          run: tar czvf minidsp-ui.tar.gz ./client/build ./server/index.js ./server/package-lock.json ./server/package.json
+          run: tar czvf minidsp-ui.tar.gz -C client build -C ../server index.js package-lock.json package.json
     
         - name: upload artifact
           env:
