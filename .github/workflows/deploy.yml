@@ -6,16 +6,12 @@ jobs:
     build_server:
         name: release
         runs-on: ubuntu-latest
-        permissions:
-            contents: write # release changes require contents write
-        defaults:
-            run:
-                working-directory: ./server
         steps:
         - uses: actions/checkout@v4
 
         - name: install
           run: npm ci
+          working-directory: ./server
 
         #- name: test
         #  run: npm test
@@ -24,20 +20,20 @@ jobs:
         runs-on: ubuntu-latest
         permissions:
             contents: write # release changes require contents write
-        defaults:
-            run:
-                working-directory: ./client
+
         steps:
         - uses: actions/checkout@v4
 
         - name: install deps
           run: npm ci
+          working-directory: ./client
 
         - name: compile
+          working-directory: ./client
           run: npm run build
   
         - name: package
-          run: tar czvf minidsp-ui.tar.gz build
+          run: tar czvf minidsp-ui.tar.gz ./client/build ./server/index.js ./server/package-lock.json ./server/package.json
     
         - name: upload artifact
           env:
