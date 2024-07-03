@@ -8,7 +8,6 @@ const fastify = Fastify({
 })
 
 const usbIndex = USB_INDEX || 2
-fastify.register(require('@fastify/websocket'))
 
 //for me usbIndex is "2", run `uhubctl` to get a list of usb ports
 //uhubctl is assumed to be in your path, and index.js needs to run as root
