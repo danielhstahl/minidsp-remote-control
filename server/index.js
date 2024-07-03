@@ -96,19 +96,15 @@ function setMinidspPreset(preset) { //0 indexed
 }
 
 fastify.register(async function (fastify) {
-    fastify.get('/ws', { websocket: true }, (socket, req) => {
-        const interval = setInterval(() => {
-            Promise.all([
-                minidspStatus(),
-                powerStatus(usbIndex)
-            ]).then(([minidsp, power]) => {
-                const { preset, mute, source, volume } = minidsp
-                socket.send(JSON.stringify({ preset, source, volume, power }))
-            }).catch(console.log)
-        }, 3000)
-        socket.on("close", () => {
-            console.log("closing...")
-            clearInterval(interval)
+    fastify.get('/status', (req, reply) => {
+        Promise.all([
+            minidspStatus(),
+            powerStatus(usbIndex)
+        ]).then(([minidsp, power]) => {
+            const { preset, mute, source, volume } = minidsp
+            reply.send({ preset, source, volume, power })
+        }).catch((e) => {
+            reply.send({ success: false, message: e })
         })
     })
     fastify.post("/volume/:volume", (req, reply) => {

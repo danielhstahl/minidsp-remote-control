@@ -1,5 +1,5 @@
 # put this file in /lib/systemd/system/minidsp-ui.service
-# download minidsp-ui.tar.gz from releases, and extract into /usr/bin/
+# download minidsp-ui.tar.gz from releases, and extract into /usr/bin/minidsp-ui
 # `sudo systemctl enable minidsp-ui`
 
 [Unit]
