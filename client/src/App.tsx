@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import './App.css';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Box from '@mui/material/Box';
@@ -12,8 +12,7 @@ import {
   setPreset,
   setPower,
   Preset,
-  getWebSocket,
-  HtxWrite,
+  getStatus,
 } from './services/api'
 import StatusCard from './components/PowerCard';
 import VolumeCard from './components/VolumeCard';
@@ -35,25 +34,50 @@ const mdTheme = createTheme();
 
 function App() {
   const { dispatch: writeDispatch, state: writeParams } = useWriteParams()
+  const getParams = useCallback(() => getStatus().then(
+    status => writeDispatch({ type: WriteAction.UPDATE, value: status })),
+    [writeDispatch]
+  )
+  const holdRefresh = useRef<undefined | ReturnType<typeof setTimeout>>(undefined)
+
+  const getParamsLater = useCallback(() => {
+    if (holdRefresh.current !== undefined) {
+      //only undefined at first load, essentially this "resets" 
+      //the timeout so as not to overload the server with calls
+      clearTimeout(holdRefresh.current)
+    }
+    //refresh after 3 seconds to give MiniDSP time to adjust 
+    //and respond with correct parameters
+    holdRefresh.current = setTimeout(getParams, 3000)
+  }, [getParams])
+
   useEffect(() => {
-    getWebSocket((status: HtxWrite) => {
-      writeDispatch({ type: WriteAction.UPDATE, value: status })
-    })
-  }, [writeDispatch])
+    //on initial load, get params immediately
+    getParams()
+    //oncomment if MiniDSP can be adjusted outside the app
+    //else the MiniDSP state and the client state can
+    //become decoupled until the next command from this client
+    /*setInterval(() => {
+      getParamsLater()
+    }, 2000)*/
+  }, [getParams])
 
 
   const updatePreset = (preset: Preset) => {
     writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, preset } })
     setPreset(preset)
+    getParamsLater()
   }
   const updateVolume = (volume: number) => {
     writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, volume } })
     setVolume(volume)
+    getParamsLater()
   }
 
   const updatePower = (power: Power) => {
     writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, power } })
     setPower(power)
+    getParamsLater()
   }
 
   return (

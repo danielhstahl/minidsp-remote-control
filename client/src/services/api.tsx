@@ -31,12 +31,9 @@ export interface HtxWrite {
     preset: Preset;
 }
 
-export const getWebSocket = (cb: (currentStatus: HtxWrite) => void) => {
-    const socket = new WebSocket(process.env.NODE_ENV === 'production' ? '/ws' : `${process.env.REACT_APP_PROXY?.replace("http", "ws") || "ws://localhost"}/ws`)
-    socket.addEventListener("message", (event) => {
-        const { source, volume, preset, power } = JSON.parse(event.data)
-        cb({ source, volume, preset, power })
-    })
+
+export const getStatus: () => Promise<HtxWrite> = () => {
+    return fetch('/status').then(v => v.json())
 }
 
 export const setVolume = (volume: number) => {
