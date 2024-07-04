@@ -9,32 +9,31 @@ import Box from '@mui/material/Box';
 import CircularProgress, {
     CircularProgressProps,
 } from '@mui/material/CircularProgress';
+import { applyThemePrimaryColor, applyThemeSecondaryColor, ColorTheme } from '../styles/modes';
 interface VolumeInputs {
     onVolumeChange: (v: number) => void,
-    //volumeUp: () => void,
-    //volumeDown: () => void,
     volume: number,
+    mode: ColorTheme
 
 }
 
 const CircularProgressWithLabel = (
-    props: CircularProgressProps & { value: number, rawValue: number },
+    props: CircularProgressProps & { value: number, rawValue: number, mode: ColorTheme },
 ) => {
-    const { rawValue, ...rest } = props
+    const { rawValue, mode, ...rest } = props
     return (
         <Box sx={{ position: 'relative', display: 'inline-flex' }}>
             <CircularProgress
                 variant="determinate"
                 sx={{
-                    color: (theme) => theme.palette.grey[theme.palette.mode === 'light' ? 200 : 800],
-
+                    color: (theme) => applyThemeSecondaryColor(theme, mode),
                 }}
                 {...rest}
                 value={100}
             />
             <CircularProgress
                 sx={{
-                    //color: (theme) => (theme.palette.mode === 'light' ? '#1a90ff' : '#308fe8'),
+                    color: theme => applyThemePrimaryColor(theme, mode),
                     position: 'absolute',
                     left: 0,
                 }}
@@ -65,7 +64,7 @@ const CircularProgressWithLabel = (
 const MIN_VOLUME = -127
 const MAX_VOLUME = 0
 const convertTo100 = (volume: number) => 100 * ((volume - MIN_VOLUME) / (MAX_VOLUME - MIN_VOLUME))
-const VolumeCard = ({ onVolumeChange, volume }: VolumeInputs) => {
+const VolumeCard = ({ onVolumeChange, volume, mode }: VolumeInputs) => {
     return <Paper
         sx={{
             p: 2,
@@ -76,10 +75,19 @@ const VolumeCard = ({ onVolumeChange, volume }: VolumeInputs) => {
     >
         <Stack spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
             <IconButton onClick={() => onVolumeChange(volume - 1)} ><VolumeDown /></IconButton>
-            <Slider min={MIN_VOLUME} max={MAX_VOLUME} aria-label="Volume" value={volume} onChange={(_e: Event, n: number | number[]) => {
-                const volume = n as number
-                onVolumeChange(volume)
-            }} />
+            <Slider
+                sx={{
+                    color: theme => applyThemePrimaryColor(theme, mode),
+                }}
+                min={MIN_VOLUME}
+                max={MAX_VOLUME}
+                aria-label="Volume"
+                value={volume}
+                onChange={(_e: Event, n: number | number[]) => {
+                    const volume = n as number
+                    onVolumeChange(volume)
+                }}
+            />
             <IconButton onClick={() => onVolumeChange(volume + 1)} > <VolumeUp /></IconButton>
         </Stack>
         <div style={{
@@ -89,7 +97,7 @@ const VolumeCard = ({ onVolumeChange, volume }: VolumeInputs) => {
             textAlign: "center",
             alignItems: "center"
         }}>
-            <CircularProgressWithLabel size="9rem" rawValue={volume} value={convertTo100(volume)} />
+            <CircularProgressWithLabel size="9rem" rawValue={volume} value={convertTo100(volume)} mode={mode} />
         </div>
     </Paper>
 }

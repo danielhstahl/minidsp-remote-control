@@ -7,17 +7,19 @@ import MenuItem from '@mui/material/MenuItem';
 import { Preset, Power } from '../services/api'
 import Grid from '@mui/system/Unstable_Grid'
 import Select from '@mui/material/Select';
-
-
+import { ColorTheme, applyThemePrimaryType, applyThemePrimaryColor } from '../styles/modes';
+import { useTheme } from '@mui/material';
 interface PowerInputs {
     power: Power,
     preset: Preset,
     onPresetChange: (preset: Preset) => void,
-    onPowerToggle: (power: Power) => void
+    onPowerToggle: (power: Power) => void,
+    mode: ColorTheme
 }
 const PRESET = "Preset"
 
-const PowerCard = ({ power, preset, onPresetChange, onPowerToggle }: PowerInputs) => {
+const PowerCard = ({ power, preset, onPresetChange, onPowerToggle, mode }: PowerInputs) => {
+    const theme = useTheme()
     return <Paper
         sx={{
             p: 2,
@@ -30,7 +32,11 @@ const PowerCard = ({ power, preset, onPresetChange, onPowerToggle }: PowerInputs
                 display: "flex",
             }}>
                 <FormControlLabel
-                    control={<Switch checked={power === Power.On} onChange={(_, checked) => onPowerToggle(checked ? Power.On : Power.Off)} />}
+                    control={<Switch
+                        color={applyThemePrimaryType(mode)}
+                        checked={power === Power.On}
+                        onChange={(_, checked) => onPowerToggle(checked ? Power.On : Power.Off)}
+                    />}
                     label="Power"
                 />
             </Grid>
@@ -40,6 +46,19 @@ const PowerCard = ({ power, preset, onPresetChange, onPowerToggle }: PowerInputs
                 <FormControl size="small" fullWidth >
                     <InputLabel id="source-select-label">{PRESET}</InputLabel>
                     <Select
+                        sx={
+                            {
+                                '& .MuiSvgIcon-root': {
+                                    color: applyThemePrimaryColor(theme, mode), // <------------------ arrow-svg-color 
+                                },
+                                '&.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: applyThemePrimaryColor(theme, mode), // <------------------ utline-color on hover
+                                },
+                                '&.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: applyThemePrimaryColor(theme, mode), // <------------------ outline-color on focus
+                                }
+                            }
+                        }
                         labelId="source-select-label"
                         id="source-select"
                         value={preset}
