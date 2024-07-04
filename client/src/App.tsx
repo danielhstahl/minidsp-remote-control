@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useMemo, useState } from 'react';
 import './App.css';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Box from '@mui/material/Box';
@@ -18,9 +18,8 @@ import StatusCard from './components/PowerCard';
 import VolumeCard from './components/VolumeCard';
 import AppBar from './components/AppBar';
 import { WriteAction, useWriteParams } from './state/writeActions';
-
-const mdTheme = createTheme();
-
+import { saveColorTheme, getColorTheme } from './state/persistance';
+import { ColorTheme, applyThemeBackgroundColor, DEFAULT_COLOR_THEME, THEME_TO_MODE } from './styles/modes'
 /*
 <Grid item xs={12} md={6} lg={6}>
   <SourceCard
@@ -34,6 +33,7 @@ const mdTheme = createTheme();
 
 function App() {
   const { dispatch: writeDispatch, state: writeParams } = useWriteParams()
+  const [colorTheme, setColorTheme] = useState<ColorTheme>(getColorTheme() || DEFAULT_COLOR_THEME);
   const getParams = useCallback(() => getStatus().then(
     status => writeDispatch({ type: WriteAction.UPDATE, value: status })),
     [writeDispatch]
@@ -80,18 +80,30 @@ function App() {
     getParamsLater()
   }
 
+  const theme = useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode: THEME_TO_MODE[colorTheme],
+        },
+      }),
+    [colorTheme],
+  );
+
+  const localSetMode = (mode: ColorTheme) => {
+    saveColorTheme(mode)
+    setColorTheme(mode)
+  }
+
   return (
-    <ThemeProvider theme={mdTheme}>
+    <ThemeProvider theme={theme}>
       <Box sx={{ display: 'flex' }}>
         <CssBaseline />
-        <AppBar />
+        <AppBar mode={colorTheme} setMode={localSetMode} />
         <Box
           component="main"
           sx={{
-            backgroundColor: (theme) =>
-              theme.palette.mode === 'light'
-                ? theme.palette.grey[100]
-                : theme.palette.grey[900],
+            backgroundColor: (theme) => applyThemeBackgroundColor(theme, colorTheme),
             flexGrow: 1,
             height: '100vh',
             overflow: 'auto',
@@ -106,6 +118,7 @@ function App() {
                   power={writeParams.power}
                   preset={writeParams.preset}
                   onPresetChange={updatePreset}
+                  mode={colorTheme}
                 />
               </Grid>
 
@@ -113,6 +126,7 @@ function App() {
                 <VolumeCard
                   onVolumeChange={updateVolume}
                   volume={writeParams.volume}
+                  mode={colorTheme}
                 />
               </Grid>
             </Grid>

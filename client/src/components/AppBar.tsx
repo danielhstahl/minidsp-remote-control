@@ -1,8 +1,12 @@
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
-
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
 import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import { ColorTheme } from '../styles/modes';
 const drawerWidth: number = 240;
 interface AppBarProps extends MuiAppBarProps {
     open?: boolean;
@@ -24,8 +28,13 @@ const AppBar = styled(MuiAppBar, {
         }),
     }),
 }));
+export type Mode = "light" | "dark"
+interface AppBarMenuProps {
+    setMode: (mode: ColorTheme) => void,
+    mode: ColorTheme
+}
 
-const AppBarMenu = () => {
+const AppBarMenu = ({ setMode, mode }: AppBarMenuProps) => {
     return <AppBar position="absolute" open={false}>
         <Toolbar
             sx={{
@@ -41,6 +50,21 @@ const AppBarMenu = () => {
             >
                 MiniDSP Remote
             </Typography>
+            <ToggleButtonGroup
+                value={mode}
+                exclusive
+                onChange={(_, v) => setMode(v)}
+            >
+                <ToggleButton value="light" aria-label="Light Mode">
+                    <LightModeIcon />
+                </ToggleButton>
+                <ToggleButton value="dark" aria-label="Dark Mode">
+                    <DarkModeIcon />
+                </ToggleButton>
+                <ToggleButton value="dark_evil" aria-label="Evil Dark Mode">
+                    <DarkModeIcon color="error" />
+                </ToggleButton>
+            </ToggleButtonGroup>
         </Toolbar>
     </AppBar>
 }
