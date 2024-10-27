@@ -138,7 +138,7 @@ fastify.register(async function (fastify) {
     })
     fastify.post("/source/:source", (req, reply) => {
         const { source } = req.params
-        setMinidspInput(preset).then(() => {
+        setMinidspInput(source).then(() => {
             reply.send({ success: true })
         }).catch((e) => {
             reply.send({ success: false, message: e })
