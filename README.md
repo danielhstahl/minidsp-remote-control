@@ -6,6 +6,14 @@ Client is programmed using ReactJS.
 
 ## Server
 
+### MiniDSP version
+
+Version 1.0 and up only supports `minidsp-rs` 1.10 and up. This version allows sources to be selected through the UI.
+
+Version 1.0 supports `minidsp-rs` 1.9.  Only volume control is supported for the MiniDSP.  
+
+### How the server works
+
 Server is a simple NodeJS server.  It makes call directly to the underlying binaries required for MiniDSP and uhubctl.  See https://minidsp-rs.pages.dev/cli/ and https://www.byfarthersteps.com/6802/.  
 
 ## Installing/running

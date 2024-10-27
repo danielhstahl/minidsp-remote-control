@@ -4,11 +4,11 @@ export enum Power {
 }
 
 export enum Source {
-    USB = "Usb",
-    HDMI = "Hdmi",
-    Toslink = "Toslink",
-    Spdif = "Spdif",
-    Analog = "Analog",
+    USB = "usb",
+    HDMI = "hdmi",
+    Toslink = "toslink",
+    Spdif = "spdif",
+    Analog = "analog",
 }
 
 export enum Preset {
@@ -45,5 +45,8 @@ export const setPreset = (preset: number) => {
 }
 export const setPower = (powerToTurnTo: Power) => {
     return fetch(`/power/${powerToTurnTo}`, { method: "POST" })
+}
+export const setSource = (source: Source) => {
+    return fetch(`/source/${source}`, { method: "POST" })
 }
 

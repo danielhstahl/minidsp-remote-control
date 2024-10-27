@@ -13,6 +13,8 @@ import {
   setPower,
   Preset,
   getStatus,
+  Source,
+  setSource,
 } from './services/api'
 import StatusCard from './components/PowerCard';
 import VolumeCard from './components/VolumeCard';
@@ -20,16 +22,6 @@ import AppBar from './components/AppBar';
 import { WriteAction, useWriteParams } from './state/writeActions';
 import { saveColorTheme, getColorTheme } from './state/persistance';
 import { ColorTheme, applyThemeBackgroundColor, DEFAULT_COLOR_THEME, THEME_TO_MODE } from './styles/modes'
-/*
-<Grid item xs={12} md={6} lg={6}>
-  <SourceCard
-    audioMode={xmcReadOnly.audioMode}
-    audioInfo={xmcReadOnly.audioBits}
-    audioBitstream={xmcReadOnly.audioBitstream}
-    videoFormat={xmcReadOnly.videoFormat}
-  />
-</Grid>
-*/
 
 function App() {
   const { dispatch: writeDispatch, state: writeParams } = useWriteParams()
@@ -79,6 +71,11 @@ function App() {
     setPower(power)
     getParamsLater()
   }
+  const updateSource = (source: Source) => {
+    writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, source } })
+    setSource(source)
+    getParamsLater()
+  }
 
   const theme = useMemo(
     () =>
@@ -117,11 +114,12 @@ function App() {
                   onPowerToggle={updatePower}
                   power={writeParams.power}
                   preset={writeParams.preset}
+                  source={writeParams.source}
                   onPresetChange={updatePreset}
+                  onSourceChange={updateSource}
                   mode={colorTheme}
                 />
               </Grid>
-
               <Grid item xs={12} md={6} lg={6}>
                 <VolumeCard
                   onVolumeChange={updateVolume}

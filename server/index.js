@@ -94,6 +94,17 @@ function setMinidspPreset(preset) { //0 indexed
     }))
 }
 
+function setMinidspInput(source) { //0 indexed
+    return new Promise((res, rej) => execFile(`minidsp`, ['source', source], (err, stdout, stderr) => {
+        if (err) {
+            rej(err)
+        }
+        else {
+            res()
+        }
+    }))
+}
+
 fastify.register(async function (fastify) {
     fastify.get('/status', (req, reply) => {
         Promise.all([
@@ -117,6 +128,14 @@ fastify.register(async function (fastify) {
     fastify.post("/preset/:preset", (req, reply) => {
         const { preset } = req.params
         setMinidspPreset(preset).then(() => {
+            reply.send({ success: true })
+        }).catch((e) => {
+            reply.send({ success: false, message: e })
+        })
+    })
+    fastify.post("/source/:source", (req, reply) => {
+        const { source } = req.params
+        setMinidspInput(preset).then(() => {
             reply.send({ success: true })
         }).catch((e) => {
             reply.send({ success: false, message: e })
