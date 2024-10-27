@@ -94,8 +94,11 @@ function setMinidspPreset(preset) { //0 indexed
     }))
 }
 
-function setMinidspInput(source) { //0 indexed
-    return new Promise((res, rej) => execFile(`minidsp`, ['source', source], (err, stdout, stderr) => {
+function setMinidspInput(source) {
+    // note that the source output from minidspStatus has first letter capitalized, 
+    // but setting the source requires lowercase
+    // see https://minidsp-rs.pages.dev/cli/master/source
+    return new Promise((res, rej) => execFile(`minidsp`, ['source', source.toLowerCase()], (err, stdout, stderr) => {
         if (err) {
             rej(err)
         }

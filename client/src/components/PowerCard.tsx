@@ -23,7 +23,6 @@ const SOURCE = "Source"
 
 const PowerCard = ({ power, preset, source, onSourceChange, onPresetChange, onPowerToggle, mode }: PowerInputs) => {
     const theme = useTheme()
-    console.log(Object.keys(Source))
     return <Paper
         sx={{
             p: 2,

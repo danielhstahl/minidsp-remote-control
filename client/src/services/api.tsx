@@ -4,11 +4,11 @@ export enum Power {
 }
 
 export enum Source {
-    USB = "usb",
-    HDMI = "hdmi",
-    Toslink = "toslink",
-    Spdif = "spdif",
-    Analog = "analog",
+    USB = "Usb",
+    HDMI = "Hdmi",
+    Toslink = "Toslink",
+    Spdif = "Spdif",
+    Analog = "Analog",
 }
 
 export enum Preset {
