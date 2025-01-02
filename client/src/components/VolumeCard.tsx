@@ -10,6 +10,8 @@ import CircularProgress, {
     CircularProgressProps,
 } from '@mui/material/CircularProgress';
 import { applyThemePrimaryColor, applyThemeSecondaryColor, ColorTheme } from '../styles/modes';
+import { MIN_VOLUME, MAX_VOLUME } from '../state/writeActions';
+
 interface VolumeInputs {
     onVolumeChange: (v: number) => void,
     volume: number,
@@ -61,9 +63,7 @@ const CircularProgressWithLabel = (
     );
 }
 
-const MIN_VOLUME = -127
-const MAX_VOLUME = 0
-const convertTo100 = (volume: number) => 100 * ((volume - MIN_VOLUME) / (MAX_VOLUME - MIN_VOLUME))
+export const convertTo100 = (volume: number) => 100 * ((volume - MIN_VOLUME) / (MAX_VOLUME - MIN_VOLUME))
 const VolumeCard = ({ onVolumeChange, volume, mode }: VolumeInputs) => {
     return <Paper
         sx={{
