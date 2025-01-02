@@ -7,3 +7,4 @@ test('renders MiniDSP Remote', () => {
   const linkElement = screen.getByText(/MiniDSP Remote/i);
   expect(linkElement).toBeInTheDocument();
 });
+

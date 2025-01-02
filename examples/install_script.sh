@@ -1,4 +1,4 @@
-## example of running this script: RELEASE_TAG=v1.0.0 ./install_script.sh
+## example of running this script: RELEASE_TAG=v1.0.2 ./install_script.sh
 curl -L -O https://github.com/danielhstahl/minidsp-remote-control/releases/download/${RELEASE_TAG}/minidsp-ui.tar.gz
 sudo rm -rf /usr/bin/minidsp-ui || true
 sudo mkdir /usr/bin/minidsp-ui

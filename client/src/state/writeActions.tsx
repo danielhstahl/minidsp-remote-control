@@ -8,10 +8,12 @@ type Action = {
     type: WriteAction,
     value: HtxWrite
 }
+export const MIN_VOLUME = -127
+export const MAX_VOLUME = 0
 const initialState = {
     preset: Preset.preset1,
     source: Source.USB,
-    volume: -127,
+    volume: MIN_VOLUME,
     power: Power.On
 }
 
@@ -38,9 +40,5 @@ export const WriteProvider = ({ children }: PropsWithChildren) => {
 };
 
 export const useWriteParams = () => {
-    const context = useContext(WriteContext);
-    if (!context) {
-        throw new Error("useWriteParams must be used within a WriteProvider");
-    }
-    return context;
+    return useContext(WriteContext);
 };
