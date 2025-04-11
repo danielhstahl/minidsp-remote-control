@@ -70,9 +70,9 @@ const session = async (device, deviceUuid) => {
     const services = await gattServer.services()
     console.log("services")
     console.log(services)
-
-    const service2 = await gattServer.getPrimaryService(deviceUuid)
+    //const service2 = await gattServer.getPrimaryService(deviceUuid)
     const characteristics = await gattServer.characteristics()
+
     console.log(characteristics)
     return new Promise((res) => {
         device.on("disconnect", () => {
