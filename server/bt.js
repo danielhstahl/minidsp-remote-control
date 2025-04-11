@@ -58,6 +58,7 @@ const loopForDevice = async (adapter, deviceName) => {
 const session = async (device, deviceUuid) => {
     await device.connect()
     const gattServer = await device.gatt()
+    console.log("server launched")
     const services = await gattServer.services()
     console.log("services")
     console.log(services)
