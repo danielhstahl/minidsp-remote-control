@@ -22,11 +22,11 @@ const findDevice = async (adapter, deviceName) => {
     return Promise.all(devices.map(deviceUuid => {
         return adapter.waitDevice(deviceUuid).then(device => {
             return device.getAlias().catch(e => e.toString()).then(name => {
-                return { isDevice: name === deviceName, device, deviceUuid }
+                return { isDevice: name === deviceName, device }
             })
         })
     })).then((results) => {
-        return results.find(result => result.isDevice)
+        return results.find(result => result.isDevice)?.device
     })
     /*const device = await adapter.waitDevice(uuid)
     console.log("Name")
@@ -52,12 +52,11 @@ const loopForDevice = async (adapter, deviceName) => {
         await new Promise((res) => setTimeout(res, 1000))
         device = await whileDeviceNotFound(adapter, deviceName)
     }
-    const { device: deviceInstance, deviceUuid } = device
-    return { device: deviceInstance, deviceUuid }
+    return device
 }
 const GENERIC_ATTRIBUTE = "00001801-0000-1000-8000-00805f9b34fb"
 const CUSTOM_ATTRIBUTE = "00002a05-0000-1000-8000-00805f9b34fb"
-const session = async (device, deviceUuid) => {
+const session = async (device) => {
     console.log("device connecting")
     if (!await device.isConnected()) {
         await device.connect()
@@ -79,24 +78,18 @@ const session = async (device, deviceUuid) => {
     const gattServer = await device.gatt()
     console.log("server launched")
     const services = gattServer.services()
-    console.log("services")
-    console.log(services)
+    //console.log("services")
+    //console.log(services)
     console.log(gattServer._services)
     const service = await gattServer.getPrimaryService(GENERIC_ATTRIBUTE)
 
     const characteristic = await service.getCharacteristic(CUSTOM_ATTRIBUTE)
-
+    console.log("characteristic retrieved")
     characteristic.on('valuechanged', buffer => {
         console.log(buffer)
     })
     await characteristic.startNotifications()
-
-    /*for (const service in services) {
-        const service2 = await gattServer.getPrimaryService(service)
-        const characteristics = await service2.characteristics()
-        console.log(characteristics)
-    }*/
-
+    console.log("started reading notifications")
     return new Promise((res) => {
         device.on("disconnect", () => {
             res("session ended")
@@ -108,9 +101,10 @@ const doBt = async () => {
     const adapter = await bluetooth.defaultAdapter()
     while (true) {
         console.log("getting device")
-        const { device, deviceUuid } = await loopForDevice(adapter, "VOL20")
+        const device = await loopForDevice(adapter, "VOL20")
         console.log("device obtained")
-        await session(device, deviceUuid) //waits until session is finished (disconnected)
+        await session(device) //waits until session is finished (disconnected)
+        console.log("session ended")
     }
     //const gattServer = await deviceInstance.gatt()
     //const service2 = await gattServer.getPrimaryService(deviceUuid)
