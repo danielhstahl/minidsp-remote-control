@@ -12,6 +12,7 @@
   "description": "",
   "dependencies": {
     "@fastify/static": "^7.0.4",
-    "fastify": "^4.28.0"
+    "fastify": "^4.28.0",
+    "node-ble": "^1.13.0"
   }
 }
