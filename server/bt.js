@@ -61,7 +61,7 @@ const tempGetCharacteristic = async (services) => {
     Object.entries(services).forEach(([key, value]) => {
         Object.keys(value._characteristics).forEach((cKey) => {
             const cValue = value.getCharacteristic(cKey)
-            console.log(typeof cValue)
+            console.log(cValue)
             console.log("got the ch key,", cKey)
             try {
                 cValue.startNotifications().then(() => {
