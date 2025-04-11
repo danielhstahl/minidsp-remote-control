@@ -61,6 +61,10 @@ const session = async (device, deviceUuid) => {
         await device.connect()
     }
     console.log("device connected!")
+    if (!await device.isPaired()) {
+        await device.pair()
+    }
+    console.log("device paired!")
     const gattServer = await device.gatt()
     console.log("server launched")
     const services = await gattServer.services()
