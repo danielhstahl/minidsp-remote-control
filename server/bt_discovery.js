@@ -2,10 +2,9 @@
 
 const { createBluetooth } = require('node-ble')
 const { bluetooth } = createBluetooth()
-const adapter = await bluetooth.defaultAdapter()
-
 
 const doBt = async () => {
+    const adapter = await bluetooth.defaultAdapter()
     if (! await adapter.isDiscovering())
         await adapter.startDiscovery()
 
