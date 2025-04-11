@@ -14,8 +14,8 @@ const doBt = async () => {
     devices.forEach((deviceUuid) => {
         console.log(deviceUuid)
         adapter.waitDevice(deviceUuid).then(device => {
-            Promise.all([device.getName(), device.getAlias()]).then(([name, alias]) => {
-                console.log("Device:", name, alias)
+            Promise.all([device.getName().catch(e => e.toString()), device.getAlias().catch(e => e.toString())]).then(([name, alias]) => {
+                console.log("Device name:", name, "Device alias:", alias)
             })
         })
     })
