@@ -58,8 +58,8 @@ const GENERIC_ATTRIBUTE = "00001801-0000-1000-8000-00805f9b34fb"
 const CUSTOM_ATTRIBUTE = "00002a05-0000-1000-8000-00805f9b34fb"
 
 const tempGetCharacteristic = async (services) => {
-    services.entries(([key, value]) => {
-        value._characteristics.entries(([cKey, cValue]) => {
+    Object.entries(services).forEach(([key, value]) => {
+        Object.entries(value._characteristics).forEach(([cKey, cValue]) => {
             cValue.on('valuechanged', buffer => {
                 console.log("key", key, "cKey", cKey, "value", buffer)
             })
