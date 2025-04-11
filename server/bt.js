@@ -22,11 +22,11 @@ const findDevice = async (adapter, deviceName) => {
     return Promise.all(devices.map(deviceUuid => {
         return adapter.waitDevice(deviceUuid).then(device => {
             return device.getAlias().catch(e => e.toString()).then(name => {
-                return { "isDevice": name === deviceName, device }
+                return { isDevice: name === deviceName, device, deviceUuid }
             })
         })
     })).then((results) => {
-        return results.find(result => result.isDevice)?.device
+        return results.find(result => result.isDevice)
     })
     /*const device = await adapter.waitDevice(uuid)
     console.log("Name")
@@ -38,29 +38,48 @@ const findDevice = async (adapter, deviceName) => {
 const whileDeviceNotFound = async (adapter, deviceName) => {
     return adapter.isDiscovering().then(r => {
         return r ? null : adapter.startDiscovery().then(() => {
-            return findDevice(adapter, deviceName).then(device => {
-                return device
-            })
+            return findDevice(adapter, deviceName)
+        })
+    })
+}
+
+
+
+const loopForDevice = async (adapter, deviceName) => {
+    let device = null
+    device = await whileDeviceNotFound(adapter, deviceName)
+    while (!device) {
+        await new Promise((res) => setTimeout(res, 1000))
+        device = await whileDeviceNotFound(adapter, deviceName)
+    }
+    const { device: deviceInstance, deviceUuid } = device
+    return { device: deviceInstance, deviceUuid }
+}
+const session = async (device, deviceUuid) => {
+    await device.connect()
+    const gattServer = await deviceInstance.gatt()
+    const service2 = await gattServer.getPrimaryService(deviceUuid)
+    const characteristics = await gattServer.characteristics()
+    console.log(characteristics)
+    return new Promise((res) => {
+        device.on("disconnect", () => {
+            res("session ended")
         })
     })
 }
 
 const doBt = async () => {
     const adapter = await bluetooth.defaultAdapter()
-    let device = null
-    while (!device) {
+    while (true) {
         console.log("getting device")
-        device = await whileDeviceNotFound(adapter, "VOL20")
-        await Promise.resolve((res) => setTimeout(res, 1000))
+        const { device, deviceUuid } = await loopForDevice(adapter, "VOL20")
+        console.log("device obtained")
+        await session(device, deviceUuid) //waits until session is finished (disconnected)
     }
-    await device.connect()
-    device.on("disconnect", () => {
-
-    })
-    const gattServer = await device.gatt()
-    const service2 = await gattServer.getPrimaryService(uuid)
-    const characteristics = await gattServer.characteristics()
-    console.log(characteristics)
+    //const gattServer = await deviceInstance.gatt()
+    //const service2 = await gattServer.getPrimaryService(deviceUuid)
+    //const characteristics = await gattServer.characteristics()
+    //console.log(characteristics)
     /*const characteristic2 = await service2.getCharacteristic('uuid')
     characteristic2.on('valuechanged', buffer => {
         console.log(buffer)
