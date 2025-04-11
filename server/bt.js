@@ -56,6 +56,18 @@ const loopForDevice = async (adapter, deviceName) => {
 }
 const GENERIC_ATTRIBUTE = "00001801-0000-1000-8000-00805f9b34fb"
 const CUSTOM_ATTRIBUTE = "00002a05-0000-1000-8000-00805f9b34fb"
+
+const tempGetCharacteristic = async (services) => {
+    services.entries(([key, value]) => {
+        value._characteristics.entries(([cKey, cValue]) => {
+            cValue.on('valuechanged', buffer => {
+                console.log("key", key, "cKey", cKey, "value", buffer)
+            })
+            cValue.startNotifications()
+        })
+    })
+}
+
 const session = async (device) => {
     console.log("device connecting")
     if (!await device.isConnected()) {
@@ -77,11 +89,9 @@ const session = async (device) => {
     //console.log(manu)
     const gattServer = await device.gatt()
     console.log("server launched")
-    const services = gattServer.services()
-    //console.log("services")
-    //console.log(services)
     console.log(gattServer._services)
-    const service = await gattServer.getPrimaryService(GENERIC_ATTRIBUTE)
+    tempGetCharacteristic(gattServer._services)
+    /*const service = await gattServer.getPrimaryService(GENERIC_ATTRIBUTE)
 
     const characteristic = await service.getCharacteristic(CUSTOM_ATTRIBUTE)
     console.log("characteristic retrieved")
@@ -89,7 +99,7 @@ const session = async (device) => {
         console.log(buffer)
     })
     await characteristic.startNotifications()
-    console.log("started reading notifications")
+    console.log("started reading notifications")*/
     return new Promise((res) => {
         device.on("disconnect", () => {
             res("session ended")
