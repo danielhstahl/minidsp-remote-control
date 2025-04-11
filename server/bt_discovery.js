@@ -11,14 +11,14 @@ const doBt = async () => {
         await adapter.startDiscovery()
     console.log("starting device list")
     const devices = await adapter.devices()
-    devices.forEach((deviceUuid) => {
+    Promise.all(devices.map((deviceUuid) => {
         console.log(deviceUuid)
-        adapter.waitDevice(deviceUuid).then(device => {
-            Promise.all([device.getName().catch(e => e.toString()), device.getAlias().catch(e => e.toString())]).then(([name, alias]) => {
-                console.log("Device name:", name, "Device alias:", alias)
+        return adapter.waitDevice(deviceUuid).then(device => {
+            return device.getAlias().catch(e => e.toString()).then((alias) => {
+                console.log("Device alias:", alias)
             })
         })
-    })
+    })).then(() => console.log("got them all"))
 
 }
 

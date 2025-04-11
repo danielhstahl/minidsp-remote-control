@@ -3,7 +3,7 @@
 const { execFile } = require('child_process');
 const { createBluetooth } = require('node-ble')
 const { bluetooth, destroy } = createBluetooth()
-const adapter = await bluetooth.defaultAdapter()
+
 
 function setMinidspVol(gain) {
     return new Promise((res, rej) => execFile(`minidsp`, ['gain', '--', gain], (err, stdout, stderr) => {
@@ -21,7 +21,7 @@ const findDevice = async (adapter, deviceName) => {
     const devices = await adapter.devices()
     return Promise.all(devices.map(deviceUuid => {
         return adapter.waitDevice(deviceUuid).then(device => {
-            return device.getName().then(name => {
+            return device.getAlias().catch(e => e.toString()).then(name => {
                 return { "isDevice": name === deviceName, device }
             })
         })
@@ -36,34 +36,23 @@ const findDevice = async (adapter, deviceName) => {
 
 }
 const whileDeviceNotFound = async (adapter, deviceName) => {
-    setInterval(() => {
-        adapter.isDiscovering().then(r => {
-            !r && adapter.startDiscovery().then(() => {
-                findDevice(adapater, deviceName).then(device => {
-                    if (device) {
-
-                        return device
-                    }
-                })
+    return adapter.isDiscovering().then(r => {
+        return r ? null : adapter.startDiscovery().then(() => {
+            return findDevice(adapter, deviceName).then(device => {
+                return device
             })
         })
-    }, 1000)
+    })
 }
 
 const doBt = async () => {
-
-    if (! await adapter.isDiscovering())
-        await adapter.startDiscovery()
-
-    const btDevices = await adapter.devices()
-    console.log(btDevices)
-    const [uuid] = btDevices
-
-    const device = await adapter.waitDevice(uuid)
-    console.log("Name")
-    console.log(await device.getName())
-    console.log("Alias")
-    console.log(await device.getAlias())
+    const adapter = await bluetooth.defaultAdapter()
+    let device = null
+    while (!device) {
+        console.log("getting device")
+        device = await whileDeviceNotFound(adapter, "VOL20")
+        await Promise.resolve((res) => setTimeout(res, 1000))
+    }
     await device.connect()
     device.on("disconnect", () => {
 
@@ -78,3 +67,5 @@ const doBt = async () => {
     })
     await characteristic2.startNotifications()*/
 }
+
+doBt()
