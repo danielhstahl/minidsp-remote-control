@@ -65,9 +65,9 @@ const session = async (device, deviceUuid) => {
     //    await device.pair()
     //}
     //console.log("device paired!")
-    console.log("tx power")
-    const result = await device.getTXPower()
-    console.log(result)
+    //console.log("tx power")
+    //const result = await device.getTXPower()
+    //console.log(result)
     console.log("servicedata")
     const servicedata = await device.getServiceData()
     console.log(servicedata)
