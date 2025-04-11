@@ -60,18 +60,20 @@ const CUSTOM_ATTRIBUTE = "00002a05-0000-1000-8000-00805f9b34fb"
 const tempGetCharacteristic = async (services) => {
     Object.entries(services).forEach(([key, value]) => {
         Object.keys(value._characteristics).forEach((cKey) => {
-            value.getCharacteristic(cKey).then(cValue => {
-                console.log(cValue)
-                try {
+            try {
+                value.getCharacteristic(cKey).then(cValue => {
+                    //console.log(cValue)
+
                     cValue.on('valuechanged', buffer => {
                         console.log("key", key, "cKey", cKey, "value", buffer)
                     })
                     cValue.startNotifications()
-                }
-                catch (exception) {
-                    console.log(exception)
-                }
-            })
+                })
+
+            }
+            catch (exception) {
+                console.log(exception)
+            }
         })
     })
 }
