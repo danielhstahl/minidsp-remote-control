@@ -57,7 +57,7 @@ const loopForDevice = async (adapter, deviceName) => {
 }
 const session = async (device, deviceUuid) => {
     await device.connect()
-    const gattServer = await deviceInstance.gatt()
+    const gattServer = await device.gatt()
     const service2 = await gattServer.getPrimaryService(deviceUuid)
     const characteristics = await gattServer.characteristics()
     console.log(characteristics)
