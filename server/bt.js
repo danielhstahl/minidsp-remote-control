@@ -55,6 +55,8 @@ const loopForDevice = async (adapter, deviceName) => {
     const { device: deviceInstance, deviceUuid } = device
     return { device: deviceInstance, deviceUuid }
 }
+const GENERIC_ATTRIBUTE = "00001801-0000-1000-8000-00805f9b34fb"
+const CUSTOM_ATTRIBUTE = "00002a05-0000-1000-8000-00805f9b34fb"
 const session = async (device, deviceUuid) => {
     console.log("device connecting")
     if (!await device.isConnected()) {
@@ -80,11 +82,20 @@ const session = async (device, deviceUuid) => {
     console.log("services")
     console.log(services)
     console.log(gattServer._services)
-    for (const service in services) {
+    const service = await gattServer.getPrimaryService(GENERIC_ATTRIBUTE)
+
+    const characteristic = await service.getCharacteristic(CUSTOM_ATTRIBUTE)
+
+    characteristic.on('valuechanged', buffer => {
+        console.log(buffer)
+    })
+    await characteristic.startNotifications()
+
+    /*for (const service in services) {
         const service2 = await gattServer.getPrimaryService(service)
         const characteristics = await service2.characteristics()
         console.log(characteristics)
-    }
+    }*/
 
     return new Promise((res) => {
         device.on("disconnect", () => {
