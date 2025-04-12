@@ -21,4 +21,12 @@ const doBt = async () => {
 
 }
 
-doBt()
+//doBt()
+const HID = require('node-hid');
+const doHid = async () => {
+    var devices = await HID.devicesAsync();
+    console.log(devices)
+}
+
+
+doHid()
