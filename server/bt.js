@@ -67,7 +67,7 @@ const session = async (device) => {
             //this runs when bluetooth device is turned off
             console.log(err)
             device.disconnect().catch(console.log).then(() => {
-                destroy()
+                //destroy()
                 res("session ended")
             })
         })

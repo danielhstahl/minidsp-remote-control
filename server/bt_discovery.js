@@ -1,6 +1,6 @@
 'use strict'
 const { execFile } = require('child_process');
-/*const { createBluetooth } = require('node-ble')
+const { createBluetooth } = require('node-ble')
 const { bluetooth } = createBluetooth()
 
 const doBt = async () => {
@@ -19,10 +19,10 @@ const doBt = async () => {
         return true
     })).then(() => console.log("got them all"))
 
-}*/
+}
 
-//doBt()
-
+doBt()
+/*
 function setMinidspVol(gain) {
     return new Promise((res, rej) => execFile(`minidsp`, ['gain', '--relative', '--', gain], (err, stdout, stderr) => {
         if (err) {
@@ -33,8 +33,9 @@ function setMinidspVol(gain) {
         }
     }))
 }
+*/
 
-
+/*
 const HID = require('node-hid');
 const doHid = async () => {
     while (true) {
@@ -69,4 +70,4 @@ const doHid = async () => {
 
 
 doHid()
-
+*/
