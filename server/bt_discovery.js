@@ -26,6 +26,11 @@ const HID = require('node-hid');
 const doHid = async () => {
     var devices = await HID.devicesAsync();
     console.log(devices)
+
+    var device = await HID.HIDAsync.open(2007, 0);
+    device.on("data", function (data) {
+        console.log(data)
+    });
 }
 
 
