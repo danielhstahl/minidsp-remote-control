@@ -3,8 +3,18 @@
 const { execFile } = require('child_process');
 const { createBluetooth } = require('node-ble')
 const { bluetooth, destroy } = createBluetooth()
+const HID = require('node-hid');
 
-
+function minidspStatus() {
+    return new Promise((res, rej) => execFile(`minidsp`, ['-o', 'json'], (err, stdout, stderr) => {
+        if (err) {
+            rej(err)
+        }
+        else {
+            res(JSON.parse(stdout).master)
+        }
+    }))
+}
 function setMinidspVol(gain) {
     return new Promise((res, rej) => execFile(`minidsp`, ['gain', '--', gain], (err, stdout, stderr) => {
         if (err) {
@@ -110,8 +120,29 @@ const session = async (device) => {
     })
     await characteristic.startNotifications()
     console.log("started reading notifications")*/
+    let { volume } = await minidspStatus()
+    const hid = await HID.HIDAsync.open(2007, 0);
+    hid.on("data", function (data) {
+        const [dataType] = data
+        if (dataType === 1) { ///volume down
+            console.log("VOL DOWN")
+            volume -= 1
+            setMinidspVol(volume)
+        }
+        if (dataType === 2) { ///volume up
+            console.log("VOL DOWN")
+            volume += 1
+            setMinidspVol(volume)
+        }
+    });
+
+
     return new Promise((res) => {
         device.on("disconnect", () => {
+            res("session ended")
+        })
+        hid.on("error", function (err) {
+            console.log(err)
             res("session ended")
         })
     })

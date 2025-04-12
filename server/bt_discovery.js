@@ -1,6 +1,6 @@
 'use strict'
 
-const { createBluetooth } = require('node-ble')
+/*const { createBluetooth } = require('node-ble')
 const { bluetooth } = createBluetooth()
 
 const doBt = async () => {
@@ -19,7 +19,7 @@ const doBt = async () => {
         return true
     })).then(() => console.log("got them all"))
 
-}
+}*/
 
 //doBt()
 const HID = require('node-hid');
@@ -30,21 +30,22 @@ const doHid = async () => {
     var device = await HID.HIDAsync.open(2007, 0);
     device.on("data", function (data) {
         console.log("new data")
-        console.log(data.toString())
+        console.log(data[0])
     });
     device.on("error", function (err) {
         console.log("new error")
         console.log(err)
     });
-    while (true) {
+    /*while (true) {
         var buf = await device.getFeatureReport(0, 3)
         console.log("getting some bufer")
         console.log(buf.toString())
         await new Promise((res) => setTimeout(res, 1000))
-    }
+    }*/
 
 
 }
 
 
 doHid()
+
