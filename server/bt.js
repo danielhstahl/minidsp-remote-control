@@ -47,7 +47,7 @@ const findDevice = async (adapter, deviceName) => {
 }
 const whileDeviceNotFound = async (adapter, deviceName) => {
     return adapter.isDiscovering().then(r => {
-        return r ? null : adapter.startDiscovery().then(() => {
+        return r ? findDevice(adapter, deviceName) : adapter.startDiscovery().then(() => {
             return findDevice(adapter, deviceName)
         })
     })
