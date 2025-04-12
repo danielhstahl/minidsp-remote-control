@@ -5,18 +5,8 @@ const { createBluetooth } = require('node-ble')
 const { bluetooth, destroy } = createBluetooth()
 const HID = require('node-hid');
 
-function minidspStatus() {
-    return new Promise((res, rej) => execFile(`minidsp`, ['-o', 'json'], (err, stdout, stderr) => {
-        if (err) {
-            rej(err)
-        }
-        else {
-            res(JSON.parse(stdout).master)
-        }
-    }))
-}
 function setMinidspVol(gain) {
-    return new Promise((res, rej) => execFile(`minidsp`, ['gain', '--', gain], (err, stdout, stderr) => {
+    return new Promise((res, rej) => execFile(`minidsp`, ['gain', '--relative', '--', gain], (err, stdout, stderr) => {
         if (err) {
             rej(err)
         }
@@ -29,63 +19,28 @@ function setMinidspVol(gain) {
 
 const findDevice = async (adapter, deviceName) => {
     const devices = await adapter.devices()
-    return Promise.all(devices.map(deviceUuid => {
+    const results = await Promise.all(devices.map(deviceUuid => {
         return adapter.waitDevice(deviceUuid).then(device => {
             return device.getAlias().catch(e => e.toString()).then(name => {
                 return { isDevice: name === deviceName, device }
             })
         })
-    })).then((results) => {
-        return results.find(result => result.isDevice)?.device
-    })
-    /*const device = await adapter.waitDevice(uuid)
-    console.log("Name")
-    console.log(await device.getName())
-    console.log("Alias")
-    console.log(await device.getAlias())*/
-
+    }))
+    return results.find(result => result.isDevice)?.device
 }
-const whileDeviceNotFound = async (adapter, deviceName) => {
-    return adapter.isDiscovering().then(r => {
-        return r ? findDevice(adapter, deviceName) : adapter.startDiscovery().then(() => {
-            return findDevice(adapter, deviceName)
-        })
-    })
-}
-
 
 
 const loopForDevice = async (adapter, deviceName) => {
     let device = null
-    device = await whileDeviceNotFound(adapter, deviceName)
+    if (!await adapter.isDiscovering()) {
+        await adapter.startDiscovery()
+    }
+    device = await findDevice(adapter, deviceName)
     while (!device) {
         await new Promise((res) => setTimeout(res, 1000))
-        device = await whileDeviceNotFound(adapter, deviceName)
+        device = await findDevice(adapter, deviceName)
     }
     return device
-}
-const GENERIC_ATTRIBUTE = "00001801-0000-1000-8000-00805f9b34fb"
-const CUSTOM_ATTRIBUTE = "00002a05-0000-1000-8000-00805f9b34fb"
-// HID = 00001812-0000-1000-8000-00805f9b34fb
-const tempGetCharacteristic = async (services) => {
-    Object.entries(services).forEach(([key, value]) => {
-        Object.keys(value._characteristics).forEach((cKey) => {
-            try {
-                value.getCharacteristic(cKey).then(cValue => {
-                    //console.log(cValue)
-
-                    cValue.on('valuechanged', buffer => {
-                        console.log("key", key, "cKey", cKey, "value", buffer)
-                    })
-                    cValue.startNotifications()
-                })
-
-            }
-            catch (exception) {
-                console.log(exception)
-            }
-        })
-    })
 }
 
 const session = async (device) => {
@@ -94,56 +49,27 @@ const session = async (device) => {
         await device.connect()
     }
     console.log("device connected!")
-    //if (!await device.isPaired()) {
-    //    await device.pair()
-    //}
-    //console.log("device paired!")
-    //console.log("tx power")
-    //const result = await device.getTXPower()
-    //console.log(result)
-    //console.log("servicedata")
-    //const servicedata = await device.getServiceData()
-    //console.log(servicedata)
-    //console.log("manu")
-    //const manu = await device.getManufacturerData()
-    //console.log(manu)
-    /*const gattServer = await device.gatt()
-    console.log("server launched")
-    console.log(gattServer._services)
-    //tempGetCharacteristic(gattServer._services)
-    const service = await gattServer.getPrimaryService(GENERIC_ATTRIBUTE)
-
-    const characteristic = await service.getCharacteristic(CUSTOM_ATTRIBUTE)
-    console.log("characteristic retrieved")
-    characteristic.on('valuechanged', buffer => {
-        console.log(buffer)
-    })
-    await characteristic.startNotifications()
-    console.log("started reading notifications")*/
-    let { volume } = await minidspStatus()
     const hid = await HID.HIDAsync.open(2007, 0);
     hid.on("data", function (data) {
         const [dataType] = data
         if (dataType === 1) { ///volume down
             console.log("VOL DOWN")
-            volume -= 1
-            setMinidspVol(volume)
+            setMinidspVol(-1)
         }
         if (dataType === 2) { ///volume up
-            console.log("VOL DOWN")
-            volume += 1
-            setMinidspVol(volume)
+            console.log("VOL UP")
+            setMinidspVol(1)
         }
     });
 
-
     return new Promise((res) => {
-        device.on("disconnect", () => {
-            res("session ended")
-        })
         hid.on("error", function (err) {
+            //this runs when bluetooth device is turned off
             console.log(err)
-            res("session ended")
+            device.disconnect().catch(console.log).then(() => {
+                destroy()
+                res("session ended")
+            })
         })
     })
 }
