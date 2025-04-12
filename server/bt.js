@@ -29,7 +29,7 @@ const findDevice = async (adapter, deviceName) => {
     return results.find(result => result.isDevice)?.device
 }
 
-
+const secondTimeout = async () => await new Promise((res) => setTimeout(res, 1000))
 const loopForDevice = async (adapter, deviceName) => {
     let device = null
     if (!await adapter.isDiscovering()) {
@@ -37,7 +37,7 @@ const loopForDevice = async (adapter, deviceName) => {
     }
     device = await findDevice(adapter, deviceName)
     while (!device) {
-        await new Promise((res) => setTimeout(res, 1000))
+        await secondTimeout()
         device = await findDevice(adapter, deviceName)
     }
     return device
@@ -45,8 +45,14 @@ const loopForDevice = async (adapter, deviceName) => {
 
 const session = async (device) => {
     console.log("device connecting")
-    if (!await device.isConnected()) {
-        await device.connect()
+    while (!await device.isConnected()) {
+        try {
+            await device.connect()
+        }
+        catch (exception) {
+            console.log("device not connected, continuing to try")
+        }
+        await secondTimeout()
     }
     console.log("device connected!")
     const hid = await HID.HIDAsync.open(2007, 0);

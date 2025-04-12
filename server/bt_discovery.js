@@ -19,7 +19,6 @@ const doBt = async () => {
         await device.connect()
         return true
     })).then(() => console.log("got them all"))
-
 }
 
 doBt()
