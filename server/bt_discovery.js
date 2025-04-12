@@ -16,6 +16,7 @@ const doBt = async () => {
         const device = await adapter.waitDevice(deviceUuid)
         const alias = await device.getAlias()
         console.log("Device alias:", alias)
+        await device.connect()
         return true
     })).then(() => console.log("got them all"))
 
