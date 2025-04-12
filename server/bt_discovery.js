@@ -36,6 +36,14 @@ const doHid = async () => {
         console.log("new error")
         console.log(err)
     });
+    while (true) {
+        var buf = await device.getFeatureReport(0, 3)
+        console.log("getting some bufer")
+        console.log(buf.toString())
+        await new Promise((res) => setTimeout(res, 1000))
+    }
+
+
 }
 
 
