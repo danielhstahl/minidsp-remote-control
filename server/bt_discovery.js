@@ -27,7 +27,7 @@ const doHid = async () => {
     var devices = await HID.devicesAsync();
     console.log(devices)
 
-    var device = await HID.HIDAsync.open(0x07d7, 0x0000);
+    var device = await HID.HIDAsync.open('/dev/hidraw0');
     device.on("data", function (data) {
         console.log(data)
     });
