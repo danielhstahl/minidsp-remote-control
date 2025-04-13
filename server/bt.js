@@ -48,7 +48,7 @@ const loopForConnection = async (device) => {
     while (!await device.isConnected()) {
         try {
             //I wish there was a way to check that device was available without waiting for it to error...
-            await device.connect()
+            await device.helper.callMethod('Connect')
         }
         catch (exception) {
             //it is expected to get here if device has been disconnected
