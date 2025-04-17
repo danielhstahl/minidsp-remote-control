@@ -94,7 +94,7 @@ const hidSession = async () => {
 
 const doBt = async () => {
     const adapter = await bluetooth.defaultAdapter()
-    adapter.helper.options.useProps = false
+    adapter.helper.options.usePropsEvents = false
     while (true) { //one loop per "session" (VOL20 on and active/connected)
         console.log("getting device")
         const device = await loopForDevice(adapter, "VOL20")
