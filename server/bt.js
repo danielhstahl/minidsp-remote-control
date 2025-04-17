@@ -32,12 +32,10 @@ const _loopForAwait = async (adapter, deviceUuid) => {
 const _findDevice = async (adapter, deviceName) => {
     const devices = await adapter.devices()
     console.log("devices", devices)
-    const results = await Promise.all(devices.map(deviceUuid => {
-        return _loopForAwait(adapter, deviceUuid).then(device => {
-            return device.getAlias().catch(e => e.toString()).then(name => {
-                return { isDevice: name === deviceName, device }
-            })
-        })
+    const results = await Promise.all(devices.map(async deviceUuid => {
+        const device = await _loopForAwait(adapter, deviceUuid)
+        const name = await device.getAlias()
+        return { isDevice: name === deviceName, device }
     }))
     return results.find(result => result.isDevice)?.device
 }
@@ -53,7 +51,7 @@ const loopForDevice = async (adapter, deviceName) => {
     }
     device = await _findDevice(adapter, deviceName)
     while (!device) {
-        adapter.helper.removeListeners() //dont memory leak
+        //adapter.helper.removeListeners() //dont memory leak
         await secondTimeout()
         device = await _findDevice(adapter, deviceName)
     }
@@ -96,6 +94,7 @@ const hidSession = async () => {
 
 const doBt = async () => {
     const adapter = await bluetooth.defaultAdapter()
+    adapter.helper.options.useProps = false
     while (true) { //one loop per "session" (VOL20 on and active/connected)
         console.log("getting device")
         const device = await loopForDevice(adapter, "VOL20")
