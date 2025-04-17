@@ -21,10 +21,11 @@ function setMinidspVol(gain) {
 const _loopForAwait = async (adapter, deviceUuid) => {
     while (true) {
         try {
-            return await adapter.getDevice(deviceUuid)
+            const device = await adapter.getDevice(deviceUuid)
+            device.helper.options.usePropsEvents = false
+            return device
         }
         catch (exception) {
-            //it is expected to get here if device has been disconnected
         }
         await secondTimeout()
     }
