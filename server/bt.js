@@ -31,6 +31,7 @@ const _loopForAwait = async (adapter, deviceUuid) => {
 }
 const _findDevice = async (adapter, deviceName) => {
     const devices = await adapter.devices()
+    console.log("devices", devices)
     const results = await Promise.all(devices.map(deviceUuid => {
         return _loopForAwait(adapter, deviceUuid).then(device => {
             return device.getAlias().catch(e => e.toString()).then(name => {
