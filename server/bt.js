@@ -53,6 +53,7 @@ const loopForDevice = async (adapter, deviceName) => {
     }
     device = await _findDevice(adapter, deviceName)
     while (!device) {
+        adapter.helper.removeListeners() //dont memory leak
         await secondTimeout()
         device = await _findDevice(adapter, deviceName)
     }
