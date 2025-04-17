@@ -1,5 +1,4 @@
 'use strict'
-const { execFile } = require('child_process');
 const { createBluetooth } = require('node-ble')
 const { bluetooth } = createBluetooth()
 

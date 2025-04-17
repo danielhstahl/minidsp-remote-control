@@ -18,10 +18,21 @@ function setMinidspVol(gain) {
     }))
 }
 
+const _loopForAwait = async (adapter, deviceUuid) => {
+    while (true) {
+        try {
+            return await adapter.getDevice(deviceUuid)
+        }
+        catch (exception) {
+            //it is expected to get here if device has been disconnected
+        }
+        await secondTimeout()
+    }
+}
 const _findDevice = async (adapter, deviceName) => {
     const devices = await adapter.devices()
     const results = await Promise.all(devices.map(deviceUuid => {
-        return adapter.waitDevice(deviceUuid).then(device => {
+        return _loopForAwait(adapter, deviceUuid).then(device => {
             return device.getAlias().catch(e => e.toString()).then(name => {
                 return { isDevice: name === deviceName, device }
             })
@@ -31,6 +42,9 @@ const _findDevice = async (adapter, deviceName) => {
 }
 
 const secondTimeout = async () => await new Promise((res) => setTimeout(res, TIMEOUT_MS))
+
+
+
 const loopForDevice = async (adapter, deviceName) => {
     let device = null
     if (!await adapter.isDiscovering()) {
@@ -43,6 +57,7 @@ const loopForDevice = async (adapter, deviceName) => {
     }
     return device
 }
+
 //will loop until connection is established; if VOL20 is turned off will loop indefinitely
 const loopForConnection = async (device) => {
     while (!await device.isConnected()) {
