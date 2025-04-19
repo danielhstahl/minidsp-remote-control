@@ -17,7 +17,10 @@ const doBt = async () => {
         console.log("Device alias:", alias)
         if (alias === "VOL20") {
             const gattServer = await device.gatt()
-            const characteristics = await gattServer.characteristics()
+            const services = await gattServer.services()
+            console.log(services)
+            const service = await gattServer.getPrimaryService(services[0])
+            const characteristics = await service.characteristics()
             console.log(characteristics)
         }
         return true
