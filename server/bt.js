@@ -72,8 +72,20 @@ const loopForConnection = async (device) => {
         await secondTimeout()
     }
 }
+const loopGetHid = async () => {
+    while (true) {
+        try {
+            const hid = await HID.HIDAsync.open(HID_DEVICE_ID, HID_VENDOR_ID);
+            return hid
+        }
+        catch (exception) {
+            console.log(exception)
+        }
+        await secondTimeout()
+    }
+}
 const hidSession = async () => {
-    const hid = await HID.HIDAsync.open(HID_DEVICE_ID, HID_VENDOR_ID);
+    const hid = loopGetHid()
     hid.on("data", function (data) {
         const [dataType] = data
         if (dataType === 1) { ///volume down
@@ -103,7 +115,7 @@ const doBt = async () => {
         console.log("device connecting...")
         await loopForConnection(device)
         console.log("device connected!")
-        await hidSession(device) //waits until session is finished (disconnected)
+        await hidSession() //waits until session is finished (disconnected)
         await device.disconnect()
         console.log("session ended")
     }
