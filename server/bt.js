@@ -85,7 +85,7 @@ const loopGetHid = async () => {
     }
 }
 const hidSession = async () => {
-    const hid = loopGetHid()
+    const hid = await loopGetHid()
     hid.on("data", function (data) {
         const [dataType] = data
         if (dataType === 1) { ///volume down
