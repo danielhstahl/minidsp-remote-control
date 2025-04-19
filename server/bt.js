@@ -80,6 +80,8 @@ const loopGetHid = async () => {
         }
         catch (exception) {
             console.log(exception)
+            var devices = await HID.devicesAsync();
+            console.log(devices)
         }
         await secondTimeout()
     }
