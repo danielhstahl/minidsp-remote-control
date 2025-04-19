@@ -15,8 +15,15 @@ const doBt = async () => {
         const device = await adapter.waitDevice(deviceUuid)
         const alias = await device.getAlias()
         console.log("Device alias:", alias)
+        if (alias === "VOL20") {
+            const gattServer = await device.gatt()
+            const characteristics = await gattServer.characteristics()
+            console.log(characteristics)
+        }
         return true
     })).then(() => console.log("got them all"))
 }
+
+
 
 doBt()
