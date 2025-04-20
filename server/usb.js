@@ -19,7 +19,7 @@ function setMinidspVol(gain) {
 const loopGetHid = async () => {
     while (true) {
         try {
-            const hid = await HID.HIDAsync.open(HID_DEVICE_ID, HID_VENDOR_ID);
+            const hid = await HID.HIDAsync.open("/dev/hidraw0")//HID_DEVICE_ID, HID_VENDOR_ID);
             return hid
         }
         catch (exception) {
