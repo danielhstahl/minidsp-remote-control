@@ -2,8 +2,8 @@
 const { execFile } = require('child_process');
 const HID = require('node-hid');
 const TIMEOUT_MS = 1000
-const HID_DEVICE_ID = 2007
-const HID_VENDOR_ID = 0
+const HID_DEVICE_ID = 4366
+const HID_VENDOR_ID = 3669
 const secondTimeout = async () => await new Promise((res) => setTimeout(res, TIMEOUT_MS))
 
 function setMinidspVol(gain) {
