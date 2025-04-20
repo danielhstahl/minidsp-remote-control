@@ -34,6 +34,7 @@ const hidSession = async () => {
     const hid = await loopGetHid()
     hid.on("data", function (data) {
         const [dataType] = data
+        console.log(data)
         if (dataType === 1) { ///volume down
             setMinidspVol(-1)
         }
