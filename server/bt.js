@@ -87,6 +87,7 @@ const doBt = async () => {
     }
     console.log(adapters)
     //default to first if BLUETOOTH_DEVICE_ID is not found
+    console.log(BLUETOOTH_DEVICE_ID)
     const adapter_name = adapters.find(a => a === BLUETOOTH_DEVICE_ID) || adapters[0]
     const adapter = await bluetooth.getAdapter(adapter_name)
     console.log("using adapter", adapter_name)
