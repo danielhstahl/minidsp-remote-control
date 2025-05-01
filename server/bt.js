@@ -87,7 +87,7 @@ const doBt = async () => {
     console.log(adapters)
     //default to first if BLUETOOTH_DEVICE_ID is not found
     const adapter_name = adapters.find(a => a === BLUETOOTH_DEVICE_ID) || adapters[0]
-    const adapter = bluetooth.getAdapter(adapter_name)
+    const adapter = await bluetooth.getAdapter(adapter_name)
     while (true) { //one loop per "session" (VOL20 on and active/connected)
         console.log("getting device")
         const device = await loopForDevice(adapter, "VOL20")
