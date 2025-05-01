@@ -40,6 +40,14 @@ export const setVolume = (volume: number) => {
     return fetch(`/volume/${volume}`, { method: "POST" })
 }
 
+export const volumeUp = () => {
+    return fetch(`/volume/up`, { method: "POST" })
+}
+
+export const volumeDown = () => {
+    return fetch(`/volume/down`, { method: "POST" })
+}
+
 export const setPreset = (preset: number) => {
     return fetch(`/preset/${preset}`, { method: "POST" })
 }

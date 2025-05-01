@@ -6,6 +6,7 @@ const { bluetooth } = createBluetooth()
 //eg, hci1
 const { env: { BLUETOOTH_DEVICE_ID } } = require("process")
 const HID = require('node-hid');
+const VOLUME_INCREMENT = 0.5
 const TIMEOUT_MS = 1000
 const HID_DEVICE_ID = 2007
 const HID_VENDOR_ID = 0
@@ -63,10 +64,10 @@ const hidSession = async () => {
     hid.on("data", function (data) {
         const [dataType] = data
         if (dataType === 1) { ///volume down
-            setMinidspVol(-1)
+            setMinidspVol(-VOLUME_INCREMENT)
         }
         if (dataType === 2) { ///volume up
-            setMinidspVol(1)
+            setMinidspVol(VOLUME_INCREMENT)
         }
     });
     return new Promise((res) => {

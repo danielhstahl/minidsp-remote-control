@@ -83,6 +83,17 @@ function setMinidspVol(gain) {
     }))
 }
 
+function incrementMinidspVol(gain) {
+    return new Promise((res, rej) => execFile(`minidsp`, ['gain', '--relative', '--', gain], (err, stdout, stderr) => {
+        if (err) {
+            rej(err)
+        }
+        else {
+            res()
+        }
+    }))
+}
+
 function setMinidspPreset(preset) { //0 indexed
     return new Promise((res, rej) => execFile(`minidsp`, ['config', preset], (err, stdout, stderr) => {
         if (err) {
@@ -107,7 +118,7 @@ function setMinidspInput(source) {
         }
     }))
 }
-
+const VOLUME_INCREMENT = 0.5
 fastify.register(async function (fastify) {
     fastify.get('/status', (req, reply) => {
         Promise.all([
@@ -116,6 +127,20 @@ fastify.register(async function (fastify) {
         ]).then(([minidsp, power]) => {
             const { preset, mute, source, volume } = minidsp
             reply.send({ preset, source, volume, power })
+        }).catch((e) => {
+            reply.send({ success: false, message: e })
+        })
+    })
+    fastify.post("/volume/up", (req, reply) => {
+        incrementMinidspVol(VOLUME_INCREMENT).then(() => {
+            reply.send({ success: true })
+        }).catch((e) => {
+            reply.send({ success: false, message: e })
+        })
+    })
+    fastify.post("/volume/down", (req, reply) => {
+        incrementMinidspVol(-VOLUME_INCREMENT).then(() => {
+            reply.send({ success: true })
         }).catch((e) => {
             reply.send({ success: false, message: e })
         })

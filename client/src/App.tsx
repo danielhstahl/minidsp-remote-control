@@ -15,6 +15,8 @@ import {
   getStatus,
   Source,
   setSource,
+  volumeUp,
+  volumeDown
 } from './services/api'
 import StatusCard from './components/PowerCard';
 import VolumeCard from './components/VolumeCard';
@@ -34,6 +36,16 @@ function useParameterUpdates(writeDispatch: any, writeParams: any, getParamsLate
     updateVolume: (volume: number) => {
       writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, volume } })
       setVolume(volume)
+      getParamsLater()
+    },
+    volumeUp: (volume: number) => {
+      writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, volume } })
+      volumeUp()
+      getParamsLater()
+    },
+    volumeDown: (volume: number) => {
+      writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, volume } })
+      volumeDown()
       getParamsLater()
     },
     updatePower: (power: Power) => {
@@ -89,12 +101,12 @@ function App() {
   useEffect(() => {
     //on initial load, get params immediately
     getParams()
-    //oncomment if MiniDSP can be adjusted outside the app
+    //uncomment if MiniDSP can be adjusted outside the app
     //else the MiniDSP state and the client state can
     //become decoupled until the next command from this client
-    /*setInterval(() => {
+    setInterval(() => {
       getParamsLater()
-    }, 2000)*/
+    }, 2000)
   }, [getParams])
 
   return (
@@ -127,7 +139,9 @@ function App() {
               </Grid>
               <Grid item xs={12} md={6} lg={6}>
                 <VolumeCard
-                  onVolumeChange={updates.updateVolume}
+                  onVolumeSet={updates.updateVolume}
+                  onVolumeUp={updates.volumeUp}
+                  onVolumeDown={updates.volumeDown}
                   volume={writeParams.volume}
                   mode={colorTheme}
                 />
