@@ -38,13 +38,13 @@ function useParameterUpdates(writeDispatch: any, writeParams: any, resetRefresh:
       setVolume(volume)
       clearInterval(resetRefresh.current)
     },
-    volumeUp: (volume: number) => {
-      writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, volume } })
+    volumeUp: (volume: number, increment: number) => {
+      writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, volume: volume + increment } })
       volumeUp()
       clearInterval(resetRefresh.current)
     },
-    volumeDown: (volume: number) => {
-      writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, volume } })
+    volumeDown: (volume: number, increment: number) => {
+      writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, volume: volume - increment } })
       volumeDown()
       clearInterval(resetRefresh.current)
     },

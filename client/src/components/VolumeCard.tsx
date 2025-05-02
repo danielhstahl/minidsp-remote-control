@@ -14,8 +14,8 @@ import { MIN_VOLUME, MAX_VOLUME } from '../state/writeActions';
 const VOLUME_INCREMENT = 0.5
 interface VolumeInputs {
     onVolumeSet: (v: number) => void,
-    onVolumeUp: (v: number) => void,
-    onVolumeDown: (v: number) => void,
+    onVolumeUp: (v: number, increment: number) => void,
+    onVolumeDown: (v: number, increment: number) => void,
     volume: number,
     mode: ColorTheme
 
@@ -76,7 +76,7 @@ const VolumeCard = ({ onVolumeSet, onVolumeUp, onVolumeDown, volume, mode }: Vol
         }}
     >
         <Stack spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
-            <IconButton onClick={() => onVolumeDown(volume - VOLUME_INCREMENT)} ><VolumeDown /></IconButton>
+            <IconButton onClick={() => onVolumeDown(volume, VOLUME_INCREMENT)} ><VolumeDown /></IconButton>
             <Slider
                 sx={{
                     color: theme => applyThemePrimaryColor(theme, mode),
@@ -90,7 +90,7 @@ const VolumeCard = ({ onVolumeSet, onVolumeUp, onVolumeDown, volume, mode }: Vol
                     onVolumeSet(volume)
                 }}
             />
-            <IconButton onClick={() => onVolumeUp(volume + VOLUME_INCREMENT)} > <VolumeUp /></IconButton>
+            <IconButton onClick={() => onVolumeUp(volume, VOLUME_INCREMENT)} > <VolumeUp /></IconButton>
         </Stack>
         <div style={{
             fontSize: "100%",
