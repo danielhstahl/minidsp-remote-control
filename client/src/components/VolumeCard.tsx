@@ -11,9 +11,11 @@ import CircularProgress, {
 } from '@mui/material/CircularProgress';
 import { applyThemePrimaryColor, applyThemeSecondaryColor, ColorTheme } from '../styles/modes';
 import { MIN_VOLUME, MAX_VOLUME } from '../state/writeActions';
-
+const VOLUME_INCREMENT = 0.5
 interface VolumeInputs {
-    onVolumeChange: (v: number) => void,
+    onVolumeSet: (v: number) => void,
+    onVolumeUp: (v: number, increment: number) => void,
+    onVolumeDown: (v: number, increment: number) => void,
     volume: number,
     mode: ColorTheme
 
@@ -64,7 +66,7 @@ const CircularProgressWithLabel = (
 }
 
 export const convertTo100 = (volume: number) => 100 * ((volume - MIN_VOLUME) / (MAX_VOLUME - MIN_VOLUME))
-const VolumeCard = ({ onVolumeChange, volume, mode }: VolumeInputs) => {
+const VolumeCard = ({ onVolumeSet, onVolumeUp, onVolumeDown, volume, mode }: VolumeInputs) => {
     return <Paper
         sx={{
             p: 2,
@@ -74,7 +76,7 @@ const VolumeCard = ({ onVolumeChange, volume, mode }: VolumeInputs) => {
         }}
     >
         <Stack spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
-            <IconButton onClick={() => onVolumeChange(volume - 1)} ><VolumeDown /></IconButton>
+            <IconButton onClick={() => onVolumeDown(volume, VOLUME_INCREMENT)} ><VolumeDown /></IconButton>
             <Slider
                 sx={{
                     color: theme => applyThemePrimaryColor(theme, mode),
@@ -85,10 +87,10 @@ const VolumeCard = ({ onVolumeChange, volume, mode }: VolumeInputs) => {
                 value={volume}
                 onChange={(_e: Event, n: number | number[]) => {
                     const volume = n as number
-                    onVolumeChange(volume)
+                    onVolumeSet(volume)
                 }}
             />
-            <IconButton onClick={() => onVolumeChange(volume + 1)} > <VolumeUp /></IconButton>
+            <IconButton onClick={() => onVolumeUp(volume, VOLUME_INCREMENT)} > <VolumeUp /></IconButton>
         </Stack>
         <div style={{
             fontSize: "100%",

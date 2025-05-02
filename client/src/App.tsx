@@ -15,6 +15,8 @@ import {
   getStatus,
   Source,
   setSource,
+  volumeUp,
+  volumeDown
 } from './services/api'
 import StatusCard from './components/PowerCard';
 import VolumeCard from './components/VolumeCard';
@@ -24,29 +26,39 @@ import { saveColorTheme, getColorTheme } from './state/persistance';
 import { ColorTheme, applyThemeBackgroundColor, DEFAULT_COLOR_THEME, THEME_TO_MODE } from './styles/modes'
 
 // custom hook for parameter updates
-function useParameterUpdates(writeDispatch: any, writeParams: any, getParamsLater: () => void) {
+function useParameterUpdates(writeDispatch: any, writeParams: any, resetRefresh: React.MutableRefObject<NodeJS.Timeout | undefined>) {
   return useMemo(() => ({
     updatePreset: (preset: Preset) => {
       writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, preset } })
       setPreset(preset)
-      getParamsLater()
+      clearInterval(resetRefresh.current)
     },
     updateVolume: (volume: number) => {
       writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, volume } })
       setVolume(volume)
-      getParamsLater()
+      clearInterval(resetRefresh.current)
+    },
+    volumeUp: (volume: number, increment: number) => {
+      writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, volume: volume + increment } })
+      volumeUp()
+      clearInterval(resetRefresh.current)
+    },
+    volumeDown: (volume: number, increment: number) => {
+      writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, volume: volume - increment } })
+      volumeDown()
+      clearInterval(resetRefresh.current)
     },
     updatePower: (power: Power) => {
       writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, power } })
       setPower(power)
-      getParamsLater()
+      clearInterval(resetRefresh.current)
     },
     updateSource: (source: Source) => {
       writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, source } })
       setSource(source)
-      getParamsLater()
+      clearInterval(resetRefresh.current)
     }
-  }), [writeDispatch, writeParams, getParamsLater])
+  }), [writeDispatch, writeParams, resetRefresh])
 }
 
 // custom hook for theme management
@@ -77,24 +89,25 @@ function App() {
   )
 
   const getParamsLater = useCallback(() => {
-    if (holdRefresh.current !== undefined) {
-      clearTimeout(holdRefresh.current)
-    }
-    holdRefresh.current = setTimeout(getParams, 3000)
+    holdRefresh.current = setTimeout(() => {
+      getParams()
+    }, 3000)
   }, [getParams])
 
   const { theme, colorTheme, setMode } = useThemeManagement();
-  const updates = useParameterUpdates(writeDispatch, writeParams, getParamsLater);
+  const updates = useParameterUpdates(writeDispatch, writeParams, holdRefresh);
 
   useEffect(() => {
     //on initial load, get params immediately
     getParams()
-    //oncomment if MiniDSP can be adjusted outside the app
-    //else the MiniDSP state and the client state can
-    //become decoupled until the next command from this client
-    /*setInterval(() => {
-      getParamsLater()
-    }, 2000)*/
+    //get "ground truth" from Minidsp on a periodic basis
+    //if any UI action impacting state is made, then getParams is canceled
+    setInterval(() => {
+      if (holdRefresh.current !== undefined) {
+        clearTimeout(holdRefresh.current)
+      }
+      getParamsLater() //gets Params in 3000 ms, unless timeout is cleared by UI action
+    }, 5000) //has to be longer than the getParamsLater timeout
   }, [getParams])
 
   return (
@@ -127,7 +140,9 @@ function App() {
               </Grid>
               <Grid item xs={12} md={6} lg={6}>
                 <VolumeCard
-                  onVolumeChange={updates.updateVolume}
+                  onVolumeSet={updates.updateVolume}
+                  onVolumeUp={updates.volumeUp}
+                  onVolumeDown={updates.volumeDown}
                   volume={writeParams.volume}
                   mode={colorTheme}
                 />

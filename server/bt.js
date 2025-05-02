@@ -6,6 +6,7 @@ const { bluetooth } = createBluetooth()
 //eg, hci1
 const { env: { BLUETOOTH_DEVICE_ID } } = require("process")
 const HID = require('node-hid');
+const VOLUME_INCREMENT = 0.5
 const TIMEOUT_MS = 1000
 const HID_DEVICE_ID = 2007
 const HID_VENDOR_ID = 0
@@ -63,10 +64,10 @@ const hidSession = async () => {
     hid.on("data", function (data) {
         const [dataType] = data
         if (dataType === 1) { ///volume down
-            setMinidspVol(-1)
+            setMinidspVol(-VOLUME_INCREMENT)
         }
         if (dataType === 2) { ///volume up
-            setMinidspVol(1)
+            setMinidspVol(VOLUME_INCREMENT)
         }
     });
     return new Promise((res) => {
@@ -84,9 +85,13 @@ const doBt = async () => {
     if (!adapters.length) {
         throw new Error('No available adapters found')
     }
+    console.log(adapters)
     //default to first if BLUETOOTH_DEVICE_ID is not found
+    console.log(BLUETOOTH_DEVICE_ID)
     const adapter_name = adapters.find(a => a === BLUETOOTH_DEVICE_ID) || adapters[0]
-    const adapter = bluetooth.getAdapter(adapter_name)
+    const adapter = await bluetooth.getAdapter(adapter_name)
+    const address = await adapter.getAddress()
+    console.log("using adapter", adapter_name, "with id", address)
     while (true) { //one loop per "session" (VOL20 on and active/connected)
         console.log("getting device")
         const device = await loopForDevice(adapter, "VOL20")
