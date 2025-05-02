@@ -1,0 +1,25 @@
+# put this file in /lib/systemd/system/minidsp-bt.service
+# download minidsp-ui.tar.gz from releases, and extract into /usr/bin/minidsp-ui
+# `sudo systemctl enable minidsp-ui`
+
+[Unit]
+After=syslog.target
+StartLimitIntervalSec=10
+StartLimitBurst=10
+
+[Service]
+Environment="BLUETOOTH_DEVICE_ID=hci1"
+Type=simple
+ExecStart=node /usr/bin/minidsp-ui/bt
+Restart=always
+RestartSec=1
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=minidsp-bt
+User=root
+Group=root
+CPUSchedulingPolicy=fifo
+CPUSchedulingPriority=10
+
+[Install]
+WantedBy=multi-user.target

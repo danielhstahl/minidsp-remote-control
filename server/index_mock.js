@@ -6,6 +6,12 @@ fastify.register(async function (fastify) {
     fastify.get('/status', (req, reply) => {
         reply.send({ preset: 1, source: "Unavailable", volume: -40, power: true, source: "Hdmi" })
     })
+    fastify.post("/volume/up", (req, reply) => {
+        reply.send({ success: true })
+    })
+    fastify.post("/volume/down", (req, reply) => {
+        reply.send({ success: true })
+    })
     fastify.post("/volume/:volume", (req, reply) => {
         reply.send({ success: true })
     })

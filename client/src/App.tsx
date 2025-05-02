@@ -26,39 +26,39 @@ import { saveColorTheme, getColorTheme } from './state/persistance';
 import { ColorTheme, applyThemeBackgroundColor, DEFAULT_COLOR_THEME, THEME_TO_MODE } from './styles/modes'
 
 // custom hook for parameter updates
-function useParameterUpdates(writeDispatch: any, writeParams: any, getParamsLater: () => void) {
+function useParameterUpdates(writeDispatch: any, writeParams: any, resetRefresh: React.MutableRefObject<NodeJS.Timeout | undefined>) {
   return useMemo(() => ({
     updatePreset: (preset: Preset) => {
       writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, preset } })
       setPreset(preset)
-      getParamsLater()
+      clearInterval(resetRefresh.current)
     },
     updateVolume: (volume: number) => {
       writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, volume } })
       setVolume(volume)
-      getParamsLater()
+      clearInterval(resetRefresh.current)
     },
     volumeUp: (volume: number) => {
       writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, volume } })
       volumeUp()
-      getParamsLater()
+      clearInterval(resetRefresh.current)
     },
     volumeDown: (volume: number) => {
       writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, volume } })
       volumeDown()
-      getParamsLater()
+      clearInterval(resetRefresh.current)
     },
     updatePower: (power: Power) => {
       writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, power } })
       setPower(power)
-      getParamsLater()
+      clearInterval(resetRefresh.current)
     },
     updateSource: (source: Source) => {
       writeDispatch({ type: WriteAction.UPDATE, value: { ...writeParams, source } })
       setSource(source)
-      getParamsLater()
+      clearInterval(resetRefresh.current)
     }
-  }), [writeDispatch, writeParams, getParamsLater])
+  }), [writeDispatch, writeParams, resetRefresh])
 }
 
 // custom hook for theme management
@@ -89,24 +89,25 @@ function App() {
   )
 
   const getParamsLater = useCallback(() => {
-    if (holdRefresh.current !== undefined) {
-      clearTimeout(holdRefresh.current)
-    }
-    holdRefresh.current = setTimeout(getParams, 3000)
+    holdRefresh.current = setTimeout(() => {
+      getParams()
+    }, 3000)
   }, [getParams])
 
   const { theme, colorTheme, setMode } = useThemeManagement();
-  const updates = useParameterUpdates(writeDispatch, writeParams, getParamsLater);
+  const updates = useParameterUpdates(writeDispatch, writeParams, holdRefresh);
 
   useEffect(() => {
     //on initial load, get params immediately
     getParams()
-    //uncomment if MiniDSP can be adjusted outside the app
-    //else the MiniDSP state and the client state can
-    //become decoupled until the next command from this client
+    //get "ground truth" from Minidsp on a periodic basis
+    //if any UI action impacting state is made, then getParams is canceled
     setInterval(() => {
-      getParamsLater()
-    }, 2000)
+      if (holdRefresh.current !== undefined) {
+        clearTimeout(holdRefresh.current)
+      }
+      getParamsLater() //gets Params in 3000 ms, unless timeout is cleared by UI action
+    }, 5000) //has to be longer than the getParamsLater timeout
   }, [getParams])
 
   return (
