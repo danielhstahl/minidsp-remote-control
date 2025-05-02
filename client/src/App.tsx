@@ -108,7 +108,7 @@ function App() {
       }
       getParamsLater() //gets Params in 3000 ms, unless timeout is cleared by UI action
     }, 5000) //has to be longer than the getParamsLater timeout
-  }, [getParams])
+  }, [getParams, getParamsLater])
 
   return (
     <ThemeProvider theme={theme}>
