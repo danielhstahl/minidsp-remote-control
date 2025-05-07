@@ -95,16 +95,19 @@ function powerOn() {
 //uhubctl is assumed to be in your path, and index.js needs to run as root
 //see https://www.byfarthersteps.com/6802/
 async function powerStatus() {
-    return gpio.setup(RELAY_1, gpio.DIR_IN)
-        .then(async () => {
-            const result = await gpio.read(RELAY_1)
-            console.log("power status")
-            console.log(result)
-            return result ? "on" : "off"
-        })
-        .catch((err) => {
-            console.log('Error: ', err.toString())
-        })
+    const setup = await gpio.setup(RELAY_1, gpio.DIR_IN)
+    console.log("past setup")
+    const result = await gpio.read(RELAY_1)
+    console.log("power status")
+    console.log(result)
+    /*.then(async () => {
+        console.log("past power status")
+
+        return result ? "on" : "off"
+    })
+    .catch((err) => {
+        console.log('Error: ', err.toString())
+    })*/
     /*return new Promise((res, rej) => gpio.read(RELAY_1, (err, result) => {
         if (err) rej(err)
         console.log("power status")
