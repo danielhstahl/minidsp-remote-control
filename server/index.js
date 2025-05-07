@@ -83,6 +83,8 @@ function powerOn() {
 function powerStatus() {
     return new Promise((res, rej) => gpio.read(RELAY_1, (err, result) => {
         if (err) rej(err)
+        console.log("power status")
+        console.log(result)
         res(result ? "on" : "off")
     }))
     /*return new Promise((res, rej) => execFile(
