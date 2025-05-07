@@ -23,7 +23,7 @@ gpio.setup(RELAY_1, gpio.DIR_OUT);
 function powerOff() {
     return new Promise((res, rej) => gpio.write(RELAY_1, false, (err) => {
         if (err) rej(err)
-        console.log('Written True to pin');
+        console.log('Written false to pin');
         res()
     }))
 
@@ -80,8 +80,12 @@ function powerOn() {
 //for me usbIndex is "2", run `uhubctl` to get a list of usb ports
 //uhubctl is assumed to be in your path, and index.js needs to run as root
 //see https://www.byfarthersteps.com/6802/
-function powerStatus(usbIndex) {
-    return new Promise((res, rej) => execFile(
+function powerStatus() {
+    return new Promise((res, rej) => gpio.read(RELAY_1, (err, result) => {
+        if (err) rej(err)
+        res(result ? "on" : "off")
+    }))
+    /*return new Promise((res, rej) => execFile(
         `uhubctl`,
         ['-l', '1-1', '-p', usbIndex],
         (err, stdout, stderr) => {
@@ -91,7 +95,7 @@ function powerStatus(usbIndex) {
             else {
                 res(stdout.search("off") === -1 ? "on" : "off")
             }
-        }))
+        }))*/
 }
 
 function minidspStatus() {
