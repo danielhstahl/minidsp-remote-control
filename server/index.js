@@ -3,17 +3,31 @@ const Fastify = require('fastify')
 const { execFile } = require('child_process');
 const { env: { USB_INDEX } } = require("process")
 const path = require("path")
+const gpio = require('rpi-gpio')
 const fastify = Fastify({
     logger: true
 })
 
 const usbIndex = USB_INDEX || 2
 
+//gpio:
+//01 is 26
+//02 is 20
+//03 is 21
+const RELAY_1 = 26
+gpio.setup(RELAY_1, gpio.DIR_OUT);
+
 //for me usbIndex is "2", run `uhubctl` to get a list of usb ports
 //uhubctl is assumed to be in your path, and index.js needs to run as root
 //see https://www.byfarthersteps.com/6802/
-function powerOff(usbIndex) {
-    return new Promise((res, rej) => execFile(
+function powerOff() {
+    return new Promise((res, rej) => gpio.write(RELAY_1, false, (err) => {
+        if (err) rej(err)
+        console.log('Written True to pin');
+        res()
+    }))
+
+    /*return new Promise((res, rej) => execFile(
         `uhubctl`,
         ['-l', '1-1', '-p', usbIndex, '-a', 'off'],
         (err, stdout, stderr) => {
@@ -23,13 +37,33 @@ function powerOff(usbIndex) {
             else {
                 res(stdout)
             }
-        }))
+        }))*/
+}
+
+function powerOn() {
+    return new Promise((res, rej) => gpio.write(RELAY_1, true, (err) => {
+        if (err) rej(err)
+        console.log('Written True to pin');
+        res()
+    }))
+
+    /*return new Promise((res, rej) => execFile(
+        `uhubctl`,
+        ['-l', '1-1', '-p', usbIndex, '-a', 'off'],
+        (err, stdout, stderr) => {
+            if (err) {
+                rej(err)
+            }
+            else {
+                res(stdout)
+            }
+        }))*/
 }
 
 //for me usbIndex is "2", run `uhubctl` to get a list of usb ports
 //uhubctl is assumed to be in your path, and index.js needs to run as root
 //see https://www.byfarthersteps.com/6802/
-function powerOn(usbIndex) {
+/*function powerOn(usbIndex) {
     return new Promise((res, rej) => execFile(
         `uhubctl`,
         ['-l', '1-1', '-p', usbIndex, '-a', 'on'],
@@ -41,8 +75,7 @@ function powerOn(usbIndex) {
                 res(stdout)
             }
         }))
-
-}
+}*/
 
 //for me usbIndex is "2", run `uhubctl` to get a list of usb ports
 //uhubctl is assumed to be in your path, and index.js needs to run as root
@@ -123,7 +156,7 @@ fastify.register(async function (fastify) {
     fastify.get('/status', (req, reply) => {
         Promise.all([
             minidspStatus(),
-            powerStatus(usbIndex)
+            powerStatus()
         ]).then(([minidsp, power]) => {
             const { preset, mute, source, volume } = minidsp
             reply.send({ preset, source, volume, power })
@@ -170,14 +203,14 @@ fastify.register(async function (fastify) {
         })
     })
     fastify.post("/power/on", (req, reply) => {
-        powerOn(usbIndex).then(() => {
+        powerOn().then(() => {
             reply.send({ success: true })
         }).catch((e) => {
             reply.send({ success: false, message: e })
         })
     })
     fastify.post("/power/off", (req, reply) => {
-        powerOff(usbIndex).then(() => {
+        powerOff().then(() => {
             reply.send({ success: true })
         }).catch((e) => {
             reply.send({ success: false, message: e })
