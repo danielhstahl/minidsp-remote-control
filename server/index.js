@@ -2,8 +2,9 @@
 const Fastify = require('fastify')
 const { execFile } = require('child_process');
 const { env: { USB_INDEX } } = require("process")
+const { openPin, turnOn, turnOff, getStatus } = require('./gpio')
 const path = require("path")
-const gpio = require('rpi-gpio').promise
+//const gpio = require('rpi-gpio').promise
 const fastify = Fastify({
     logger: true
 })
@@ -14,20 +15,22 @@ const usbIndex = USB_INDEX || 2
 //01 is 26
 //02 is 20
 //03 is 21
-const RELAY_1 = 26
+//const RELAY_1 = 26
+const RELAY_1 = 7
 //gpio.setup(RELAY_1, gpio.DIR_OUT);
 
 //for me usbIndex is "2", run `uhubctl` to get a list of usb ports
 //uhubctl is assumed to be in your path, and index.js needs to run as root
 //see https://www.byfarthersteps.com/6802/
 function powerOff() {
-    return gpio.setup(RELAY_1, gpio.DIR_OUT)
+    return turnOff(RELAY_1)
+    /*return gpio.setup(RELAY_1, gpio.DIR_OUT)
         .then(() => {
             return gpio.write(RELAY_1, false)
         })
         .catch((err) => {
             console.log('Error: ', err.toString())
-        })
+        })*/
     /*return new Promise((res, rej) => gpio.write(RELAY_1, false, (err) => {
         if (err) rej(err)
         console.log('Written false to pin');
@@ -48,13 +51,13 @@ function powerOff() {
 }
 
 function powerOn() {
-    return gpio.setup(RELAY_1, gpio.DIR_OUT)
+    return turnOn(RELAY_1) /*gpio.setup(RELAY_1, gpio.DIR_OUT)
         .then(() => {
             return gpio.write(RELAY_1, true)
         })
         .catch((err) => {
             console.log('Error: ', err.toString())
-        })
+        })*/
     /*return new Promise((res, rej) => gpio.write(RELAY_1, true, (err) => {
         if (err) rej(err)
         console.log('Written True to pin');
@@ -95,11 +98,13 @@ function powerOn() {
 //uhubctl is assumed to be in your path, and index.js needs to run as root
 //see https://www.byfarthersteps.com/6802/
 async function powerStatus() {
-    const setup = await gpio.setup(RELAY_1, gpio.DIR_IN)
+    const result = await getStatus(RELAY_1)
+    console.log(result)
+    /*const setup = await gpio.setup(RELAY_1, gpio.DIR_IN)
     console.log("past setup")
     const result = await gpio.read(RELAY_1)
     console.log("power status")
-    console.log(result)
+    console.log(result)*/
     /*.then(async () => {
         console.log("past power status")
 
@@ -186,6 +191,7 @@ function setMinidspInput(source) {
 }
 const VOLUME_INCREMENT = 0.5
 fastify.register(async function (fastify) {
+    await openPin(RELAY_1)
     fastify.get('/status', (req, reply) => {
         Promise.all([
             minidspStatus(),
