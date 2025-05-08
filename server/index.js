@@ -191,7 +191,7 @@ function setMinidspInput(source) {
 }
 const VOLUME_INCREMENT = 0.5
 fastify.register(async function (fastify) {
-    await openPin(RELAY_1)
+    await openPin(RELAY_1).catch(console.log)
     fastify.get('/status', (req, reply) => {
         Promise.all([
             minidspStatus(),

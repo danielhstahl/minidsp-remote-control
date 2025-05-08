@@ -28,6 +28,10 @@ const openPin = (pin) => {
     return writeFilePs(PATH + '/export', pin)
 }
 
+const closePin = (pin) => {
+    return writeFilePs(PATH + '/unexport', pin)
+}
+
 const toggle = (pin, type) => {
     return writeFilePs(PATH + `/gpio${pin}/direction`, DIR_OUT).then(() => {
         return writeFilePs(PATH + `/gpio${pin}/value`, type)
