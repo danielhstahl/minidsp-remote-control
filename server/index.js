@@ -16,7 +16,7 @@ const usbIndex = USB_INDEX || 2
 //02 is 20
 //03 is 21
 //const RELAY_1 = 26
-const RELAY_1 = "7"
+const RELAY_1 = "538"
 //gpio.setup(RELAY_1, gpio.DIR_OUT);
 
 //for me usbIndex is "2", run `uhubctl` to get a list of usb ports
