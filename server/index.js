@@ -99,7 +99,7 @@ function powerOn() {
 //see https://www.byfarthersteps.com/6802/
 async function powerStatus() {
     const result = await getStatus(RELAY_1)
-    console.log(result)
+    return result == "0" ? "off" : "on"
     /*const setup = await gpio.setup(RELAY_1, gpio.DIR_IN)
     console.log("past setup")
     const result = await gpio.read(RELAY_1)
