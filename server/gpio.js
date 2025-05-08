@@ -24,7 +24,7 @@ const promisify = file_fn => (v1, v2) => new Promise((res, rej) => {
 const writeFilePs = promisify(writeFile)
 const readFilePs = promisify(readFile)
 
-export const openPin = (pin) => {
+const openPin = (pin) => {
     return writeFilePs(PATH + '/export', pin)
 }
 
@@ -33,17 +33,22 @@ const toggle = (pin, type) => {
         return writeFilePs(PATH + `/gpio${pin}/value`, type)
     })
 }
-export const turnOn = (pin) => {
+const turnOn = (pin) => {
     return toggle(pin, ON)
 }
 
-export const turnOff = (pin) => {
+const turnOff = (pin) => {
     return toggle(pin, OFF)
 }
 
-export const getStatus = (pin) => {
+const getStatus = (pin) => {
     return writeFilePs(PATH + `/gpio${pin}/direction`, DIR_IN).then(() => {
         return readFilePs(PATH + `/gpio${pin}/value`, 'utf-8')
     })
 }
-
+module.exports = {
+    turnOn,
+    turnOff,
+    getStatus,
+    openPin
+}
