@@ -1,6 +1,6 @@
 # put this file in /lib/systemd/system/minidsp-bt.service
 # download minidsp-ui.tar.gz from releases, and extract into /usr/bin/minidsp-ui
-# `sudo systemctl enable minidsp-ui`
+# `sudo systemctl enable minidsp-bt`
 
 [Unit]
 After=syslog.target
@@ -10,6 +10,9 @@ StartLimitBurst=10
 [Service]
 Environment="BLUETOOTH_DEVICE_ID=hci1"
 Type=simple
+ExecStartPre=rfkill unblock bluetooth
+ExecStartPre=bluetoothctl power off
+ExecStartPre=bluetoothctl power on
 ExecStart=node /usr/bin/minidsp-ui/bt
 Restart=always
 RestartSec=1

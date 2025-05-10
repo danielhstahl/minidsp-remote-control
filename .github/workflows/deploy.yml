@@ -1,42 +1,42 @@
 on:
-    release:
-        types: [published]
-  
+  release:
+    types: [published]
+
 jobs:
-    build_server:
-        name: release
-        runs-on: ubuntu-latest
-        steps:
-        - uses: actions/checkout@v4
+  build_server:
+    name: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-        - name: install
-          run: npm ci
-          working-directory: ./server
+      - name: install
+        run: npm ci
+        working-directory: ./server
 
-        #- name: test
-        #  run: npm test
-        
-    build_ui:
-        runs-on: ubuntu-latest
-        permissions:
-            contents: write # release changes require contents write
+    #- name: test
+    #  run: npm test
 
-        steps:
-        - uses: actions/checkout@v4
+  build_ui:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # release changes require contents write
 
-        - name: install deps
-          run: npm ci
-          working-directory: ./client
+    steps:
+      - uses: actions/checkout@v4
 
-        - name: compile
-          working-directory: ./client
-          run: npm run build
-  
-        - name: package
-          run: tar czvf minidsp-ui.tar.gz -C client build -C ../server index.js bt.js package-lock.json package.json
-    
-        - name: upload artifact
-          env:
-            GITHUB_TOKEN: ${{ github.token }}
-          run: |
-            gh release upload ${{ github.event.release.tag_name }} minidsp-ui.tar.gz
+      - name: install deps
+        run: npm ci
+        working-directory: ./client
+
+      - name: compile
+        working-directory: ./client
+        run: npm run build
+
+      - name: package
+        run: tar czvf minidsp-ui.tar.gz -C client build -C ../server index.js bt.js gpio.js onoff.js package-lock.json package.json
+
+      - name: upload artifact
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} minidsp-ui.tar.gz
