@@ -1,7 +1,7 @@
 "use strict";
 const Fastify = require("fastify");
 const { execFile } = require("child_process");
-const { turnOn, turnOff, getStatus } = require("./gpio");
+const { turnOn, turnOff, getStatus, openPin } = require("./gpio");
 const path = require("path");
 const fastify = Fastify({
   logger: true,
