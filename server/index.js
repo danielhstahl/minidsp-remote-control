@@ -1,14 +1,16 @@
 "use strict";
 const Fastify = require("fastify");
+
+//cat /sys/kernel/debug/gpio
+const {
+  env: { RELAY_PIN, USE_RELAY },
+} = require("process");
 const { execFile } = require("child_process");
 const { turnOn, turnOff, getStatus, openPin } = require("./gpio");
 const path = require("path");
 const fastify = Fastify({
   logger: true,
 });
-
-//cat /sys/kernel/debug/gpio
-const RELAY_1 = 538;
 
 function powerOff(gpio) {
   return turnOff(gpio);
@@ -95,10 +97,14 @@ function setMinidspInput(source) {
   );
 }
 const VOLUME_INCREMENT = 0.5;
+const USE_GPIO = USE_RELAY ? true : false;
 fastify.register(async function (fastify) {
-  const gpio = openPin(RELAY_1);
+  const gpio = USE_GPIO ? openPin(parseInt(RELAY_PIN)) : undefined;
   fastify.get("/status", (req, reply) => {
-    Promise.all([minidspStatus(), powerStatus(gpio)])
+    Promise.all([
+      minidspStatus(),
+      USE_GPIO ? powerStatus(gpio) : Promise.resolve("on"),
+    ])
       .then(([minidsp, power]) => {
         const { preset, mute, source, volume } = minidsp;
         reply.send({ preset, source, volume, power });
@@ -156,6 +162,9 @@ fastify.register(async function (fastify) {
       });
   });
   fastify.post("/power/on", (req, reply) => {
+    if (!USE_GPIO) {
+      return reply.send({ success: false, message: "Power not implemented" });
+    }
     powerOn(gpio)
       .then(() => {
         reply.send({ success: true });
@@ -165,6 +174,9 @@ fastify.register(async function (fastify) {
       });
   });
   fastify.post("/power/off", (req, reply) => {
+    if (!USE_GPIO) {
+      return reply.send({ success: false, message: "Power not implemented" });
+    }
     powerOff(gpio)
       .then(() => {
         reply.send({ success: true });
