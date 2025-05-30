@@ -102,12 +102,12 @@ const VOLUME_INCREMENT = 0.5;
 const USE_GPIO = USE_RELAY ? true : false;
 fastify.register(async function (fastify) {
   const gpio = USE_GPIO ? openPin(parseInt(RELAY_PIN)) : undefined;
-  fastify.get("/cacrt", (req, reply) => {
+  fastify.get("/api/cacrt", (req, reply) => {
     const stream = fs.createReadStream("/etc/ssl/local/ca.crt");
     reply.header("Content-Disposition", "attachment; filename=ca.crt");
     reply.send(stream).type("application/octet-stream").code(200);
   });
-  fastify.get("/status", (req, reply) => {
+  fastify.get("/api/status", (req, reply) => {
     Promise.all([
       minidspStatus(),
       USE_GPIO ? powerStatus(gpio) : Promise.resolve("on"),
@@ -120,7 +120,7 @@ fastify.register(async function (fastify) {
         reply.send({ success: false, message: e });
       });
   });
-  fastify.post("/volume/up", (req, reply) => {
+  fastify.post("/api/volume/up", (req, reply) => {
     incrementMinidspVol(VOLUME_INCREMENT)
       .then(() => {
         reply.send({ success: true });
@@ -129,7 +129,7 @@ fastify.register(async function (fastify) {
         reply.send({ success: false, message: e });
       });
   });
-  fastify.post("/volume/down", (req, reply) => {
+  fastify.post("/api/volume/down", (req, reply) => {
     incrementMinidspVol(-VOLUME_INCREMENT)
       .then(() => {
         reply.send({ success: true });
@@ -138,7 +138,7 @@ fastify.register(async function (fastify) {
         reply.send({ success: false, message: e });
       });
   });
-  fastify.post("/volume/:volume", (req, reply) => {
+  fastify.post("/api/volume/:volume", (req, reply) => {
     const { volume } = req.params;
     setMinidspVol(volume)
       .then(() => {
@@ -148,7 +148,7 @@ fastify.register(async function (fastify) {
         reply.send({ success: false, message: e });
       });
   });
-  fastify.post("/preset/:preset", (req, reply) => {
+  fastify.post("/api/preset/:preset", (req, reply) => {
     const { preset } = req.params;
     setMinidspPreset(preset)
       .then(() => {
@@ -158,7 +158,7 @@ fastify.register(async function (fastify) {
         reply.send({ success: false, message: e });
       });
   });
-  fastify.post("/source/:source", (req, reply) => {
+  fastify.post("/api/source/:source", (req, reply) => {
     const { source } = req.params;
     setMinidspInput(source)
       .then(() => {
@@ -168,7 +168,7 @@ fastify.register(async function (fastify) {
         reply.send({ success: false, message: e });
       });
   });
-  fastify.post("/power/on", (req, reply) => {
+  fastify.post("/api/power/on", (req, reply) => {
     if (!USE_GPIO) {
       return reply.send({ success: false, message: "Power not implemented" });
     }
@@ -180,7 +180,7 @@ fastify.register(async function (fastify) {
         reply.send({ success: false, message: e });
       });
   });
-  fastify.post("/power/off", (req, reply) => {
+  fastify.post("/api/power/off", (req, reply) => {
     if (!USE_GPIO) {
       return reply.send({ success: false, message: "Power not implemented" });
     }
