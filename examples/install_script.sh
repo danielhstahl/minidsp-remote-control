@@ -6,3 +6,7 @@ sudo mv minidsp-ui.tar.gz /usr/bin/minidsp-ui/
 sudo tar -xzvf /usr/bin/minidsp-ui/minidsp-ui.tar.gz -C /usr/bin/minidsp-ui
 sudo npm --prefix /usr/bin/minidsp-ui/ ci
 sudo rm /usr/bin/minidsp-ui/minidsp-ui.tar.gz
+sudo useradd -m minidsp
+sudo usermod -aG bluetooth minidsp
+sudo usermod -a -G gpio minidsp
+sudo usermod -aG plugdev minidsp

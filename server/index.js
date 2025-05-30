@@ -6,8 +6,10 @@ const {
   env: { RELAY_PIN, USE_RELAY },
 } = require("process");
 const { execFile } = require("child_process");
+const fs = require("fs");
 const { turnOn, turnOff, getStatus, openPin } = require("./gpio");
 const path = require("path");
+
 const fastify = Fastify({
   logger: true,
 });
@@ -100,6 +102,14 @@ const VOLUME_INCREMENT = 0.5;
 const USE_GPIO = USE_RELAY ? true : false;
 fastify.register(async function (fastify) {
   const gpio = USE_GPIO ? openPin(parseInt(RELAY_PIN)) : undefined;
+  fastify.get("/cacrt", (req, reply) => {
+    fs.readFile("/etc/ssl/local/ca.crt", function (err, data) {
+      if (err) {
+        return reply.send({ success: false, message: err });
+      }
+      reply.send({ cert: data });
+    });
+  });
   fastify.get("/status", (req, reply) => {
     Promise.all([
       minidspStatus(),
@@ -187,10 +197,12 @@ fastify.register(async function (fastify) {
   });
 });
 
+/*
 fastify.register(require("@fastify/static"), {
   root: path.join(__dirname, "build"),
   prefix: "/", // optional: default '/'
 });
+*/
 
 // Run the server!
 try {
