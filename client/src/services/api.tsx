@@ -56,3 +56,49 @@ export const setPower = (powerToTurnTo: Power) => {
 export const setSource = (source: Source) => {
   return fetch(`/api/source/${source}`, { method: "POST" });
 };
+
+export const getCaCert = () => {
+  return (
+    fetch(`/api/cacrt`, {
+      headers: {
+        "Content-Disposition": "attachment; filename=ca.crt",
+      },
+    })
+      .then((response) => {
+        if (response.body) {
+          const reader = response.body.getReader();
+          return new ReadableStream({
+            start(controller) {
+              return pump();
+              function pump(): Promise<void> {
+                return reader.read().then(({ done, value }) => {
+                  // When no more data needs to be consumed, close the stream
+                  if (done) {
+                    controller.close();
+                    return;
+                  }
+                  // Enqueue the next data chunk into our target stream
+                  controller.enqueue(value);
+                  return pump();
+                });
+              }
+            },
+          });
+        } else {
+          throw new Error("No Body");
+        }
+      })
+      .then((stream) => new Response(stream))
+      // Create an object URL for the response
+      .then((response) => response.blob())
+      .then((blob) => URL.createObjectURL(blob))
+      .then((objUrl) => {
+        const fileLink = document.createElement("a");
+        fileLink.href = objUrl;
+        // suggest a name for the downloaded file
+        fileLink.download = "ca.crt";
+        // simulate click
+        fileLink.click();
+      })
+  );
+};

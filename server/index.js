@@ -103,12 +103,9 @@ const USE_GPIO = USE_RELAY ? true : false;
 fastify.register(async function (fastify) {
   const gpio = USE_GPIO ? openPin(parseInt(RELAY_PIN)) : undefined;
   fastify.get("/cacrt", (req, reply) => {
-    fs.readFile("/etc/ssl/local/ca.crt", function (err, data) {
-      if (err) {
-        return reply.send({ success: false, message: err });
-      }
-      reply.send({ cert: data });
-    });
+    const stream = fs.createReadStream("/etc/ssl/local/ca.crt");
+    reply.header("Content-Disposition", "attachment; filename=ca.crt");
+    reply.send(stream).type("application/octet-stream").code(200);
   });
   fastify.get("/status", (req, reply) => {
     Promise.all([
