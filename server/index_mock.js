@@ -4,9 +4,9 @@ const fastify = Fastify({
   logger: true,
 });
 fastify.register(async function (fastify) {
-  fastify.get("/api/cacrt", (req, reply) => {
+  fastify.get("/api/rootpem", (req, reply) => {
     const stream = fs.createReadStream("mockcert.crt");
-    reply.header("Content-Disposition", "attachment; filename=ca.crt");
+    reply.header("Content-Disposition", "attachment; filename=rootCA.pem");
     reply.send(stream).type("application/octet-stream").code(200);
   });
   fastify.get("/api/status", (req, reply) => {

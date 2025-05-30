@@ -8,7 +8,6 @@ const {
 const { execFile } = require("child_process");
 const fs = require("fs");
 const { turnOn, turnOff, getStatus, openPin } = require("./gpio");
-const path = require("path");
 
 const fastify = Fastify({
   logger: true,
@@ -102,9 +101,9 @@ const VOLUME_INCREMENT = 0.5;
 const USE_GPIO = USE_RELAY ? true : false;
 fastify.register(async function (fastify) {
   const gpio = USE_GPIO ? openPin(parseInt(RELAY_PIN)) : undefined;
-  fastify.get("/api/cacrt", (req, reply) => {
-    const stream = fs.createReadStream("/etc/ssl/local/ca.crt");
-    reply.header("Content-Disposition", "attachment; filename=ca.crt");
+  fastify.get("/api/rootpem", (req, reply) => {
+    const stream = fs.createReadStream("/etc/ssl/local/rootCA.pem");
+    reply.header("Content-Disposition", "attachment; filename=rootCA.pem");
     reply.send(stream).type("application/octet-stream").code(200);
   });
   fastify.get("/api/status", (req, reply) => {
