@@ -31,6 +31,15 @@ export interface HtxWrite {
   preset: Preset;
 }
 
+export interface SSLCert {
+  subject: string;
+  issuer: string;
+  validFrom: string;
+  validTo: string;
+  validFromDate: Date;
+  validToDate: Date;
+}
+
 export const getStatus: () => Promise<HtxWrite> = () => {
   return fetch("/api/status").then((v) => v.json());
 };
@@ -56,10 +65,20 @@ export const setPower = (powerToTurnTo: Power) => {
 export const setSource = (source: Source) => {
   return fetch(`/api/source/${source}`, { method: "POST" });
 };
-
-export const getCaCert = () => {
+export const getCertInfo: () => Promise<SSLCert> = () => {
+  return fetch(`/api/cert_info`)
+    .then((v) => v.json())
+    .then((result) => {
+      return {
+        ...result,
+        validFromDate: new Date(result.validFromDate),
+        validToDate: new Date(result.validToDate),
+      };
+    });
+};
+export const getCaPem = () => {
   return (
-    fetch(`/api/cacrt`, {
+    fetch(`/api/root_pem`, {
       headers: {
         "Content-Disposition": "attachment; filename=ca.crt",
       },
@@ -96,7 +115,7 @@ export const getCaCert = () => {
         const fileLink = document.createElement("a");
         fileLink.href = objUrl;
         // suggest a name for the downloaded file
-        fileLink.download = "ca.crt";
+        fileLink.download = "rootCA.pem";
         // simulate click
         fileLink.click();
       })

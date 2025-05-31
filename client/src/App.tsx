@@ -17,6 +17,8 @@ import {
   setSource,
   volumeUp,
   volumeDown,
+  getCertInfo,
+  SSLCert,
 } from "./services/api";
 import StatusCard from "./components/PowerCard";
 import VolumeCard from "./components/VolumeCard";
@@ -30,6 +32,7 @@ import {
   THEME_TO_MODE,
 } from "./styles/modes";
 import Settings from "./components/Settings";
+import SSLNotification from "./components/Notification";
 
 // custom hook for parameter updates
 function useParameterUpdates(
@@ -154,6 +157,10 @@ function App() {
 
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
 
+  const [certInfo, setCertInfo] = useState<SSLCert | undefined>(undefined);
+  useEffect(() => {
+    getCertInfo().then(setCertInfo);
+  }, []);
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ display: "flex" }}>
@@ -200,6 +207,12 @@ function App() {
               </Grid>
             </Grid>
           </Container>
+          {certInfo && (
+            <SSLNotification
+              sslInfo={certInfo}
+              currentDate={new Date("2023-05-05")}
+            />
+          )}
         </Box>
       </Box>
     </ThemeProvider>

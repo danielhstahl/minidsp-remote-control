@@ -4,13 +4,9 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-import Typography from "@mui/material/Typography";
-import Divider from "@mui/material/Divider";
-import { getCaCert } from "../services/api";
-import QuestionMarkIcon from "@mui/icons-material/QuestionMark";
+import { getCaPem } from "../services/api";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
-import Tooltip from "@mui/material/Tooltip";
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialogContent-root": {
     padding: theme.spacing(2),
@@ -49,15 +45,15 @@ const Settings = ({ open, setOpen }: SettingInputs) => {
         </IconButton>
 
         <DialogContent dividers>
-          <Button color="primary" onClick={getCaCert}>
+          <Button color="primary" onClick={getCaPem}>
             Download ca.crt
           </Button>{" "}
           If using SSL, add your ca.crt to the trust store.
           <br />
-          <Button onClick={getCaCert}>Re-generate certs</Button> Re-create the
+          <Button onClick={getCaPem}>Re-generate certs</Button> Re-create the
           SSL certs
           <br />
-          <Button onClick={getCaCert}>Re-generate certs</Button> Re-create the
+          <Button onClick={getCaPem}>Re-generate certs</Button> Re-create the
           SSL certs
         </DialogContent>
         <DialogActions>

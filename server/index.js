@@ -101,16 +101,15 @@ const VOLUME_INCREMENT = 0.5;
 const USE_GPIO = USE_RELAY ? true : false;
 fastify.register(async function (fastify) {
   const gpio = USE_GPIO ? openPin(parseInt(RELAY_PIN)) : undefined;
-  fastify.get("/api/rootpem", (req, reply) => {
+  fastify.get("/api/root_pem", (req, reply) => {
     const stream = fs.createReadStream("/etc/ssl/local/rootCA.pem");
     reply.header("Content-Disposition", "attachment; filename=rootCA.pem");
     reply.send(stream).type("application/octet-stream").code(200);
   });
-  fastify.get("/api/certexpiry", (req, reply) => {
+  fastify.get("/api/cert_info", (req, reply) => {
     fs.readFile("/etc/ssl/local/rootCA.pem", function (err, contents) {
       const x509 = new X509Certificate(contents);
-      console.log(x509);
-      reply.send({ certExpiry: x509.validToDate });
+      reply.send(x509);
     });
   });
   fastify.get("/api/status", (req, reply) => {
