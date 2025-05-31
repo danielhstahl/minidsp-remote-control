@@ -8,7 +8,7 @@ const {
 const { execFile } = require("child_process");
 const fs = require("fs");
 const { turnOn, turnOff, getStatus, openPin } = require("./gpio");
-const openssl = require("node_openssl");
+const openssl = require("node-openssl-cert");
 const fastify = Fastify({
   logger: true,
 });
