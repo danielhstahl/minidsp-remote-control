@@ -2,7 +2,7 @@
 
 server {
     listen 80;
-    server_name HOSTNAME.local;
+    server_name HOSTNAME;
     allow 192.168.1.0/16;
     deny all;
     root /usr/bin/minidsp-ui/build;
@@ -19,8 +19,8 @@ server {
 
 server {
     listen 443 ssl;
-    server_name HOSTNAME.local;
-    ssl_certificate /etc/ssl/local/HOSTNAME.local.crt;
+    server_name HOSTNAME;
+    ssl_certificate /etc/ssl/local/HOSTNAME.crt;
     ssl_certificate_key /etc/ssl/local/device.key;
     root /usr/bin/minidsp-ui/build;
     index index.html;

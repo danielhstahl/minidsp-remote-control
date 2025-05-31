@@ -24,7 +24,7 @@ else
 fi
 
 DOMAIN=$1
-COMMON_NAME=${2:-*.$1}
+COMMON_NAME=$DOMAIN #${2:-*.$1}
 SUBJECT="/C=CA/ST=None/L=NB/O=None/CN=$COMMON_NAME"
 NUM_OF_DAYS=825
 openssl req -new -newkey rsa:2048 -sha256 -nodes $KEY_OPT device.key -subj "$SUBJECT" -out device.csr
@@ -43,14 +43,5 @@ sudo mv $DOMAIN.crt /etc/ssl/local/$DOMAIN.crt
 sudo mv device.key /etc/ssl/local/device.key
 sudo mv rootCA.pem /etc/ssl/local/rootCA.pem
 
-# sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain rootCA.pem
 
-echo
-echo "###########################################################################"
-echo Done!
-echo "###########################################################################"
-echo "To use these files on your server, simply copy both $DOMAIN.csr and"
-echo "device.key to your webserver, and use like so (if Apache, for example)"
-echo
-echo "    SSLCertificateFile    /path_to_your_files/$DOMAIN.crt"
-echo "    SSLCertificateKeyFile /path_to_your_files/device.key"
+# sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain rootCA.pem

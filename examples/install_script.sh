@@ -8,5 +8,6 @@ sudo npm --prefix /usr/bin/minidsp-ui/ ci
 sudo rm /usr/bin/minidsp-ui/minidsp-ui.tar.gz
 sudo useradd -m minidsp
 sudo usermod -aG bluetooth minidsp
-sudo usermod -a -G gpio minidsp
+sudo usermod -aG gpio minidsp
 sudo usermod -aG plugdev minidsp
+sudo apt install nginx
