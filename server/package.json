@@ -11,9 +11,9 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@fastify/static": "^7.0.4",
     "fastify": "^4.28.0",
     "node-ble": "^1.13.0",
-    "node-hid": "^3.1.2"
+    "node-hid": "^3.1.2",
+    "node-openssl-cert": "^0.1.44"
   }
 }

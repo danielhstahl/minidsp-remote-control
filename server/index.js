@@ -8,7 +8,7 @@ const {
 const { execFile } = require("child_process");
 const fs = require("fs");
 const { turnOn, turnOff, getStatus, openPin } = require("./gpio");
-
+const openssl = require("node_openssl");
 const fastify = Fastify({
   logger: true,
 });
@@ -105,6 +105,18 @@ fastify.register(async function (fastify) {
     const stream = fs.createReadStream("/etc/ssl/local/rootCA.pem");
     reply.header("Content-Disposition", "attachment; filename=rootCA.pem");
     reply.send(stream).type("application/octet-stream").code(200);
+  });
+  fastify.get("/api/certexpiry", (req, reply) => {
+    const opensslInstance = new openssl();
+    fs.readFile("/etc/ssl/local/rootCA.pem", function (err, contents) {
+      opensslInstance.getOpenSSLCertInfo(contents, function (err, out, cmd) {
+        if (err) {
+          reply.send({ success: false, message: err });
+        } else {
+          reply.send({ certInfo: out });
+        }
+      });
+    });
   });
   fastify.get("/api/status", (req, reply) => {
     Promise.all([
