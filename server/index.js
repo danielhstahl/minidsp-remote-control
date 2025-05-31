@@ -113,7 +113,9 @@ fastify.register(async function (fastify) {
         if (err) {
           reply.send({ success: false, message: err });
         } else {
-          reply.send({ certInfo: out });
+          console.log(out); //is this JSON?
+          const result = JSON.parse(out);
+          reply.send({ certInfo: result });
         }
       });
     });
