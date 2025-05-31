@@ -65,6 +65,9 @@ export const setPower = (powerToTurnTo: Power) => {
 export const setSource = (source: Source) => {
   return fetch(`/api/source/${source}`, { method: "POST" });
 };
+export const generateCert = () => {
+  return fetch(`/api/regenerate_cert`, { method: "POST" });
+};
 export const getCertInfo: () => Promise<SSLCert> = () => {
   return fetch(`/api/cert_info`)
     .then((v) => v.json())

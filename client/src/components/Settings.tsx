@@ -4,7 +4,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-import { getCaPem } from "../services/api";
+import { getCaPem, generateCert } from "../services/api";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
@@ -46,19 +46,16 @@ const Settings = ({ open, setOpen }: SettingInputs) => {
 
         <DialogContent dividers>
           <Button color="primary" onClick={getCaPem}>
-            Download ca.crt
+            Download root cert
           </Button>{" "}
-          If using SSL, add your ca.crt to the trust store.
+          If using SSL, add your root cert to the trust store.
           <br />
-          <Button onClick={getCaPem}>Re-generate certs</Button> Re-create the
-          SSL certs
-          <br />
-          <Button onClick={getCaPem}>Re-generate certs</Button> Re-create the
-          SSL certs
+          <Button onClick={generateCert}>Re-generate certs</Button> Re-create
+          the SSL certs
         </DialogContent>
         <DialogActions>
           <Button autoFocus onClick={handleClose}>
-            Save changes
+            Ok
           </Button>
         </DialogActions>
       </BootstrapDialog>

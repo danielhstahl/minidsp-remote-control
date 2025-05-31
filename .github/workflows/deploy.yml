@@ -33,7 +33,7 @@ jobs:
         run: npm run build
 
       - name: package
-        run: tar czvf minidsp-ui.tar.gz -C client build -C ../server index.js bt.js gpio.js onoff.js package-lock.json package.json
+        run: tar czvf minidsp-ui.tar.gz -C client build -C examples install_script.sh minidsp-bt.service minidsp-ui.service nginx.conf nginx.service -C ../server index.js bt.js gpio.js onoff.js scripts/create_root_cert_and_key.sh package-lock.json package.json
 
       - name: upload artifact
         env:

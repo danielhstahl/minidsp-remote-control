@@ -97,6 +97,22 @@ function setMinidspInput(source) {
     ),
   );
 }
+
+function generateCert() {
+  return new Promise((res, rej) =>
+    execFile(
+      `./scripts/create_root_cert_and_key.sh`,
+      ["raspberrypi.local"],
+      (err, stdout, stderr) => {
+        if (err) {
+          rej(err);
+        } else {
+          res();
+        }
+      },
+    ),
+  );
+}
 const VOLUME_INCREMENT = 0.5;
 const USE_GPIO = USE_RELAY ? true : false;
 fastify.register(async function (fastify) {
@@ -111,6 +127,15 @@ fastify.register(async function (fastify) {
       const x509 = new X509Certificate(contents);
       reply.send(x509);
     });
+  });
+  fastify.post("/api/regenerate_cert", (req, reply) => {
+    generateCert()
+      .then(() => {
+        reply.send({ success: true });
+      })
+      .catch((e) => {
+        reply.send({ success: false, message: e });
+      });
   });
   fastify.get("/api/status", (req, reply) => {
     Promise.all([
