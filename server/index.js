@@ -108,7 +108,7 @@ fastify.register(async function (fastify) {
   });
   fastify.get("/api/certexpiry", (req, reply) => {
     fs.readFile("/etc/ssl/local/rootCA.pem", function (err, contents) {
-      const x509 = X509Certificate(contents);
+      const x509 = new X509Certificate(contents);
       reply.send({ certExpiry: x509.validToDate() });
     });
   });
