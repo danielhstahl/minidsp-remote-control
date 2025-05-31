@@ -8,7 +8,7 @@ const {
 const { execFile } = require("child_process");
 const fs = require("fs");
 const { turnOn, turnOff, getStatus, openPin } = require("./gpio");
-const openssl = require("node-openssl-cert");
+const { X509Certificate } = require("crypto");
 const fastify = Fastify({
   logger: true,
 });
@@ -107,17 +107,9 @@ fastify.register(async function (fastify) {
     reply.send(stream).type("application/octet-stream").code(200);
   });
   fastify.get("/api/certexpiry", (req, reply) => {
-    const opensslInstance = new openssl();
     fs.readFile("/etc/ssl/local/rootCA.pem", function (err, contents) {
-      opensslInstance.getOpenSSLCertInfo(contents, function (err, out, cmd) {
-        if (err) {
-          reply.send({ success: false, message: err });
-        } else {
-          console.log(out); //is this JSON?
-          const result = JSON.parse(out);
-          reply.send({ certInfo: result });
-        }
-      });
+      const x509 = X509Certificate(contents);
+      reply.send({ certExpiry: x509.validToDate() });
     });
   });
   fastify.get("/api/status", (req, reply) => {
