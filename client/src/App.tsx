@@ -208,10 +208,7 @@ function App() {
             </Grid>
           </Container>
           {certInfo && (
-            <SSLNotification
-              sslInfo={certInfo}
-              currentDate={new Date("2023-05-05")}
-            />
+            <SSLNotification sslInfo={certInfo} currentDate={new Date()} />
           )}
         </Box>
       </Box>
