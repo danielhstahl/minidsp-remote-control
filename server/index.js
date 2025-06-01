@@ -6,8 +6,9 @@ const {
   env: { RELAY_PIN, USE_RELAY },
 } = require("process");
 const { execFile } = require("child_process");
+const fs = require("fs");
 const { turnOn, turnOff, getStatus, openPin } = require("./gpio");
-const path = require("path");
+const { X509Certificate } = require("crypto");
 const fastify = Fastify({
   logger: true,
 });
@@ -96,11 +97,47 @@ function setMinidspInput(source) {
     ),
   );
 }
+
+function generateCert() {
+  return new Promise((res, rej) =>
+    execFile(
+      `./scripts/create_root_cert_and_key.sh`,
+      ["raspberrypi.local"],
+      (err, stdout, stderr) => {
+        if (err) {
+          rej(err);
+        } else {
+          res();
+        }
+      },
+    ),
+  );
+}
 const VOLUME_INCREMENT = 0.5;
 const USE_GPIO = USE_RELAY ? true : false;
 fastify.register(async function (fastify) {
   const gpio = USE_GPIO ? openPin(parseInt(RELAY_PIN)) : undefined;
-  fastify.get("/status", (req, reply) => {
+  fastify.get("/api/root_pem", (req, reply) => {
+    const stream = fs.createReadStream("/etc/ssl/local/rootCA.pem");
+    reply.header("Content-Disposition", "attachment; filename=rootCA.pem");
+    reply.send(stream).type("application/octet-stream").code(200);
+  });
+  fastify.get("/api/cert_info", (req, reply) => {
+    fs.readFile("/etc/ssl/local/rootCA.pem", function (err, contents) {
+      const x509 = new X509Certificate(contents);
+      reply.send(x509);
+    });
+  });
+  fastify.post("/api/regenerate_cert", (req, reply) => {
+    generateCert()
+      .then(() => {
+        reply.send({ success: true });
+      })
+      .catch((e) => {
+        reply.send({ success: false, message: e });
+      });
+  });
+  fastify.get("/api/status", (req, reply) => {
     Promise.all([
       minidspStatus(),
       USE_GPIO ? powerStatus(gpio) : Promise.resolve("on"),
@@ -113,7 +150,7 @@ fastify.register(async function (fastify) {
         reply.send({ success: false, message: e });
       });
   });
-  fastify.post("/volume/up", (req, reply) => {
+  fastify.post("/api/volume/up", (req, reply) => {
     incrementMinidspVol(VOLUME_INCREMENT)
       .then(() => {
         reply.send({ success: true });
@@ -122,7 +159,7 @@ fastify.register(async function (fastify) {
         reply.send({ success: false, message: e });
       });
   });
-  fastify.post("/volume/down", (req, reply) => {
+  fastify.post("/api/volume/down", (req, reply) => {
     incrementMinidspVol(-VOLUME_INCREMENT)
       .then(() => {
         reply.send({ success: true });
@@ -131,7 +168,7 @@ fastify.register(async function (fastify) {
         reply.send({ success: false, message: e });
       });
   });
-  fastify.post("/volume/:volume", (req, reply) => {
+  fastify.post("/api/volume/:volume", (req, reply) => {
     const { volume } = req.params;
     setMinidspVol(volume)
       .then(() => {
@@ -141,7 +178,7 @@ fastify.register(async function (fastify) {
         reply.send({ success: false, message: e });
       });
   });
-  fastify.post("/preset/:preset", (req, reply) => {
+  fastify.post("/api/preset/:preset", (req, reply) => {
     const { preset } = req.params;
     setMinidspPreset(preset)
       .then(() => {
@@ -151,7 +188,7 @@ fastify.register(async function (fastify) {
         reply.send({ success: false, message: e });
       });
   });
-  fastify.post("/source/:source", (req, reply) => {
+  fastify.post("/api/source/:source", (req, reply) => {
     const { source } = req.params;
     setMinidspInput(source)
       .then(() => {
@@ -161,7 +198,7 @@ fastify.register(async function (fastify) {
         reply.send({ success: false, message: e });
       });
   });
-  fastify.post("/power/on", (req, reply) => {
+  fastify.post("/api/power/on", (req, reply) => {
     if (!USE_GPIO) {
       return reply.send({ success: false, message: "Power not implemented" });
     }
@@ -173,7 +210,7 @@ fastify.register(async function (fastify) {
         reply.send({ success: false, message: e });
       });
   });
-  fastify.post("/power/off", (req, reply) => {
+  fastify.post("/api/power/off", (req, reply) => {
     if (!USE_GPIO) {
       return reply.send({ success: false, message: "Power not implemented" });
     }
@@ -187,10 +224,12 @@ fastify.register(async function (fastify) {
   });
 });
 
+/*
 fastify.register(require("@fastify/static"), {
   root: path.join(__dirname, "build"),
   prefix: "/", // optional: default '/'
 });
+*/
 
 // Run the server!
 try {
