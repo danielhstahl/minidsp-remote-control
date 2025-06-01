@@ -1,5 +1,5 @@
 ## example of running this script: DOMAIN=raspberrypi.local RELEASE_TAG=v4.0.2 ./install_script.sh
-url = https://github.com/danielhstahl/minidsp-remote-control/releases/download/${RELEASE_TAG}/minidsp-ui.tar.gz
+export url = https://github.com/danielhstahl/minidsp-remote-control/releases/download/${RELEASE_TAG}/minidsp-ui.tar.gz
 echo "downloading from ${url}"
 curl -L -O $url
 sudo rm -rf /usr/bin/minidsp-ui || true
