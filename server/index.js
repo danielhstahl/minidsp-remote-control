@@ -101,7 +101,7 @@ function setMinidspInput(source) {
 function generateCert() {
   return new Promise((res, rej) =>
     execFile(
-      `./scripts/create_root_cert_and_key.sh`,
+      `${__dirname}/scripts/create_root_cert_and_key.sh`,
       [DOMAIN],
       (err, stdout, stderr) => {
         if (err) {
