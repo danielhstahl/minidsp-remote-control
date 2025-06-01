@@ -1,5 +1,6 @@
 ## example of running this script: DOMAIN=raspberrypi.local RELEASE_TAG=v4.0.2 ./install_script.sh
-url = https://github.com/danielhstahl/minidsp-remote-control/releases/download/${RELEASE_TAG}/minidsp-ui.tar.gz
+set -e
+url="https://github.com/danielhstahl/minidsp-remote-control/releases/download/${RELEASE_TAG}/minidsp-ui.tar.gz"
 echo "downloading from ${url}"
 curl -L -O $url
 sudo rm -rf /usr/bin/minidsp-ui || true
@@ -11,8 +12,8 @@ sudo rm /usr/bin/minidsp-ui/minidsp-ui.tar.gz
 echo "completed extraction"
 # create user to run the service
 echo "user and group setup"
-sudo useradd -m minidsp
-sudo groupadd minidspgroup
+id -u minidsp &>/dev/null || sudo useradd -m minidsp
+getent group minidspgroup || sudo groupadd minidspgroup
 sudo usermod -aG bluetooth minidsp
 sudo usermod -aG gpio minidsp
 sudo usermod -aG plugdev minidsp
@@ -36,7 +37,7 @@ sed -i -e "s/HOSTNAME/${DOMAIN}/g" minidsp-ui.service
 sudo cp minidsp-ui.service /lib/systemd/system/minidsp-ui.service
 sudo cp minidsp-bt.service /lib/systemd/system/minidsp-bt.service
 sudo cp nginx.service /lib/systemd/system/nginx.service
-cp nginx.conf /home/minidsp/nginx/
+sudo cp nginx.conf /home/minidsp/nginx/
 sudo systemctl daemon-reload
 sudo systemctl enable minidsp-ui
 sudo systemctl enable minidsp-bt
