@@ -118,15 +118,16 @@ function generateCert() {
 }
 const VOLUME_INCREMENT = 0.5;
 const USE_GPIO = USE_RELAY ? true : false;
+const ROOT_PEM_PATH = "/home/minidsp/ssl/rootCA.pem";
 fastify.register(async function (fastify) {
   const gpio = USE_GPIO ? openPin(parseInt(RELAY_PIN)) : undefined;
   fastify.get("/api/root_pem", (req, reply) => {
-    const stream = fs.createReadStream("/etc/ssl/local/rootCA.pem");
+    const stream = fs.createReadStream(ROOT_PEM_PATH);
     reply.header("Content-Disposition", "attachment; filename=rootCA.pem");
     reply.send(stream).type("application/octet-stream").code(200);
   });
   fastify.get("/api/cert_info", (req, reply) => {
-    fs.readFile("/home/minidsp/ssl/rootCA.pem", function (err, contents) {
+    fs.readFile(ROOT_PEM_PATH, function (err, contents) {
       const x509 = new X509Certificate(contents);
       reply.send(x509);
     });

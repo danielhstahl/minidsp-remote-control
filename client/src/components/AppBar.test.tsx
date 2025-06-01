@@ -25,7 +25,7 @@ describe("AppBarMenu", () => {
 
   it("renders the title correctly", () => {
     renderAppBar("light");
-    expect(screen.getByText("MiniDSP Remote")).toBeInTheDocument();
+    expect(screen.getByText("MiniDSP")).toBeInTheDocument();
   });
 
   it("renders all three theme toggle buttons", () => {

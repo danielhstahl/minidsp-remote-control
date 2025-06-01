@@ -58,7 +58,7 @@ const AppBarMenu = ({
           noWrap
           sx={{ flexGrow: 1 }}
         >
-          MiniDSP Remote
+          MiniDSP
         </Typography>
         <IconButton
           onClick={() => setSettingsOpen(!settingsOpen)}
