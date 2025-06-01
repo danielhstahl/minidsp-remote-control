@@ -129,7 +129,14 @@ fastify.register(async function (fastify) {
   fastify.get("/api/cert_info", (req, reply) => {
     fs.readFile(ROOT_PEM_PATH, function (err, contents) {
       const x509 = new X509Certificate(contents);
-      reply.send(x509);
+      reply.send({
+        subject: x509.subject,
+        issuer: x509.issuer,
+        validFrom: x509.validFrom,
+        validTo: x509.validTo,
+        validFromDate: x509.validFromDate,
+        validToDate: x509.validToDate,
+      });
     });
   });
   fastify.post("/api/regenerate_cert", (req, reply) => {
