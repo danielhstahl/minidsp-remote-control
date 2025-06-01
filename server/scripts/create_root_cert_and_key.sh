@@ -13,19 +13,15 @@ openssl req -x509 -new -nodes -key rootCA.key -sha256 -days $DAYS -out rootCA.pe
 openssl req -new -newkey rsa:4096 -sha256 -nodes -keyout device.key -subj "/CN=${DOMAIN}" -out device.csr
 openssl req -x509 -in device.csr -CA rootCA.pem -CAkey rootCA.key -CAcreateserial -out device.crt -days $DAYS -sha256 -addext "subjectAltName=DNS:${DOMAIN},DNS:*.${DOMAIN}" -copy_extensions copy
 
-# move output files to final filenames
-cp device.crt "$DOMAIN.crt"
-
-# remove temp file
-rm -f device.crt
-rm -f rootCA.key
-rm -f device.csr
-
-mv $DOMAIN.crt /home/minidsp/ssl/$DOMAIN.crt
+mv device.crt /home/minidsp/ssl/device.crt
 mv device.key /home/minidsp/ssl/device.key
 mv rootCA.pem /home/minidsp/ssl/rootCA.pem
 
+# remove temp file
+rm -f rootCA.key
+rm -f device.csr
+
 ## NGINX config
-sed -i -e "s/HOSTNAME/${DOMAIN}/g" examples/nginx
-cp examples/nginx.conf /home/minidsp/nginx/
-systemctl reload nginx
+#sed -i -e "s/HOSTNAME/${DOMAIN}/g" examples/nginx
+#cp examples/nginx.conf /home/minidsp/nginx/
+#systemctl reload nginx
