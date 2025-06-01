@@ -29,8 +29,8 @@ sudo apt-get install nodejs -y
 echo "finished installing dependent software"
 
 # add group to /etc/sudoers
-if [ -z "$(sudo grep 'Cmnd_Alias MINIDSP_CMNDS = /bin/systemctl reload nginx' /etc/sudoers )" ]; then echo "Cmnd_Alias MINIDSP_CMNDS = /bin/systemctl reload nginx" | sudo EDITOR='tee -a' visudo; fi;
-if [ -z "$(sudo grep 'minidspgroup ALL=(ALL) NOPASSWD: MINIDSP_CMNDS' /etc/sudoers )" ]; then echo "minidspgroup ALL=(ALL) NOPASSWD: MINIDSP_CMNDS" | sudo EDITOR='tee -a' visudo; fi;
+if [ -z "$(sudo grep '%minidspgroup ALL=(ALL) NOPASSWD: /usr/bin/systemctl reload nginx' /etc/sudoers )" ]; then echo "%minidspgroup ALL=(ALL) NOPASSWD: /usr/bin/systemctl reload nginx" | sudo EDITOR='tee -a' visudo; fi;
+
 sed -i -e "s/HOSTNAME/${DOMAIN}/g" nginx.conf
 sed -i -e "s/HOSTNAME/${DOMAIN}/g" minidsp-ui.service
 # copy services
@@ -42,3 +42,4 @@ sudo systemctl daemon-reload
 sudo systemctl enable minidsp-ui
 sudo systemctl enable minidsp-bt
 sudo systemctl enable nginx
+sudo chown -R  minidsp:minidspgroup /home/minidsp/
