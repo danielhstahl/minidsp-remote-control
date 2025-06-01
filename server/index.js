@@ -106,6 +106,8 @@ function generateCert() {
       [DOMAIN],
       (err, stdout, stderr) => {
         if (err) {
+          console.log(stdout);
+          console.log(stderr);
           rej(err);
         } else {
           res();
