@@ -6,6 +6,7 @@ const {
   env: { RELAY_PIN, USE_RELAY, DOMAIN },
 } = require("process");
 const { execFile } = require("child_process");
+const path = require("path");
 const fs = require("fs");
 const { turnOn, turnOff, getStatus, openPin } = require("./gpio");
 const { X509Certificate } = require("crypto");
@@ -101,7 +102,7 @@ function setMinidspInput(source) {
 function generateCert() {
   return new Promise((res, rej) =>
     execFile(
-      `${__dirname}/scripts/create_root_cert_and_key.sh`,
+      path.resolve(__dirname, "scripts", "create_root_cert_and_key.sh"),
       [DOMAIN],
       (err, stdout, stderr) => {
         if (err) {
@@ -123,7 +124,7 @@ fastify.register(async function (fastify) {
     reply.send(stream).type("application/octet-stream").code(200);
   });
   fastify.get("/api/cert_info", (req, reply) => {
-    fs.readFile("/etc/ssl/local/rootCA.pem", function (err, contents) {
+    fs.readFile("/home/minidsp/ssl/rootCA.pem", function (err, contents) {
       const x509 = new X509Certificate(contents);
       reply.send(x509);
     });
