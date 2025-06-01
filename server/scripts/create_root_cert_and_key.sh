@@ -22,6 +22,4 @@ rm -f rootCA.key
 rm -f device.csr
 
 ## NGINX config
-#sed -i -e "s/HOSTNAME/${DOMAIN}/g" examples/nginx
-#cp examples/nginx.conf /home/minidsp/nginx/
-#systemctl reload nginx
+systemctl reload nginx

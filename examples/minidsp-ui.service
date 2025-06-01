@@ -19,7 +19,7 @@ StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=minidsp-ui
 User=minidsp
-SupplementaryGroups=gpio
+SupplementaryGroups=gpio minidspgroup
 CPUSchedulingPolicy=fifo
 CPUSchedulingPriority=10
 
