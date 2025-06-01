@@ -8,18 +8,19 @@ fi
 DOMAIN=$1
 DAYS=3650
 
-openssl genrsa -out rootCA.key 4096
-openssl req -x509 -new -nodes -key rootCA.key -sha256 -days $DAYS -out rootCA.pem -subj "/CN=${DOMAIN}"
-openssl req -new -newkey rsa:4096 -sha256 -nodes -keyout device.key -subj "/CN=${DOMAIN}" -out device.csr
-openssl req -x509 -in device.csr -CA rootCA.pem -CAkey rootCA.key -CAcreateserial -out device.crt -days $DAYS -sha256 -addext "subjectAltName=DNS:${DOMAIN},DNS:*.${DOMAIN}" -copy_extensions copy
+mkdir -p /home/minidsp/ssl/tmp
 
-mv device.crt /home/minidsp/ssl/device.crt
-mv device.key /home/minidsp/ssl/device.key
-mv rootCA.pem /home/minidsp/ssl/rootCA.pem
+openssl genrsa -out /home/minidsp/ssl/tmp/rootCA.key 4096
+openssl req -x509 -new -nodes -key /home/minidsp/ssl/tmp/rootCA.key -sha256 -days $DAYS -out /home/minidsp/ssl/tmp/rootCA.pem -subj "/CN=${DOMAIN}"
+openssl req -new -newkey rsa:4096 -sha256 -nodes -keyout /home/minidsp/ssl/tmp/device.key -subj "/CN=${DOMAIN}" -out /home/minidsp/ssl/tmp/device.csr
+openssl req -x509 -in /home/minidsp/ssl/tmp/device.csr -CA /home/minidsp/ssl/tmp/rootCA.pem -CAkey /home/minidsp/ssl/tmp/rootCA.key -CAcreateserial -out /home/minidsp/ssl/tmp/device.crt -days $DAYS -sha256 -addext "subjectAltName=DNS:${DOMAIN},DNS:*.${DOMAIN}" -copy_extensions copy
 
-# remove temp file
-rm -f rootCA.key
-rm -f device.csr
+mv /home/minidsp/ssl/tmp/device.crt /home/minidsp/ssl/device.crt
+mv /home/minidsp/ssl/tmp/device.key /home/minidsp/ssl/device.key
+mv /home/minidsp/ssl/tmp/rootCA.pem /home/minidsp/ssl/rootCA.pem
+
+# remove temp directory
+rm -r /home/minidsp/ssl/tmp
 
 ## NGINX config
 systemctl reload nginx
