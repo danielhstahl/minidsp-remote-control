@@ -3,7 +3,7 @@ const Fastify = require("fastify");
 
 //cat /sys/kernel/debug/gpio
 const {
-  env: { RELAY_PIN, USE_RELAY },
+  env: { RELAY_PIN, USE_RELAY, DOMAIN },
 } = require("process");
 const { execFile } = require("child_process");
 const fs = require("fs");
@@ -102,7 +102,7 @@ function generateCert() {
   return new Promise((res, rej) =>
     execFile(
       `./scripts/create_root_cert_and_key.sh`,
-      ["raspberrypi.local"],
+      [DOMAIN],
       (err, stdout, stderr) => {
         if (err) {
           rej(err);
