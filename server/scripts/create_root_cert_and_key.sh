@@ -23,4 +23,5 @@ mv /home/minidsp/ssl/tmp/rootCA.pem /home/minidsp/ssl/rootCA.pem
 rm -r /home/minidsp/ssl/tmp
 
 ## NGINX config
-systemctl reload nginx
+# the sudo is needed to not use a password, see /etc/sudoers
+sudo /usr/bin/systemctl reload nginx
