@@ -33,14 +33,14 @@ const CircularProgressWithLabel = (
       <CircularProgress
         variant="determinate"
         sx={{
-          color: (theme) => theme.palette.secondary.main, //applyThemeSecondaryColor(theme, mode),
+          color: (theme) => theme.palette.secondary.main,
         }}
         {...rest}
         value={100}
       />
       <CircularProgress
         sx={{
-          color: (theme) => theme.palette.primary.main, //applyThemePrimaryColor(theme, mode),
+          color: (theme) => theme.palette.primary.main,
           position: "absolute",
           left: 0,
         }}
@@ -91,7 +91,7 @@ const VolumeCard = ({
         </IconButton>
         <Slider
           sx={{
-            color: (theme) => theme.palette.primary.main, //applyThemePrimaryColor(theme, mode),
+            color: (theme) => theme.palette.primary.main,
           }}
           min={MIN_VOLUME}
           max={MAX_VOLUME}
