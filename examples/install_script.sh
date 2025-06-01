@@ -1,24 +1,31 @@
-## example of running this script: DOMAIN=raspberrypi.local RELEASE_TAG=v1.0.2 ./install_script.sh
-curl -L -O https://github.com/danielhstahl/minidsp-remote-control/releases/download/${RELEASE_TAG}/minidsp-ui.tar.gz
+## example of running this script: DOMAIN=raspberrypi.local RELEASE_TAG=v4.0.2 ./install_script.sh
+url = https://github.com/danielhstahl/minidsp-remote-control/releases/download/${RELEASE_TAG}/minidsp-ui.tar.gz
+echo "downloading from ${url}"
+curl -L -O $url
 sudo rm -rf /usr/bin/minidsp-ui || true
 sudo mkdir /usr/bin/minidsp-ui
 sudo mv minidsp-ui.tar.gz /usr/bin/minidsp-ui/
 sudo tar -xzvf /usr/bin/minidsp-ui/minidsp-ui.tar.gz -C /usr/bin/minidsp-ui
 sudo npm --prefix /usr/bin/minidsp-ui/ ci
 sudo rm /usr/bin/minidsp-ui/minidsp-ui.tar.gz
+echo "completed extraction"
 # create user to run the service
+echo "user and group setup"
 sudo useradd -m minidsp
 sudo groupadd minidspgroup
 sudo usermod -aG bluetooth minidsp
 sudo usermod -aG gpio minidsp
 sudo usermod -aG plugdev minidsp
 sudo usermod -aG minidspgroup minidsp
+echo "completed user and group setup"
+echo "install dependent software"
 sudo apt install nginx
 mkdir -p /home/minidsp/nginx
 mkdir -p /home/minidsp/ssl
 # update to node 24
 curl -fsSL https://deb.nodesource.com/setup_24.x | sudo bash
 sudo apt-get install nodejs -y
+echo "finished installing dependent software"
 
 # add group to /etc/sudoers
 if [ -z "$(sudo grep 'Cmnd_Alias MINIDSP_CMNDS = /bin/systemctl reload nginx' /etc/sudoers )" ]; then echo "Cmnd_Alias MINIDSP_CMNDS = /bin/systemctl reload nginx" | sudo EDITOR='tee -a' visudo; fi;
