@@ -60,8 +60,8 @@ const Settings = ({ open, setOpen }: SettingInputs) => {
             Re-generate certs
           </Button>{" "}
           {isLoading
-            ? "Re-create the SSL certs"
-            : "Re-creating certs, this may take some time"}
+            ? "Re-creating certs, this may take some time"
+            : "Re-create the SSL certs"}
         </DialogContent>
         <DialogActions>
           <Button autoFocus onClick={handleClose}>
