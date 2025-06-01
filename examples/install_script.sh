@@ -13,7 +13,7 @@ echo "completed extraction"
 # create user to run the service
 echo "user and group setup"
 id -u minidsp &>/dev/null || sudo useradd -m minidsp
-sudo groupadd minidspgroup
+getent group minidspgroup || sudo groupadd minidspgroup
 sudo usermod -aG bluetooth minidsp
 sudo usermod -aG gpio minidsp
 sudo usermod -aG plugdev minidsp
