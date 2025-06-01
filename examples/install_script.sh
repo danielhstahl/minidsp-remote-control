@@ -17,7 +17,9 @@ getent group minidspgroup || sudo groupadd minidspgroup
 sudo usermod -aG bluetooth minidsp
 sudo usermod -aG gpio minidsp
 sudo usermod -aG plugdev minidsp
+sudo usermod -aG rfkill minidsp
 sudo usermod -aG minidspgroup minidsp
+sudo chmod -R g+rx minidsp:minidspgroup /dev/rfkill
 echo "completed user and group setup"
 echo "install dependent software"
 sudo apt install nginx
@@ -30,6 +32,7 @@ echo "finished installing dependent software"
 
 # add group to /etc/sudoers
 if [ -z "$(sudo grep '%minidspgroup ALL=(ALL) NOPASSWD: /usr/bin/systemctl reload nginx' /etc/sudoers )" ]; then echo "%minidspgroup ALL=(ALL) NOPASSWD: /usr/bin/systemctl reload nginx" | sudo EDITOR='tee -a' visudo; fi;
+if [ -z "$(sudo grep '%minidspgroup ALL=(ALL) NOPASSWD: /usr/sbin/rfkill unblock bluetooth' /etc/sudoers )" ]; then echo "%minidspgroup ALL=(ALL) NOPASSWD: /usr/sbin/rfkill unblock bluetooth" | sudo EDITOR='tee -a' visudo; fi;
 
 sed -i -e "s/HOSTNAME/${DOMAIN}/g" nginx.conf
 sed -i -e "s/HOSTNAME/${DOMAIN}/g" minidsp-ui.service
