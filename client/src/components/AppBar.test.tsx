@@ -1,15 +1,11 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { DEFAULT_COLOR_THEME, THEME_TO_MODE } from "../styles/modes"; // You'll need to import your theme
+import { ThemeProvider } from "@mui/material/styles";
+import { DEFAULT_COLOR_THEME, themes } from "../styles/modes"; // You'll need to import your theme
 import AppBarMenu from "./AppBar";
 
 describe("AppBarMenu", () => {
   const mockSetMode = jest.fn();
-  const theme = createTheme({
-    palette: {
-      mode: THEME_TO_MODE[DEFAULT_COLOR_THEME],
-    },
-  });
+  const theme = themes[DEFAULT_COLOR_THEME];
   const renderAppBar = (mode: "light" | "dark" | "dark_evil") => {
     return render(
       <ThemeProvider theme={theme}>

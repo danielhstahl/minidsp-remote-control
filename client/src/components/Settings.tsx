@@ -7,6 +7,7 @@ import DialogActions from "@mui/material/DialogActions";
 import { getCaPem, generateCert } from "../services/api";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
+import { useState } from "react";
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialogContent-root": {
     padding: theme.spacing(2),
@@ -21,6 +22,11 @@ interface SettingInputs {
 }
 const Settings = ({ open, setOpen }: SettingInputs) => {
   const handleClose = () => setOpen(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const handleGenerateCert = () => {
+    setIsLoading(true);
+    generateCert().finally(() => setIsLoading(false));
+  };
   return (
     <>
       <BootstrapDialog
@@ -50,8 +56,12 @@ const Settings = ({ open, setOpen }: SettingInputs) => {
           </Button>{" "}
           If using SSL, add your root cert to the trust store.
           <br />
-          <Button onClick={generateCert}>Re-generate certs</Button> Re-create
-          the SSL certs
+          <Button loading={isLoading} onClick={handleGenerateCert}>
+            Re-generate certs
+          </Button>{" "}
+          {isLoading
+            ? "Re-create the SSL certs"
+            : "Re-creating certs, this may take some time"}
         </DialogContent>
         <DialogActions>
           <Button autoFocus onClick={handleClose}>

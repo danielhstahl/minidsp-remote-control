@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useRef, useMemo, useState } from "react";
 import "./App.css";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { ThemeProvider } from "@mui/material/styles";
+
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import Toolbar from "@mui/material/Toolbar";
@@ -25,12 +26,8 @@ import VolumeCard from "./components/VolumeCard";
 import AppBar from "./components/AppBar";
 import { WriteAction, useWriteParams } from "./state/writeActions";
 import { saveColorTheme, getColorTheme } from "./state/persistance";
-import {
-  ColorTheme,
-  applyThemeBackgroundColor,
-  DEFAULT_COLOR_THEME,
-  THEME_TO_MODE,
-} from "./styles/modes";
+
+import { ColorTheme, DEFAULT_COLOR_THEME, themes } from "./styles/modes";
 import Settings from "./components/Settings";
 import SSLNotification from "./components/Notification";
 
@@ -95,31 +92,8 @@ function useParameterUpdates(
   );
 }
 
-// custom hook for theme management
-function useThemeManagement() {
-  const [colorTheme, setColorTheme] = useState<ColorTheme>(
-    getColorTheme() || DEFAULT_COLOR_THEME,
-  );
-
-  const theme = useMemo(
-    () =>
-      createTheme({
-        palette: {
-          mode: THEME_TO_MODE[colorTheme],
-        },
-      }),
-    [colorTheme],
-  );
-
-  const setMode = useCallback((mode: ColorTheme) => {
-    saveColorTheme(mode);
-    setColorTheme(mode);
-  }, []);
-
-  return { theme, colorTheme, setMode };
-}
-
 function App() {
+  /// Params state management
   const { dispatch: writeDispatch, state: writeParams } = useWriteParams();
   const holdRefresh = useRef<undefined | ReturnType<typeof setTimeout>>(
     undefined,
@@ -139,7 +113,6 @@ function App() {
     }, 3000);
   }, [getParams]);
 
-  const { theme, colorTheme, setMode } = useThemeManagement();
   const updates = useParameterUpdates(writeDispatch, writeParams, holdRefresh);
 
   useEffect(() => {
@@ -155,8 +128,20 @@ function App() {
     }, 5000); //has to be longer than the getParamsLater timeout
   }, [getParams, getParamsLater]);
 
+  /// Theme state management
+  const [selectedTheme, setSelectedTheme] = useState<ColorTheme>(
+    getColorTheme() || DEFAULT_COLOR_THEME,
+  );
+  const setThemeAndSave = (theme: ColorTheme) => {
+    setSelectedTheme(theme);
+    saveColorTheme(theme);
+  };
+  const theme = themes[selectedTheme];
+
+  /// Settings state management
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
 
+  /// Cert state management
   const [certInfo, setCertInfo] = useState<SSLCert | undefined>(undefined);
   useEffect(() => {
     getCertInfo().then(setCertInfo);
@@ -166,8 +151,8 @@ function App() {
       <Box sx={{ display: "flex" }}>
         <CssBaseline />
         <AppBar
-          mode={colorTheme}
-          setMode={setMode}
+          mode={selectedTheme}
+          setMode={setThemeAndSave}
           settingsOpen={settingsOpen}
           setSettingsOpen={setSettingsOpen}
         />
@@ -175,8 +160,8 @@ function App() {
         <Box
           component="main"
           sx={{
-            backgroundColor: (theme) =>
-              applyThemeBackgroundColor(theme, colorTheme),
+            backgroundColor: (theme) => theme.palette.background.default,
+
             flexGrow: 1,
             height: "100vh",
             overflow: "auto",
@@ -185,7 +170,7 @@ function App() {
           <Toolbar />
           <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             <Grid container spacing={3}>
-              <Grid item xs={12} md={12} lg={12}>
+              <Grid size={{ xs: 12, md: 12, lg: 12 }}>
                 <StatusCard
                   onPowerToggle={updates.updatePower}
                   power={writeParams.power}
@@ -193,16 +178,16 @@ function App() {
                   source={writeParams.source}
                   onPresetChange={updates.updatePreset}
                   onSourceChange={updates.updateSource}
-                  mode={colorTheme}
+                  mode={selectedTheme}
                 />
               </Grid>
-              <Grid item xs={12} md={6} lg={6}>
+              <Grid size={{ xs: 12, md: 6, lg: 6 }}>
                 <VolumeCard
                   onVolumeSet={updates.updateVolume}
                   onVolumeUp={updates.volumeUp}
                   onVolumeDown={updates.volumeDown}
                   volume={writeParams.volume}
-                  mode={colorTheme}
+                  mode={selectedTheme}
                 />
               </Grid>
             </Grid>
