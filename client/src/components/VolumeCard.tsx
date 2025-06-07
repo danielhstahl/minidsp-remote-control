@@ -10,7 +10,7 @@ import CircularProgress, {
   CircularProgressProps,
 } from "@mui/material/CircularProgress";
 import { ColorTheme } from "../styles/modes";
-import { MIN_VOLUME, MAX_VOLUME } from "../state/writeActions";
+import { MIN_VOLUME, MAX_VOLUME } from "../state/minidspActions";
 const VOLUME_INCREMENT = 0.5;
 interface VolumeInputs {
   onVolumeSet: (v: number) => void;

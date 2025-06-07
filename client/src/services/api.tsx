@@ -40,6 +40,17 @@ export interface SSLCert {
   validToDate: Date;
 }
 
+export interface AuthSettings {
+  key: number;
+  requireAuth: boolean;
+  stringToSign: string;
+}
+export interface UserId {
+  userId: number;
+}
+export interface User extends UserId {
+  privateKey: string;
+}
 export const getStatus: () => Promise<HtxWrite> = () => {
   return fetch("/api/status").then((v) => v.json());
 };
@@ -65,6 +76,29 @@ export const setPower = (powerToTurnTo: Power) => {
 export const setSource = (source: Source) => {
   return fetch(`/api/source/${source}`, { method: "POST" });
 };
+
+export const getAuthSettings: () => Promise<AuthSettings> = () => {
+  return fetch(`/api/auth_settings`).then((v) => v.json());
+};
+
+export const setAuthSettings: (
+  requireAuth: boolean,
+) => Promise<AuthSettings> = (requireAuth: boolean) => {
+  return fetch(`/api/auth_settings`, {
+    method: "POST",
+    body: JSON.stringify({ requireAuth }),
+  }).then((v) => v.json());
+};
+
+export const createUser: (publicKey: string) => Promise<UserId> = (
+  publicKey: string,
+) => {
+  return fetch(`/api/user`, {
+    method: "POST",
+    body: JSON.stringify({ publicKey }),
+  }).then((v) => v.json());
+};
+
 export const generateCert = () => {
   return fetch(`/api/regenerate_cert`, { method: "POST" });
 };

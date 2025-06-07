@@ -16,10 +16,9 @@ id -u minidsp &>/dev/null || sudo useradd -m minidsp
 getent group minidspgroup || sudo groupadd minidspgroup
 sudo usermod -aG bluetooth minidsp
 sudo usermod -aG gpio minidsp
-sudo usermod -aG plugdev minidsp
-sudo usermod -aG rfkill minidsp
+sudo usermod -aG plugdev minidsp # HID, but is it needed??
+sudo usermod -aG input minidsp #HID
 sudo usermod -aG minidspgroup minidsp
-sudo chmod -R g+rx minidsp:minidspgroup /dev/rfkill
 echo "completed user and group setup"
 echo "install dependent software"
 sudo apt install nginx

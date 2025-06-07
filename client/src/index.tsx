@@ -1,18 +1,21 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
-import { WriteProvider } from './state/writeActions';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import App from "./App";
+import reportWebVitals from "./reportWebVitals";
+import { MiniDspProvider } from "./state/minidspActions";
+import { AuthSettingsProvider } from "./state/credActions";
 const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
+  document.getElementById("root") as HTMLElement,
 );
 root.render(
   <React.StrictMode>
-    <WriteProvider>
-      <App />
-    </WriteProvider>
-  </React.StrictMode>
+    <AuthSettingsProvider>
+      <MiniDspProvider>
+        <App />
+      </MiniDspProvider>
+    </AuthSettingsProvider>
+  </React.StrictMode>,
 );
 
 // If you want to start measuring performance in your app, pass a function
