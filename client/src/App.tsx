@@ -22,6 +22,8 @@ import {
   getAuthSettings,
   SSLCert,
   HtxWrite,
+  addAuthHeaders,
+  LocalHeaders,
 } from "./services/api";
 import StatusCard from "./components/PowerCard";
 import VolumeCard from "./components/VolumeCard";
@@ -32,18 +34,24 @@ import {
   Action,
 } from "./state/minidspActions";
 import { SetKeys, useAuthSettingsParams } from "./state/credActions";
-
-import { saveColorTheme, getColorTheme } from "./state/persistance";
+import { SetUser, useUserParams } from "./state/userActions";
+import {
+  saveColorTheme,
+  getColorTheme,
+  getPrivateKey,
+  getUserId,
+} from "./state/persistance";
 
 import { ColorTheme, DEFAULT_COLOR_THEME, themes } from "./styles/modes";
 import Settings from "./components/Settings";
 import SSLNotification from "./components/Notification";
-
+import { sign } from "./services/keyCreation";
 // custom hook for parameter updates
 function useParameterUpdates(
   miniDspDispatch: (_: Action) => void,
   miniDspParams: HtxWrite,
-  resetRefresh: React.MutableRefObject<NodeJS.Timeout | undefined>,
+  headers: LocalHeaders,
+  resetRefresh: React.MutableRefObject<NodeJS.Timeout | undefined>
 ) {
   return useMemo(
     () => ({
@@ -52,7 +60,7 @@ function useParameterUpdates(
           type: MinidspAction.UPDATE,
           value: { ...miniDspParams, preset },
         });
-        setPreset(preset);
+        setPreset(headers, preset);
         clearInterval(resetRefresh.current);
       },
       updateVolume: (volume: number) => {
@@ -60,7 +68,7 @@ function useParameterUpdates(
           type: MinidspAction.UPDATE,
           value: { ...miniDspParams, volume },
         });
-        setVolume(volume);
+        setVolume(headers, volume);
         clearInterval(resetRefresh.current);
       },
       volumeUp: (volume: number, increment: number) => {
@@ -68,7 +76,7 @@ function useParameterUpdates(
           type: MinidspAction.UPDATE,
           value: { ...miniDspParams, volume: volume + increment },
         });
-        volumeUp();
+        volumeUp(headers);
         clearInterval(resetRefresh.current);
       },
       volumeDown: (volume: number, increment: number) => {
@@ -76,7 +84,7 @@ function useParameterUpdates(
           type: MinidspAction.UPDATE,
           value: { ...miniDspParams, volume: volume - increment },
         });
-        volumeDown();
+        volumeDown(headers);
         clearInterval(resetRefresh.current);
       },
       updatePower: (power: Power) => {
@@ -84,7 +92,7 @@ function useParameterUpdates(
           type: MinidspAction.UPDATE,
           value: { ...miniDspParams, power },
         });
-        setPower(power);
+        setPower(headers, power);
         clearInterval(resetRefresh.current);
       },
       updateSource: (source: Source) => {
@@ -92,11 +100,11 @@ function useParameterUpdates(
           type: MinidspAction.UPDATE,
           value: { ...miniDspParams, source },
         });
-        setSource(source);
+        setSource(headers, source);
         clearInterval(resetRefresh.current);
       },
     }),
-    [miniDspDispatch, miniDspParams, resetRefresh],
+    [miniDspDispatch, miniDspParams, resetRefresh, headers]
   );
 }
 
@@ -105,18 +113,25 @@ function App() {
   const { dispatch: miniDspDispatch, state: miniDspParams } =
     useMiniDspParams();
 
-  const { dispatch: authDispatch, state: authParams } = useAuthSettingsParams();
+  const {
+    state: { stringToSign },
+    dispatch: authDispatch,
+  } = useAuthSettingsParams();
+
+  const {
+    state: { userId, signature },
+  } = useUserParams();
 
   const holdRefresh = useRef<undefined | ReturnType<typeof setTimeout>>(
-    undefined,
+    undefined
   );
 
   const getParams = useCallback(
     () =>
-      getStatus().then((status) =>
-        miniDspDispatch({ type: MinidspAction.UPDATE, value: status }),
+      getStatus(addAuthHeaders(userId, signature)).then((status) =>
+        miniDspDispatch({ type: MinidspAction.UPDATE, value: status })
       ),
-    [miniDspDispatch],
+    [miniDspDispatch, userId, signature]
   );
 
   const getParamsLater = useCallback(() => {
@@ -128,7 +143,8 @@ function App() {
   const updates = useParameterUpdates(
     miniDspDispatch,
     miniDspParams,
-    holdRefresh,
+    addAuthHeaders(userId, signature),
+    holdRefresh
   );
 
   useEffect(() => {
@@ -146,7 +162,7 @@ function App() {
 
   /// Theme state management
   const [selectedTheme, setSelectedTheme] = useState<ColorTheme>(
-    getColorTheme() || DEFAULT_COLOR_THEME,
+    getColorTheme() || DEFAULT_COLOR_THEME
   );
   const setThemeAndSave = (theme: ColorTheme) => {
     setSelectedTheme(theme);
@@ -154,38 +170,46 @@ function App() {
   };
   const theme = themes[selectedTheme];
 
-  /// Settings state management
-  const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
+  const { dispatch: userDispatch } = useUserParams();
 
   /// Cert state management
   const [certInfo, setCertInfo] = useState<SSLCert | undefined>(undefined);
   // TODO put this in a state file
   useEffect(() => {
-    getCertInfo().then(setCertInfo);
-  }, []);
+    console.log("THIS IS RERENDERING APP");
+    //no need for authentication on this endpoint
+    getCertInfo({}).then(setCertInfo);
+  }, [setCertInfo]);
   useEffect(() => {
-    getAuthSettings().then((result) =>
+    //no need for authentication on this endpoint
+    getAuthSettings({}).then((result) =>
       authDispatch({
         type: SetKeys.UPDATE,
         value: result,
-      }),
+      })
     );
   }, [authDispatch]);
+
+  useEffect(() => {
+    const userId = getUserId();
+    const privateKey = getPrivateKey() || "";
+    sign(stringToSign, privateKey).then((signature) => {
+      userDispatch({
+        type: SetUser.UPDATE,
+        value: {
+          userId,
+          signature,
+        },
+      });
+    });
+  }, [stringToSign, userDispatch]);
+
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ display: "flex" }}>
         <CssBaseline />
-        <AppBar
-          mode={selectedTheme}
-          setMode={setThemeAndSave}
-          settingsOpen={settingsOpen}
-          setSettingsOpen={setSettingsOpen}
-        />
-        <Settings
-          open={settingsOpen}
-          setOpen={setSettingsOpen}
-          mode={selectedTheme}
-        />
+        <AppBar mode={selectedTheme} setMode={setThemeAndSave} />
+        <Settings mode={selectedTheme} />
         <Box
           component="main"
           sx={{

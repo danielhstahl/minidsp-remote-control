@@ -8,6 +8,7 @@ import {
 
 export enum SetUser {
   UPDATE,
+  //SET_SIGNATURE
 }
 type Action = {
   type: SetUser;
@@ -15,8 +16,8 @@ type Action = {
 };
 
 const initialState = {
-  userId: 0,
-  privateKey: "",
+  userId: "-1",
+  signature: "",
 };
 
 export const authSettingsReducer = (state: User, action: Action) => {

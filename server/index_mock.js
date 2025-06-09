@@ -21,10 +21,18 @@ database.exec(`
 `);
 const createUser = (publicKey) => {
   const insert = database.prepare(
-    `INSERT INTO ${USER_TABLE} (public_key) VALUES (?)`,
+    `INSERT INTO ${USER_TABLE} (public_key) VALUES (?)`
   );
   const { lastInsertRowid } = insert.run(publicKey);
   return { key: lastInsertRowid, publicKey };
+};
+
+const updateUser = (publicKey, userId) => {
+  const insert = database.prepare(
+    `UPDATE ${USER_TABLE} set public_key= ? where key = ?`
+  );
+  insert.run(publicKey, userId);
+  return { key: userId, publicKey };
 };
 
 const getSettings = () => {
@@ -40,7 +48,7 @@ const getSettings = () => {
 const setSettings = (requireAuth) => {
   const requireAuthInt = requireAuth ? 1 : 0;
   const insert = database.prepare(
-    `UPDATE ${APP_SETTINGS_TABLE} SET require_auth=?;`,
+    `UPDATE ${APP_SETTINGS_TABLE} SET require_auth=?;`
   );
   insert.run(requireAuthInt);
 };
@@ -49,7 +57,7 @@ const setDefaultSettings = () => {
   const result = getSettings();
   if (!result) {
     const insert = database.prepare(
-      `INSERT INTO ${APP_SETTINGS_TABLE} (require_auth) VALUES (?)`, //don't require auth by default
+      `INSERT INTO ${APP_SETTINGS_TABLE} (require_auth) VALUES (?)` //don't require auth by default
     );
     insert.run(0);
   }
@@ -64,11 +72,12 @@ const getAllUsers = () => {
         ...aggr,
         [curr.key]: curr.public_key,
       }),
-      {},
+      {}
     );
 };
 
 const userObj = getAllUsers();
+console.log(userObj);
 setDefaultSettings();
 
 const fastify = Fastify({
@@ -83,7 +92,7 @@ const auth = (request, reply) => {
   const authHeader = request.headers["authorization"]; //base64 string signed value
   const userId = request.headers["x-user-id"];
   if (authHeader.startsWith("Bearer ")) {
-    signature = authHeader.substring(7, authHeader.length);
+    const signature = authHeader.substring(7, authHeader.length);
     const result = verifyKey(signature, userObj[userId]);
     if (result) {
       return; //keep going
@@ -105,7 +114,6 @@ fastify.register(async function (fastify) {
     reply.send(stream).type("application/octet-stream").code(200);
   });
   fastify.get("/api/cert_info", (req, reply) => {
-    auth(req, reply);
     const currDate = new Date("2025-05-05");
     const expiryDate = new Date("2025-06-03");
     reply.send({
@@ -126,7 +134,6 @@ fastify.register(async function (fastify) {
   fastify.post("/api/auth_settings", (req, reply) => {
     auth(req, reply);
     const { requireAuth } = JSON.parse(req.body);
-    console.log(requireAuth);
     setSettings(requireAuth);
     reply.send({ requireAuth, stringToSign: STRING_TO_SIGN });
   });
@@ -135,7 +142,16 @@ fastify.register(async function (fastify) {
     const { publicKey } = JSON.parse(req.body);
     const { key: userId } = createUser(publicKey);
     //cache so don't have to reload database
-    userObj[key] = publicKey;
+    userObj[userId] = publicKey;
+    reply.send({ userId });
+  });
+
+  fastify.patch("/api/user", (req, reply) => {
+    auth(req, reply);
+    const { publicKey, userId } = JSON.parse(req.body);
+    updateUser(publicKey, userId);
+    //cache so don't have to reload database
+    userObj[userId] = publicKey;
     reply.send({ userId });
   });
 

@@ -9,13 +9,8 @@ describe("AppBarMenu", () => {
   const renderAppBar = (mode: "light" | "dark" | "dark_evil") => {
     return render(
       <ThemeProvider theme={theme}>
-        <AppBarMenu
-          setMode={mockSetMode}
-          mode={mode}
-          settingsOpen={false}
-          setSettingsOpen={(hello: boolean) => {}}
-        />
-      </ThemeProvider>,
+        <AppBarMenu setMode={mockSetMode} mode={mode} />
+      </ThemeProvider>
     );
   };
 
