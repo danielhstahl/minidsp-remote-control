@@ -22,7 +22,7 @@ const initialState = {
   power: Power.On,
 };
 
-export const writeReducer = (state: HtxWrite, action: Action) => {
+export const miniDspReducer = (state: HtxWrite, action: Action) => {
   switch (action.type) {
     case MinidspAction.UPDATE:
       return action.value;
@@ -37,7 +37,7 @@ const MiniDspContext = createContext({
 });
 
 export const MiniDspProvider = ({ children }: PropsWithChildren) => {
-  const [state, dispatch] = useReducer(writeReducer, initialState);
+  const [state, dispatch] = useReducer(miniDspReducer, initialState);
 
   return (
     <MiniDspContext.Provider value={{ state, dispatch }}>

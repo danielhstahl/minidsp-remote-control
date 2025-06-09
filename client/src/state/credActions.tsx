@@ -1,4 +1,4 @@
-import { AuthSettings } from "../services/api";
+import { AuthSettings, SSLCert } from "../services/api";
 import {
   useReducer,
   useContext,
@@ -14,9 +14,9 @@ type Action = {
   value: AuthSettings;
 };
 
-const initialState = {
+const initialState: AuthSettings = {
   key: 0,
-  requireAuth: false, //hmmm
+  requireAuth: false,
   stringToSign: "",
 };
 

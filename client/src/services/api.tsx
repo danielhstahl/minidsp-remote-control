@@ -44,6 +44,7 @@ export interface AuthSettings {
   key: number;
   requireAuth: boolean;
   stringToSign: string;
+  certInfo?: SSLCert;
 }
 export interface UserId {
   userId: string;
@@ -92,7 +93,21 @@ export const setSource = (headers: LocalHeaders, source: Source) => {
 export const getAuthSettings: (
   headers: LocalHeaders
 ) => Promise<AuthSettings> = (headers: LocalHeaders) => {
-  return fetch(`/api/auth_settings`, { headers }).then((v) => v.json());
+  return fetch(`/api/auth_settings`, { headers })
+    .then((v) => v.json())
+    .then((fullResult) => {
+      const { requireAuth, key, stringToSign, ...rest } = fullResult;
+      return {
+        requireAuth,
+        key,
+        stringToSign,
+        certInfo: {
+          ...rest,
+          validFromDate: new Date(rest.validFromDate),
+          validToDate: new Date(rest.validToDate),
+        },
+      };
+    });
 };
 
 export const setAuthSettings: (
@@ -136,6 +151,7 @@ export const updateUser: (
 export const generateCert = (headers: LocalHeaders) => {
   return fetch(`/api/regenerate_cert`, { method: "POST", headers });
 };
+/*
 export const getCertInfo: (headers: LocalHeaders) => Promise<SSLCert> = (
   headers: LocalHeaders
 ) => {
@@ -148,7 +164,7 @@ export const getCertInfo: (headers: LocalHeaders) => Promise<SSLCert> = (
         validToDate: new Date(result.validToDate),
       };
     });
-};
+};*/
 export const getCaPem = (headers: LocalHeaders) => {
   return (
     fetch(`/api/root_pem`, {

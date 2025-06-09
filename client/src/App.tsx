@@ -18,9 +18,7 @@ import {
   setSource,
   volumeUp,
   volumeDown,
-  getCertInfo,
   getAuthSettings,
-  SSLCert,
   HtxWrite,
   addAuthHeaders,
   LocalHeaders,
@@ -114,7 +112,7 @@ function App() {
     useMiniDspParams();
 
   const {
-    state: { stringToSign },
+    state: { stringToSign, certInfo },
     dispatch: authDispatch,
   } = useAuthSettingsParams();
 
@@ -173,13 +171,12 @@ function App() {
   const { dispatch: userDispatch } = useUserParams();
 
   /// Cert state management
-  const [certInfo, setCertInfo] = useState<SSLCert | undefined>(undefined);
+  /*const [certInfo, setCertInfo] = useState<SSLCert | undefined>(undefined);
   // TODO put this in a state file
   useEffect(() => {
-    console.log("THIS IS RERENDERING APP");
     //no need for authentication on this endpoint
     getCertInfo({}).then(setCertInfo);
-  }, [setCertInfo]);
+  }, [setCertInfo]);*/
   useEffect(() => {
     //no need for authentication on this endpoint
     getAuthSettings({}).then((result) =>
