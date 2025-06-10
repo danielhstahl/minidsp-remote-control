@@ -8,7 +8,7 @@ import {
 import { Preset, Source, Power } from "../../services/api";
 import React from "react";
 
-describe("writeReducer", () => {
+describe("minidspReducer", () => {
   const initialState = {
     preset: Preset.preset1,
     source: Source.USB,

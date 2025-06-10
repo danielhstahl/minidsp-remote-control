@@ -20,7 +20,7 @@ const initialState = {
   signature: "",
 };
 
-export const authSettingsReducer = (state: User, action: Action) => {
+export const userReducer = (state: User, action: Action) => {
   switch (action.type) {
     case SetUser.UPDATE:
       return action.value;
@@ -35,7 +35,7 @@ const UserContext = createContext({
 });
 
 export const UserProvider = ({ children }: PropsWithChildren) => {
-  const [state, dispatch] = useReducer(authSettingsReducer, initialState);
+  const [state, dispatch] = useReducer(userReducer, initialState);
   return (
     <UserContext.Provider value={{ state, dispatch }}>
       {children}

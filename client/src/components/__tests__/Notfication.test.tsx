@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import SSLNotification, { showNotification } from "./Notification";
+import SSLNotification, { showNotification } from "../Notification";
 
 describe("SSNNotification", () => {
   it("shows notification", () => {
@@ -31,7 +31,7 @@ describe("SSNNotification", () => {
     render(<SSLNotification currentDate={currDate} sslInfo={sslInfo} />);
 
     expect(screen.getByLabelText("SSL Banner").style.visibility).toEqual(
-      "hidden",
+      "hidden"
     );
   });
 });

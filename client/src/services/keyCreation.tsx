@@ -7,7 +7,7 @@ export const generateKeyPair = async () => {
       hash: "SHA-256",
     },
     true,
-    ["sign", "verify"],
+    ["sign", "verify"]
   );
   return Promise.all([
     window.crypto.subtle.exportKey("spki", publicKey).then(bufferToBase64),
@@ -15,14 +15,14 @@ export const generateKeyPair = async () => {
   ]).then(([publicKey, privateKey]) => ({ publicKey, privateKey }));
 };
 
-async function base64ToBuffer(privateString: string) {
+export async function base64ToBuffer(privateString: string) {
   const response = await fetch(
-    `data:application/octet-stream;base64,${privateString}`,
+    `data:application/octet-stream;base64,${privateString}`
   );
   return await response.arrayBuffer();
 }
 
-async function bufferToBase64(buffer: ArrayBuffer | Uint8Array) {
+export async function bufferToBase64(buffer: ArrayBuffer | Uint8Array) {
   // use a FileReader to generate a base64 data URI:
   const base64url: string = await new Promise((r) => {
     const reader = new FileReader();
@@ -43,7 +43,7 @@ export const sign = async (stringToSign: string, privateKey: string) => {
       hash: "SHA-256",
     },
     false,
-    ["sign"],
+    ["sign"]
   );
   let enc = new TextEncoder();
   const thingToSign = enc.encode(stringToSign);
@@ -53,7 +53,7 @@ export const sign = async (stringToSign: string, privateKey: string) => {
       saltLength: 32,
     },
     privateKeyCrypto,
-    thingToSign,
+    thingToSign
   );
   return bufferToBase64(signature);
 };

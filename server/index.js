@@ -10,6 +10,85 @@ const path = require("path");
 const fs = require("fs");
 const { turnOn, turnOff, getStatus, openPin } = require("./gpio");
 const { X509Certificate } = require("crypto");
+const { verifyKey, STRING_TO_SIGN } = require("./crypto.js");
+const { DatabaseSync } = require("node:sqlite");
+const database = new DatabaseSync("tmp");
+const USER_TABLE = "users";
+const APP_SETTINGS_TABLE = "settings";
+
+database.exec(`
+  CREATE TABLE IF NOT EXISTS ${USER_TABLE}(
+    key INTEGER PRIMARY KEY AUTOINCREMENT,
+    public_key TEXT
+  ) STRICT
+`);
+database.exec(`
+  CREATE TABLE IF NOT EXISTS ${APP_SETTINGS_TABLE}(
+    key INTEGER PRIMARY KEY AUTOINCREMENT,
+    require_auth INTEGER
+  ) STRICT
+`);
+const createUser = (publicKey) => {
+  const insert = database.prepare(
+    `INSERT INTO ${USER_TABLE} (public_key) VALUES (?)`
+  );
+  const { lastInsertRowid } = insert.run(publicKey);
+  return { key: lastInsertRowid, publicKey };
+};
+
+const updateUser = (publicKey, userId) => {
+  const insert = database.prepare(
+    `UPDATE ${USER_TABLE} set public_key= ? where key = ?`
+  );
+  insert.run(publicKey, userId);
+  return { key: userId, publicKey };
+};
+
+const getSettings = () => {
+  const result = database
+    .prepare(`SELECT key, require_auth from ${APP_SETTINGS_TABLE}`)
+    .get();
+  if (result) {
+    const { key, require_auth: requireAuth } = result;
+    return { key, requireAuth: requireAuth === 1 };
+  }
+  return undefined;
+};
+const setSettings = (requireAuth) => {
+  const requireAuthInt = requireAuth ? 1 : 0;
+  const insert = database.prepare(
+    `UPDATE ${APP_SETTINGS_TABLE} SET require_auth=?;`
+  );
+  insert.run(requireAuthInt);
+};
+
+const setDefaultSettings = () => {
+  const result = getSettings();
+  if (!result) {
+    const insert = database.prepare(
+      `INSERT INTO ${APP_SETTINGS_TABLE} (require_auth) VALUES (?)` //don't require auth by default
+    );
+    insert.run(0);
+  }
+};
+
+const getAllUsers = () => {
+  return database
+    .prepare(`SELECT key, public_key from ${USER_TABLE}`)
+    .iterate()
+    .reduce(
+      (aggr, curr) => ({
+        ...aggr,
+        [curr.key]: curr.public_key,
+      }),
+      {}
+    );
+};
+
+const userObj = getAllUsers();
+console.log(userObj);
+setDefaultSettings();
+
 const fastify = Fastify({
   logger: true,
 });
@@ -35,7 +114,7 @@ function minidspStatus() {
       } else {
         res(JSON.parse(stdout).master);
       }
-    }),
+    })
   );
 }
 
@@ -47,7 +126,7 @@ function setMinidspVol(gain) {
       } else {
         res();
       }
-    }),
+    })
   );
 }
 
@@ -62,8 +141,8 @@ function incrementMinidspVol(gain) {
         } else {
           res();
         }
-      },
-    ),
+      }
+    )
   );
 }
 
@@ -76,7 +155,7 @@ function setMinidspPreset(preset) {
       } else {
         res();
       }
-    }),
+    })
   );
 }
 
@@ -94,8 +173,8 @@ function setMinidspInput(source) {
         } else {
           res();
         }
-      },
-    ),
+      }
+    )
   );
 }
 
@@ -112,13 +191,36 @@ function generateCert() {
         } else {
           res();
         }
-      },
-    ),
+      }
+    )
   );
 }
 const VOLUME_INCREMENT = 0.5;
 const USE_GPIO = USE_RELAY ? true : false;
 const ROOT_PEM_PATH = "/home/minidsp/ssl/rootCA.pem";
+
+const auth = (request, reply) => {
+  const { requireAuth } = getSettings();
+  if (!requireAuth) {
+    return;
+  }
+  const authHeader = request.headers["authorization"]; //base64 string signed value
+  const userId = request.headers["x-user-id"];
+  if (authHeader.startsWith("Bearer ")) {
+    const signature = authHeader.substring(7, authHeader.length);
+    const result = verifyKey(signature, userObj[userId]);
+    if (result) {
+      return; //keep going
+    } else {
+      reply.code(403);
+      reply.send("Authentication Failed");
+    }
+  } else {
+    reply.code(403);
+    reply.send("Bearer token not properly formatted");
+  }
+};
+
 fastify.register(async function (fastify) {
   const gpio = USE_GPIO ? openPin(parseInt(RELAY_PIN)) : undefined;
   fastify.get("/api/root_pem", (req, reply) => {
@@ -126,7 +228,7 @@ fastify.register(async function (fastify) {
     reply.header("Content-Disposition", "attachment; filename=rootCA.pem");
     reply.send(stream).type("application/octet-stream").code(200);
   });
-  fastify.get("/api/cert_info", (req, reply) => {
+  fastify.get("/api/auth_settings", (req, reply) => {
     fs.readFile(ROOT_PEM_PATH, function (err, contents) {
       const x509 = new X509Certificate(contents);
       reply.send({
@@ -136,8 +238,16 @@ fastify.register(async function (fastify) {
         validTo: x509.validTo,
         validFromDate: x509.validFromDate,
         validToDate: x509.validToDate,
+        ...getSettings(),
+        stringToSign: STRING_TO_SIGN,
       });
     });
+  });
+  fastify.post("/api/auth_settings", (req, reply) => {
+    auth(req, reply);
+    const { requireAuth } = JSON.parse(req.body);
+    setSettings(requireAuth);
+    reply.send({ requireAuth, stringToSign: STRING_TO_SIGN });
   });
   fastify.post("/api/regenerate_cert", (req, reply) => {
     generateCert()

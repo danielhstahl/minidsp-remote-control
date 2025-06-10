@@ -113,7 +113,7 @@ fastify.register(async function (fastify) {
     reply.header("Content-Disposition", "attachment; filename=rootCA.pem");
     reply.send(stream).type("application/octet-stream").code(200);
   });
-  fastify.get("/api/cert_info", (req, reply) => {
+  fastify.get("/api/auth_settings", (req, reply) => {
     const currDate = new Date("2025-05-05");
     const expiryDate = new Date("2025-06-03");
     reply.send({
@@ -123,10 +123,6 @@ fastify.register(async function (fastify) {
       validTo: "strenddate",
       validFromDate: currDate,
       validToDate: expiryDate,
-    });
-  });
-  fastify.get("/api/auth_settings", (req, reply) => {
-    reply.send({
       ...getSettings(),
       stringToSign: STRING_TO_SIGN,
     });
