@@ -27,6 +27,11 @@ mkdir -p /home/minidsp/ssl
 # update to node 24
 curl -fsSL https://deb.nodesource.com/setup_24.x | sudo bash
 sudo apt-get install nodejs -y
+
+# install package that only updates security
+sudo apt-get install -y unattended-upgrades apt-listchanges
+## TODO actually enable/configure see https://www.reddit.com/r/debian/comments/18p215e/auto_install_only_security_updates/
+
 echo "finished installing dependent software"
 
 # add group to /etc/sudoers
@@ -45,3 +50,5 @@ sudo systemctl enable minidsp-ui
 sudo systemctl enable minidsp-bt
 sudo systemctl enable nginx
 sudo chown -R  minidsp:minidspgroup /home/minidsp/
+
+

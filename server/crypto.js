@@ -13,7 +13,7 @@ const verifyKey = async (signature, publicKey) => {
       hash: "SHA-256",
     },
     false,
-    ["verify"],
+    ["verify"]
   );
   let enc = new TextEncoder();
   const encoding = enc.encode(STRING_TO_SIGN);
@@ -24,12 +24,35 @@ const verifyKey = async (signature, publicKey) => {
     },
     publicKeyCrypto,
     Buffer.from(signature, "base64"),
-    encoding,
+    encoding
   );
   return result;
+};
+
+const auth = (request, reply, getSettings, verifyKey, userObj) => {
+  const { requireAuth } = getSettings();
+  if (!requireAuth) {
+    return;
+  }
+  const authHeader = request.headers["authorization"]; //base64 string signed value
+  const userId = request.headers["x-user-id"];
+  if (authHeader.startsWith("Bearer ")) {
+    const signature = authHeader.substring(7, authHeader.length);
+    const result = verifyKey(signature, userObj[userId]);
+    if (result) {
+      return; //keep going
+    } else {
+      reply.code(403);
+      reply.send("Authentication Failed");
+    }
+  } else {
+    reply.code(403);
+    reply.send("Bearer token not properly formatted");
+  }
 };
 
 module.exports = {
   STRING_TO_SIGN,
   verifyKey,
+  auth,
 };
