@@ -1,10 +1,21 @@
 "use strict";
 const { subtle } = require("node:crypto").webcrypto;
+const crypto = require("crypto");
+const cron = require("node-cron");
 
+const setCronRotation = () => {
+  let uuid = "123";
+  //run at 3 in the morning
+  const schedule = cron.schedule("0 3 * * *", () => {
+    uuid = crypto.randomUUID();
+  });
+  schedule.execute(); //execute immediately
+  return () => uuid;
+};
 // can be arbitrary string, just needs to be the same client and server
 // not senstive
-const STRING_TO_SIGN = "0de62eb0-da02-48d0-9b5f-d4bdd6b33aa6";
-const verifyKey = async (signature, publicKey) => {
+
+const verifyKey = async (signature, publicKey, stringToSign) => {
   const publicKeyCrypto = await subtle.importKey(
     "spki",
     Buffer.from(publicKey, "base64"),
@@ -16,7 +27,7 @@ const verifyKey = async (signature, publicKey) => {
     ["verify"]
   );
   let enc = new TextEncoder();
-  const encoding = enc.encode(STRING_TO_SIGN);
+  const encoding = enc.encode(stringToSign);
   let result = await subtle.verify(
     {
       name: "RSA-PSS",
@@ -29,7 +40,14 @@ const verifyKey = async (signature, publicKey) => {
   return result;
 };
 
-const auth = (request, reply, getSettings, verifyKey, userObj) => {
+const auth = (
+  request,
+  reply,
+  getSettings,
+  verifyKey,
+  userObj,
+  stringToSign
+) => {
   const { requireAuth } = getSettings();
   if (!requireAuth) {
     return;
@@ -38,7 +56,7 @@ const auth = (request, reply, getSettings, verifyKey, userObj) => {
   const userId = request.headers["x-user-id"];
   if (authHeader.startsWith("Bearer ")) {
     const signature = authHeader.substring(7, authHeader.length);
-    const result = verifyKey(signature, userObj[userId]);
+    const result = verifyKey(signature, userObj[userId], stringToSign);
     if (result) {
       return; //keep going
     } else {
@@ -52,7 +70,7 @@ const auth = (request, reply, getSettings, verifyKey, userObj) => {
 };
 
 module.exports = {
-  STRING_TO_SIGN,
   verifyKey,
   auth,
+  setCronRotation,
 };

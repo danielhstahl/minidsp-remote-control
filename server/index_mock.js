@@ -1,7 +1,8 @@
 "use strict";
 const Fastify = require("fastify");
 const fs = require("fs");
-const { verifyKey, STRING_TO_SIGN } = require("./crypto.js");
+const { auth, verifyKey, setCronRotation } = require("./crypto.js");
+
 const { DatabaseSync } = require("node:sqlite");
 const database = new DatabaseSync("tmp");
 const USER_TABLE = "users";
@@ -83,32 +84,13 @@ setDefaultSettings();
 const fastify = Fastify({
   logger: true,
 });
-
-const auth = (request, reply) => {
-  const { requireAuth } = getSettings();
-  if (!requireAuth) {
-    return;
-  }
-  const authHeader = request.headers["authorization"]; //base64 string signed value
-  const userId = request.headers["x-user-id"];
-  if (authHeader.startsWith("Bearer ")) {
-    const signature = authHeader.substring(7, authHeader.length);
-    const result = verifyKey(signature, userObj[userId]);
-    if (result) {
-      return; //keep going
-    } else {
-      reply.code(403);
-      reply.send("Authentication Failed");
-    }
-  } else {
-    reply.code(403);
-    reply.send("Bearer token not properly formatted");
-  }
+const getStringToSign = setCronRotation();
+const authHof = (req, reply, stringToSign) => {
+  return auth(req, reply, getSettings, verifyKey, userObj, stringToSign);
 };
 
 fastify.register(async function (fastify) {
   fastify.get("/api/root_pem", (req, reply) => {
-    auth(req, reply);
     const stream = fs.createReadStream("mockcert.crt");
     reply.header("Content-Disposition", "attachment; filename=rootCA.pem");
     reply.send(stream).type("application/octet-stream").code(200);
@@ -128,13 +110,14 @@ fastify.register(async function (fastify) {
     });
   });
   fastify.post("/api/auth_settings", (req, reply) => {
-    auth(req, reply);
+    const stringToSign = getStringToSign();
+    authHof(req, reply, stringToSign);
     const { requireAuth } = JSON.parse(req.body);
     setSettings(requireAuth);
-    reply.send({ requireAuth, stringToSign: STRING_TO_SIGN });
+    reply.send({ requireAuth, stringToSign });
   });
   fastify.post("/api/user", (req, reply) => {
-    auth(req, reply);
+    authHof(req, reply, getStringToSign());
     const { publicKey } = JSON.parse(req.body);
     const { key: userId } = createUser(publicKey);
     //cache so don't have to reload database
@@ -143,7 +126,7 @@ fastify.register(async function (fastify) {
   });
 
   fastify.patch("/api/user", (req, reply) => {
-    auth(req, reply);
+    authHof(req, reply, getStringToSign());
     const { publicKey, userId } = JSON.parse(req.body);
     updateUser(publicKey, userId);
     //cache so don't have to reload database
@@ -152,7 +135,7 @@ fastify.register(async function (fastify) {
   });
 
   fastify.get("/api/status", (req, reply) => {
-    auth(req, reply);
+    authHof(req, reply, getStringToSign());
     reply.send({
       preset: 1,
       source: "Unavailable",
@@ -162,31 +145,31 @@ fastify.register(async function (fastify) {
     });
   });
   fastify.post("/api/volume/up", (req, reply) => {
-    auth(req, reply);
+    authHof(req, reply, getStringToSign());
     reply.send({ success: true });
   });
   fastify.post("/api/volume/down", (req, reply) => {
-    auth(req, reply);
+    authHof(req, reply, getStringToSign());
     reply.send({ success: true });
   });
   fastify.post("/api/volume/:volume", (req, reply) => {
-    auth(req, reply);
+    authHof(req, reply, getStringToSign());
     reply.send({ success: true });
   });
   fastify.post("/api/preset/:preset", (req, reply) => {
-    auth(req, reply);
+    authHof(req, reply, getStringToSign());
     reply.send({ success: true });
   });
   fastify.post("/api/source/:source", (req, reply) => {
-    auth(req, reply);
+    authHof(req, reply, getStringToSign());
     reply.send({ success: true });
   });
   fastify.post("/api/power/on", (req, reply) => {
-    auth(req, reply);
+    authHof(req, reply, getStringToSign());
     reply.send({ success: true });
   });
   fastify.post("/api/power/off", (req, reply) => {
-    auth(req, reply);
+    authHof(req, reply, getStringToSign());
     reply.send({ success: true });
   });
 });

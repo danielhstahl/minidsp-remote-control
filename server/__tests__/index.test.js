@@ -10,8 +10,9 @@ describe("auth", () => {
     };
     const mockVerify = jest.fn((x) => false);
     const mockUserObj = { 2: "key" };
+    const mockStringToSign = "stringToSign";
     expect(
-      auth(mockRequest, mockReply, getSettings, mockUserObj)
+      auth(mockRequest, mockReply, getSettings, mockUserObj, mockStringToSign)
     ).toBeUndefined();
     expect(mockReply.send.mock.calls).toHaveLength(0);
     expect(mockReply.code.mock.calls).toHaveLength(0);
@@ -31,7 +32,15 @@ describe("auth", () => {
     };
     const mockVerify = jest.fn((x) => false);
     const mockUserObj = { 2: "key" };
-    auth(mockRequest, mockReply, getSettings, mockVerify, mockUserObj);
+    const mockStringToSign = "stringToSign";
+    auth(
+      mockRequest,
+      mockReply,
+      getSettings,
+      mockVerify,
+      mockUserObj,
+      mockStringToSign
+    );
     expect(mockReply.send.mock.calls).toHaveLength(1);
     expect(mockReply.code.mock.calls).toHaveLength(1);
     expect(mockVerify.mock.calls).toHaveLength(0);
@@ -55,7 +64,15 @@ describe("auth", () => {
     };
     const mockVerify = jest.fn((x) => false);
     const mockUserObj = { 2: "key" };
-    auth(mockRequest, mockReply, getSettings, mockVerify, mockUserObj);
+    const mockStringToSign = "stringToSign";
+    auth(
+      mockRequest,
+      mockReply,
+      getSettings,
+      mockVerify,
+      mockUserObj,
+      mockStringToSign
+    );
     expect(mockReply.send.mock.calls).toHaveLength(1);
     expect(mockReply.code.mock.calls).toHaveLength(1);
     expect(mockVerify.mock.calls).toHaveLength(1);
@@ -79,7 +96,15 @@ describe("auth", () => {
     };
     const mockVerify = jest.fn((x) => true);
     const mockUserObj = { 2: "key" };
-    auth(mockRequest, mockReply, getSettings, mockVerify, mockUserObj);
+    const mockStringToSign = "stringToSign";
+    auth(
+      mockRequest,
+      mockReply,
+      getSettings,
+      mockVerify,
+      mockUserObj,
+      mockStringToSign
+    );
     expect(mockReply.send.mock.calls).toHaveLength(0);
     expect(mockReply.code.mock.calls).toHaveLength(0);
     expect(mockVerify.mock.calls).toHaveLength(1);

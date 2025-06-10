@@ -10,7 +10,7 @@ const path = require("path");
 const fs = require("fs");
 const { turnOn, turnOff, getStatus, openPin } = require("./gpio");
 const { X509Certificate } = require("crypto");
-const { auth, verifyKey, STRING_TO_SIGN } = require("./crypto.js");
+const { auth, verifyKey, setCronRotation } = require("./crypto.js");
 const { DatabaseSync } = require("node:sqlite");
 const database = new DatabaseSync("minidsp");
 const USER_TABLE = "users";
@@ -198,7 +198,10 @@ function generateCert() {
 const VOLUME_INCREMENT = 0.5;
 const USE_GPIO = USE_RELAY ? true : false;
 const ROOT_PEM_PATH = "/home/minidsp/ssl/rootCA.pem";
-
+const getStringToSign = setCronRotation();
+const authHof = (req, reply, stringToSign) => {
+  return auth(req, reply, getSettings, verifyKey, userObj, stringToSign);
+};
 fastify.register(async function (fastify) {
   const gpio = USE_GPIO ? openPin(parseInt(RELAY_PIN)) : undefined;
   fastify.get("/api/root_pem", (req, reply) => {
@@ -217,18 +220,19 @@ fastify.register(async function (fastify) {
         validFromDate: x509.validFromDate,
         validToDate: x509.validToDate,
         ...getSettings(),
-        stringToSign: STRING_TO_SIGN,
+        stringToSign: getStringToSign(),
       });
     });
   });
   fastify.post("/api/auth_settings", (req, reply) => {
-    auth(req, reply, getSettings, verifyKey, userObj);
+    const stringToSign = getStringToSign();
+    authHof(req, reply, stringToSign);
     const { requireAuth } = JSON.parse(req.body);
     setSettings(requireAuth);
-    reply.send({ requireAuth, stringToSign: STRING_TO_SIGN });
+    reply.send({ requireAuth, stringToSign });
   });
   fastify.post("/api/user", (req, reply) => {
-    auth(req, reply, getSettings, verifyKey, userObj);
+    authHof(req, reply, getStringToSign());
     const { publicKey } = JSON.parse(req.body);
     const { key: userId } = createUser(publicKey);
     //cache so don't have to reload database
@@ -236,7 +240,7 @@ fastify.register(async function (fastify) {
     reply.send({ userId });
   });
   fastify.patch("/api/user", (req, reply) => {
-    auth(req, reply, getSettings, verifyKey, userObj);
+    authHof(req, reply, getStringToSign());
     const { publicKey, userId } = JSON.parse(req.body);
     updateUser(publicKey, userId);
     //cache so don't have to reload database
@@ -244,7 +248,7 @@ fastify.register(async function (fastify) {
     reply.send({ userId });
   });
   fastify.post("/api/regenerate_cert", (req, reply) => {
-    auth(req, reply, getSettings, verifyKey, userObj);
+    authHof(req, reply, getStringToSign());
     generateCert()
       .then(() => {
         reply.send({ success: true });
@@ -254,7 +258,7 @@ fastify.register(async function (fastify) {
       });
   });
   fastify.get("/api/status", (req, reply) => {
-    auth(req, reply, getSettings, verifyKey, userObj);
+    authHof(req, reply, getStringToSign());
     Promise.all([
       minidspStatus(),
       USE_GPIO ? powerStatus(gpio) : Promise.resolve("on"),
@@ -268,7 +272,7 @@ fastify.register(async function (fastify) {
       });
   });
   fastify.post("/api/volume/up", (req, reply) => {
-    auth(req, reply, getSettings, verifyKey, userObj);
+    authHof(req, reply, getStringToSign());
     incrementMinidspVol(VOLUME_INCREMENT)
       .then(() => {
         reply.send({ success: true });
@@ -278,7 +282,7 @@ fastify.register(async function (fastify) {
       });
   });
   fastify.post("/api/volume/down", (req, reply) => {
-    auth(req, reply, getSettings, verifyKey, userObj);
+    authHof(req, reply, getStringToSign());
     incrementMinidspVol(-VOLUME_INCREMENT)
       .then(() => {
         reply.send({ success: true });
@@ -288,7 +292,7 @@ fastify.register(async function (fastify) {
       });
   });
   fastify.post("/api/volume/:volume", (req, reply) => {
-    auth(req, reply, getSettings, verifyKey, userObj);
+    authHof(req, reply, getStringToSign());
     const { volume } = req.params;
     setMinidspVol(volume)
       .then(() => {
@@ -299,7 +303,7 @@ fastify.register(async function (fastify) {
       });
   });
   fastify.post("/api/preset/:preset", (req, reply) => {
-    auth(req, reply, getSettings, verifyKey, userObj);
+    authHof(req, reply, getStringToSign());
     const { preset } = req.params;
     setMinidspPreset(preset)
       .then(() => {
@@ -310,7 +314,7 @@ fastify.register(async function (fastify) {
       });
   });
   fastify.post("/api/source/:source", (req, reply) => {
-    auth(req, reply, getSettings, verifyKey, userObj);
+    authHof(req, reply, getStringToSign());
     const { source } = req.params;
     setMinidspInput(source)
       .then(() => {
@@ -321,7 +325,7 @@ fastify.register(async function (fastify) {
       });
   });
   fastify.post("/api/power/on", (req, reply) => {
-    auth(req, reply, getSettings, verifyKey, userObj);
+    authHof(req, reply, getStringToSign());
     if (!USE_GPIO) {
       return reply.send({ success: false, message: "Power not implemented" });
     }
@@ -334,7 +338,7 @@ fastify.register(async function (fastify) {
       });
   });
   fastify.post("/api/power/off", (req, reply) => {
-    auth(req, reply, getSettings, verifyKey, userObj);
+    authHof(req, reply, getStringToSign());
     if (!USE_GPIO) {
       return reply.send({ success: false, message: "Power not implemented" });
     }
