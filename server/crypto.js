@@ -10,7 +10,10 @@ const setCronRotation = () => {
     uuid = crypto.randomUUID();
   });
   schedule.execute(); //execute immediately
-  return () => uuid;
+  return () => ({
+    uuid,
+    schedule,
+  });
 };
 // can be arbitrary string, just needs to be the same client and server
 // not senstive

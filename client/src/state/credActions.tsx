@@ -1,4 +1,4 @@
-import { AuthSettings, SSLCert } from "../services/api";
+import { AuthSettings } from "../services/api";
 import {
   useReducer,
   useContext,

@@ -141,30 +141,16 @@ export const updateUser: (
   publicKey: string,
   userId: string
 ) => {
-  return fetch(`/api/user`, {
+  return fetch(`/api/user/${userId}`, {
     method: "PATCH",
     headers,
-    body: JSON.stringify({ publicKey, userId }),
+    body: JSON.stringify({ publicKey }),
   }).then((v) => v.json());
 };
 
 export const generateCert = (headers: LocalHeaders) => {
   return fetch(`/api/regenerate_cert`, { method: "POST", headers });
 };
-/*
-export const getCertInfo: (headers: LocalHeaders) => Promise<SSLCert> = (
-  headers: LocalHeaders
-) => {
-  return fetch(`/api/cert_info`, { headers })
-    .then((v) => v.json())
-    .then((result) => {
-      return {
-        ...result,
-        validFromDate: new Date(result.validFromDate),
-        validToDate: new Date(result.validToDate),
-      };
-    });
-};*/
 export const getCaPem = (headers: LocalHeaders) => {
   return (
     fetch(`/api/root_pem`, {
