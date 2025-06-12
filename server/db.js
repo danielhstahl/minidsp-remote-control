@@ -5,7 +5,10 @@ const USER_TABLE = "users";
 const APP_SETTINGS_TABLE = "settings";
 
 const setupDatabase = (databaseName = DATABASE_NAME) => {
-  const database = new DatabaseSync(databaseName);
+  const database = new DatabaseSync(databaseName, {
+    readOnly: false,
+    open: true,
+  });
   database.exec(`
     CREATE TABLE IF NOT EXISTS ${USER_TABLE}(
       key INTEGER PRIMARY KEY AUTOINCREMENT,
