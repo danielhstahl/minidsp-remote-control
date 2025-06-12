@@ -1,11 +1,11 @@
 {
   "name": "minidsp_server",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
-    "test": "jest",
-    "start": "node index.js",
-    "start-dev": "node index_mock.js"
+    "test": "node --test",
+    "start": "node index.ts",
+    "start-dev": "node index_mock.ts"
   },
   "author": "",
   "license": "ISC",
@@ -16,7 +16,5 @@
     "node-cron": "^4.1.0",
     "node-hid": "^3.1.2"
   },
-  "devDependencies": {
-    "jest": "^29.7.0"
-  }
+  "type": "module"
 }

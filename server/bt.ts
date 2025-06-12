@@ -1,7 +1,7 @@
 "use strict";
 
-const { execFile } = require("child_process");
-const { createBluetooth } = require("node-ble");
+import { Adapter, Device, createBluetooth } from "node-ble";
+import { setMinidspVol } from "./minidsp.ts";
 const { bluetooth } = createBluetooth();
 //eg, hci1
 const {
@@ -12,23 +12,11 @@ const VOLUME_INCREMENT = 0.5;
 const TIMEOUT_MS = 1000;
 const HID_DEVICE_ID = 0; //hex 0000
 const HID_VENDOR_ID = 2007; //hex 07d7
-function setMinidspVol(gain) {
-  return new Promise((res, rej) =>
-    execFile(
-      `minidsp`,
-      ["gain", "--relative", "--", gain],
-      (err, _stdout, _stderr) => {
-        if (err) {
-          rej(err);
-        } else {
-          res();
-        }
-      },
-    ),
-  );
-}
 
-const _findDevice = async (adapter, deviceName) => {
+const _findDevice: (
+  adapter: Adapter,
+  deviceName: string
+) => Promise<Device | undefined> = async (adapter, deviceName) => {
   const devices = await adapter.devices();
   const results = await Promise.all(
     devices.map((deviceUuid) => {
@@ -40,15 +28,15 @@ const _findDevice = async (adapter, deviceName) => {
             return { isDevice: name === deviceName, device };
           });
       });
-    }),
+    })
   );
   return results.find((result) => result.isDevice)?.device;
 };
 
 const secondTimeout = async () =>
   await new Promise((res) => setTimeout(res, TIMEOUT_MS));
-const loopForDevice = async (adapter, deviceName) => {
-  let device = null;
+const loopForDevice = async (adapter: Adapter, deviceName: string) => {
+  let device: Device | undefined = undefined;
   if (!(await adapter.isDiscovering())) {
     await adapter.startDiscovery();
   }
@@ -60,10 +48,12 @@ const loopForDevice = async (adapter, deviceName) => {
   return device;
 };
 //will loop until connection is established; if VOL20 is turned off will loop indefinitely
-const loopForConnection = async (device) => {
+const loopForConnection = async (device: Device) => {
   while (!(await device.isConnected())) {
     try {
       //I wish there was a way to check that device was available without waiting for it to error...
+      // "helper" is a private method
+      // @ts-ignore
       await device.helper.callMethod("Connect");
     } catch (exception) {
       //it is expected to get here if device has been disconnected
@@ -115,7 +105,7 @@ const doBt = async () => {
     console.log("device connecting...");
     await loopForConnection(device);
     console.log("device connected!");
-    await hidSession(device); //waits until session is finished (disconnected)
+    await hidSession(); //waits until session is finished (disconnected)
     await device.disconnect();
     console.log("session ended");
   }

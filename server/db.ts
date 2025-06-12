@@ -1,10 +1,11 @@
-const { DatabaseSync } = require("node:sqlite");
+"use strict";
+import { DatabaseSync } from "node:sqlite";
 
 const DATABASE_NAME = "minidsp";
 const USER_TABLE = "users";
 const APP_SETTINGS_TABLE = "settings";
 
-const setupDatabase = (databaseName = DATABASE_NAME) => {
+export const setupDatabase = (databaseName: string = DATABASE_NAME) => {
   const database = new DatabaseSync(databaseName, {
     readOnly: false,
     open: true,
@@ -23,23 +24,27 @@ const setupDatabase = (databaseName = DATABASE_NAME) => {
   `);
   return database;
 };
-const createUser = (database, publicKey) => {
+export const createUser = (database: DatabaseSync, publicKey: string) => {
   const insert = database.prepare(
     `INSERT INTO ${USER_TABLE} (public_key) VALUES (?)`
   );
   const { lastInsertRowid } = insert.run(publicKey);
-  return { key: lastInsertRowid, publicKey };
+  return { key: lastInsertRowid as number, publicKey };
 };
 
-const updateUser = (database, publicKey, userId) => {
+export const updateUser = (
+  database: DatabaseSync,
+  publicKey: string,
+  userId: string
+) => {
   const insert = database.prepare(
-    `UPDATE ${USER_TABLE} set public_key= ? where key = ?`
+    `UPDATE ${USER_TABLE} set public_key=? where key=?`
   );
   insert.run(publicKey, parseInt(userId));
   return { key: userId, publicKey };
 };
 
-const getSettings = (database) => {
+export const getSettings = (database: DatabaseSync) => {
   const result = database
     .prepare(`SELECT key, require_auth from ${APP_SETTINGS_TABLE}`)
     .get();
@@ -49,7 +54,7 @@ const getSettings = (database) => {
   }
   return undefined;
 };
-const setSettings = (database, requireAuth) => {
+export const setSettings = (database: DatabaseSync, requireAuth: boolean) => {
   const requireAuthInt = requireAuth ? 1 : 0;
   const insert = database.prepare(
     `UPDATE ${APP_SETTINGS_TABLE} SET require_auth=?;`
@@ -57,7 +62,7 @@ const setSettings = (database, requireAuth) => {
   insert.run(requireAuthInt);
 };
 
-const setDefaultSettings = (database) => {
+export const setDefaultSettings = (database: DatabaseSync) => {
   const result = getSettings(database);
   if (!result) {
     const insert = database.prepare(
@@ -66,26 +71,22 @@ const setDefaultSettings = (database) => {
     insert.run(0);
   }
 };
-
-const getAllUsers = (database) => {
-  return database
-    .prepare(`SELECT key, public_key from ${USER_TABLE}`)
-    .iterate()
-    .reduce(
-      (aggr, curr) => ({
-        ...aggr,
-        [curr.key]: curr.public_key,
-      }),
-      {}
-    );
-};
-
-module.exports = {
-  getAllUsers,
-  setDefaultSettings,
-  setSettings,
-  getSettings,
-  updateUser,
-  createUser,
-  setupDatabase,
+interface User {
+  key: string;
+  publicKey: string;
+}
+export const getAllUsers = (database: DatabaseSync) => {
+  const userList: User[] = [
+    ...database.prepare(`SELECT key, public_key from ${USER_TABLE}`).iterate(),
+  ].map<User>((v) => ({
+    key: v.key as string,
+    publicKey: v.public_key as string,
+  }));
+  return userList.reduce<Record<string, string>>(
+    (aggr: Record<string, string>, curr: User) => ({
+      ...aggr,
+      [curr.key]: curr.publicKey,
+    }),
+    {}
+  );
 };

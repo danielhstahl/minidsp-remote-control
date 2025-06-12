@@ -1,46 +1,42 @@
-const { createFastify } = require("../routes");
-const fs = require("fs");
-const { subtle } = require("node:crypto").webcrypto;
-const removeAll = (databaseName) => {
-  //remove SQLite database if exists
-  try {
-    fs.unlinkSync(databaseName);
-  } catch (err) {
-    console.error("An error occurred:", err);
-  }
-};
-
+import { createFastify } from "../routes.ts";
+import { subtle } from "node:crypto";
+import { describe, it, before, after } from "node:test";
+import assert from "node:assert";
 describe("api auth", () => {
   const PORT = 4001;
-  const DB_NAME = "apiauthsuite";
+  const DB_NAME = ":memory:";
   let fastify;
-  beforeAll(async () => {
-    removeAll(DB_NAME);
+  before(async () => {
     fastify = createFastify(DB_NAME);
     fastify.listen({ port: PORT, host: "0.0.0.0" });
   });
-  afterAll(async () => {
+  after(async () => {
     await fastify.close();
-    removeAll(DB_NAME);
   });
-  test("it appropriately allows me to access items if auth is off", async () => {
+  it("appropriately allows me to access items if auth is off", async () => {
     const response = await fetch(`http://localhost:${PORT}/api/auth_settings`, {
       method: "POST",
       body: JSON.stringify({ requireAuth: false }),
+      headers: {
+        "Content-Type": "application/json",
+      },
     }).then((r) => r.json());
     const { requireAuth, stringToSign } = response;
-    expect(requireAuth).toEqual(false);
-    expect(stringToSign.length).toBeGreaterThan(10);
+    assert.equal(requireAuth, false);
+    assert.equal(stringToSign.length > 10, true);
   });
 
-  test("it appropriately sets off and returns 403 if incorrect auth", async () => {
+  it("appropriately sets off and returns 403 if incorrect auth", async () => {
     const response = await fetch(`http://localhost:${PORT}/api/auth_settings`, {
       method: "POST",
       body: JSON.stringify({ requireAuth: true }),
+      headers: {
+        "Content-Type": "application/json",
+      },
     }).then((r) => r.json());
     const { requireAuth, stringToSign } = response;
-    expect(requireAuth).toEqual(true);
-    expect(stringToSign.length).toBeGreaterThan(10);
+    assert.equal(requireAuth, true);
+    assert.equal(stringToSign.length > 10, true);
     const responseNoAuth = await fetch(`http://localhost:${PORT}/api/user`, {
       method: "POST",
       body: JSON.stringify({ publicKey: "somepublickey" }),
@@ -49,39 +45,43 @@ describe("api auth", () => {
         authorization: "hello",
       },
     });
-    expect(responseNoAuth.status).toBe(403);
+    assert.equal(responseNoAuth.status, 403);
   });
 });
 
 describe("api users", () => {
   const PORT = 4002;
-  const DB_NAME = "apiusersuite";
+  const DB_NAME = ":memory:";
   let fastify;
-  beforeAll(async () => {
-    removeAll(DB_NAME);
+  before(async () => {
     fastify = createFastify(DB_NAME);
     fastify.listen({ port: PORT, host: "0.0.0.0" });
   });
-  afterAll(async () => {
+  after(async () => {
     await fastify.close();
-    removeAll(DB_NAME);
   });
-  test("it creates a user", async () => {
+  it("creates a user", async () => {
     const response = await fetch(`http://localhost:${PORT}/api/user`, {
       method: "POST",
       body: JSON.stringify({ publicKey: "mypublickey" }),
+      headers: {
+        "Content-Type": "application/json",
+      },
     }).then((r) => r.json());
     const { userId } = response;
-    expect(userId).toEqual("1");
+    assert.equal(userId, "1");
   });
 
-  test("it updates user", async () => {
+  it("updates user", async () => {
     const response = await fetch(`http://localhost:${PORT}/api/user/1`, {
       method: "PATCH",
       body: JSON.stringify({ publicKey: "mypublickey2" }),
+      headers: {
+        "Content-Type": "application/json",
+      },
     }).then((r) => r.json());
     const { userId } = response;
-    expect(userId).toEqual("1");
+    assert.equal(userId, "1");
   });
 });
 
@@ -109,32 +109,36 @@ const generateKeyPair = async () => {
 };
 describe("api auth crypto", () => {
   const PORT = 4003;
-  const DB_NAME = "apicryptosuite";
+  const DB_NAME = ":memory:";
   let fastify;
-  beforeAll(async () => {
-    removeAll(DB_NAME);
+  before(async () => {
     fastify = createFastify(DB_NAME);
     fastify.listen({ port: PORT, host: "0.0.0.0" });
   });
-  afterAll(async () => {
+  after(async () => {
     await fastify.close();
-    removeAll(DB_NAME);
   });
-  test("it authenticates", async () => {
+  it("authenticates", async () => {
     const { publicKey, privateKey } = await generateKeyPair();
     const { userId } = await fetch(`http://localhost:${PORT}/api/user`, {
       method: "POST",
       body: JSON.stringify({ publicKey }),
+      headers: {
+        "Content-Type": "application/json",
+      },
     }).then((r) => r.json());
     const response = await fetch(`http://localhost:${PORT}/api/auth_settings`, {
       method: "POST",
       body: JSON.stringify({ requireAuth: true }),
+      headers: {
+        "Content-Type": "application/json",
+      },
     }).then((r) => r.json());
     const { requireAuth, stringToSign } = response;
-    expect(requireAuth).toEqual(true);
+    assert.equal(requireAuth, true);
     let enc = new TextEncoder();
     const thingToSign = enc.encode(stringToSign);
-    expect(stringToSign.length).toBeGreaterThan(10);
+    assert.equal(stringToSign.length > 10, true);
     const privateKeyCrypto = await subtle.importKey(
       "pkcs8",
       Buffer.from(privateKey, "base64"),
@@ -145,16 +149,15 @@ describe("api auth crypto", () => {
       false,
       ["sign"]
     );
-    const signature = (
-      await subtle.sign(
-        {
-          name: "RSA-PSS",
-          saltLength: 32,
-        },
-        privateKeyCrypto,
-        thingToSign
-      )
-    ).toString("base64");
+    const signatureAB = await subtle.sign(
+      {
+        name: "RSA-PSS",
+        saltLength: 32,
+      },
+      privateKeyCrypto,
+      thingToSign
+    );
+    const signature = Buffer.from(signatureAB).toString("base64");
 
     const result = await fetch(`http://localhost:${PORT}/api/user/${userId}`, {
       method: "PATCH",
@@ -162,8 +165,9 @@ describe("api auth crypto", () => {
       headers: {
         "x-user-id": userId,
         authorization: `Bearer ${signature}`,
+        "Content-Type": "application/json",
       },
     }).then((r) => r.json());
-    expect(result.userId).toEqual("1");
+    assert.equal(result.userId, "1");
   });
 });

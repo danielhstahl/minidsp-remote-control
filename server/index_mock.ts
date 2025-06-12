@@ -1,8 +1,10 @@
 "use strict";
-const Fastify = require("fastify");
-const fs = require("fs");
-const { auth, verifyKey, setCronRotation } = require("./crypto.js");
-const {
+import Fastify from "fastify";
+import type { FastifyRequest } from "fastify";
+
+import fs from "fs";
+import { auth, verifyKey, setCronRotation } from "./crypto.ts";
+import {
   getAllUsers,
   setDefaultSettings,
   setSettings,
@@ -10,19 +12,27 @@ const {
   updateUser,
   createUser,
   setupDatabase,
-} = require("./db");
-
-const database = setupDatabase("tmp");
+} from "./db.ts";
+interface UserParams {
+  userId: string;
+}
+interface AuthBody {
+  requireAuth: boolean;
+}
+interface UserBody {
+  publicKey: string;
+}
+const database = setupDatabase(":memory:");
 const userObj = getAllUsers(database);
 console.log(userObj);
-setDefaultSettings();
+setDefaultSettings(database);
 
 const fastify = Fastify({
   logger: true,
 });
 const getSchedule = setCronRotation();
 const getStringToSign = () => getSchedule().uuid;
-const getSettingsHof = () => getSettings(db);
+const getSettingsHof = () => getSettings(database) || { requireAuth: false };
 const authHof = (req, reply, stringToSign) => {
   return auth(req, reply, getSettingsHof, verifyKey, userObj, stringToSign);
 };
@@ -47,36 +57,45 @@ fastify.register(async function (fastify) {
       stringToSign: getStringToSign(),
     });
   });
-  fastify.post("/api/auth_settings", (req, reply) => {
-    const stringToSign = getStringToSign();
-    authHof(req, reply, stringToSign);
-    const { requireAuth } = JSON.parse(req.body);
-    setSettings(database, requireAuth);
-    reply.send({ requireAuth, stringToSign });
-  });
-  fastify.post("/api/user", (req, reply) => {
-    authHof(req, reply, getStringToSign());
-    const { publicKey } = JSON.parse(req.body);
-    const { key: userId } = createUser(database, publicKey);
-    //cache so don't have to reload database
-    userObj[userId] = publicKey;
-    reply.send({ userId });
-  });
+  fastify.post(
+    "/api/auth_settings",
+    (req: FastifyRequest<{ Body: AuthBody }>, reply) => {
+      const stringToSign = getStringToSign();
+      authHof(req, reply, stringToSign);
+      const { requireAuth } = req.body;
+      setSettings(database, requireAuth);
+      reply.send({ requireAuth, stringToSign });
+    }
+  );
+  fastify.post(
+    "/api/user",
+    (req: FastifyRequest<{ Body: UserBody }>, reply) => {
+      authHof(req, reply, getStringToSign());
+      const { publicKey } = req.body;
+      const { key: userId } = createUser(database, publicKey);
+      //cache so don't have to reload database
+      userObj[userId] = publicKey;
+      reply.send({ userId });
+    }
+  );
 
-  fastify.patch("/api/user", (req, reply) => {
-    authHof(req, reply, getStringToSign());
-    const { publicKey, userId } = JSON.parse(req.body);
-    updateUser(database, publicKey, userId);
-    //cache so don't have to reload database
-    userObj[userId] = publicKey;
-    reply.send({ userId });
-  });
+  fastify.patch(
+    "/api/user/:userId",
+    (req: FastifyRequest<{ Body: UserBody; Params: UserParams }>, reply) => {
+      authHof(req, reply, getStringToSign());
+      const { userId } = req.params;
+      const { publicKey } = req.body;
+      updateUser(database, publicKey, userId);
+      //cache so don't have to reload database
+      userObj[userId] = publicKey;
+      reply.send({ userId });
+    }
+  );
 
   fastify.get("/api/status", (req, reply) => {
     authHof(req, reply, getStringToSign());
     reply.send({
       preset: 1,
-      source: "Unavailable",
       volume: -40,
       power: true,
       source: "Hdmi",
