@@ -113,7 +113,7 @@ function App() {
     useMiniDspParams();
 
   const {
-    state: { stringToSign, certInfo, requireAuth },
+    state: { stringToSign, certInfo },
     dispatch: authDispatch,
   } = useAuthSettingsParams();
 
