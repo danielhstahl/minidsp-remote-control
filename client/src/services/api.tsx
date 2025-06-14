@@ -40,50 +40,145 @@ export interface SSLCert {
   validToDate: Date;
 }
 
-export const getStatus: () => Promise<HtxWrite> = () => {
-  return fetch("/api/status").then((v) => v.json());
+export interface AuthSettings {
+  key: number;
+  requireAuth: boolean;
+  stringToSign: string;
+  certInfo?: SSLCert;
+}
+export interface UserId {
+  userId: string;
+}
+export interface User extends UserId {
+  signature: string;
+}
+
+export const addAuthHeaders = (userId: string, signature: string) => {
+  return {
+    "x-user-id": userId,
+    authorization: `Bearer ${signature}`,
+  };
+};
+export const addBasicAuthHeader = (code: string) => {
+  return {
+    authorization: `Basic ${btoa(`:${code}`)}`,
+  };
+};
+export type LocalHeaders = {
+  [key: string]: string;
 };
 
-export const setVolume = (volume: number) => {
-  return fetch(`/api/volume/${volume}`, { method: "POST" });
+const jsonHeaders = {
+  "Content-Type": "application/json",
+};
+export const getStatus: (localHeaders: LocalHeaders) => Promise<HtxWrite> = (
+  localHeaders: LocalHeaders
+) => {
+  const headers = { ...localHeaders, ...jsonHeaders };
+  return fetch("/api/status", { headers }).then((v) => v.json());
 };
 
-export const volumeUp = () => {
-  return fetch(`/api/volume/up`, { method: "POST" });
+export const setVolume = (localHeaders: LocalHeaders, volume: number) => {
+  const headers = { ...localHeaders, ...jsonHeaders };
+  return fetch(`/api/volume/${volume}`, { method: "POST", headers });
 };
 
-export const volumeDown = () => {
-  return fetch(`/api/volume/down`, { method: "POST" });
+export const volumeUp = (localHeaders: LocalHeaders) => {
+  const headers = { ...localHeaders, ...jsonHeaders };
+  return fetch(`/api/volume/up`, { method: "POST", headers });
 };
 
-export const setPreset = (preset: number) => {
-  return fetch(`/api/preset/${preset}`, { method: "POST" });
+export const volumeDown = (localHeaders: LocalHeaders) => {
+  const headers = { ...localHeaders, ...jsonHeaders };
+  return fetch(`/api/volume/down`, { method: "POST", headers });
 };
-export const setPower = (powerToTurnTo: Power) => {
-  return fetch(`/api/power/${powerToTurnTo}`, { method: "POST" });
+
+export const setPreset = (localHeaders: LocalHeaders, preset: number) => {
+  const headers = { ...localHeaders, ...jsonHeaders };
+  return fetch(`/api/preset/${preset}`, { method: "POST", headers });
 };
-export const setSource = (source: Source) => {
-  return fetch(`/api/source/${source}`, { method: "POST" });
+export const setPower = (localHeaders: LocalHeaders, powerToTurnTo: Power) => {
+  const headers = { ...localHeaders, ...jsonHeaders };
+  return fetch(`/api/power/${powerToTurnTo}`, { method: "POST", headers });
 };
-export const generateCert = () => {
-  return fetch(`/api/regenerate_cert`, { method: "POST" });
+export const setSource = (localHeaders: LocalHeaders, source: Source) => {
+  const headers = { ...localHeaders, ...jsonHeaders };
+  return fetch(`/api/source/${source}`, { method: "POST", headers });
 };
-export const getCertInfo: () => Promise<SSLCert> = () => {
-  return fetch(`/api/cert_info`)
+
+export const getAuthSettings: (
+  headers: LocalHeaders
+) => Promise<AuthSettings> = (headers: LocalHeaders) => {
+  return fetch(`/api/auth_settings`, { headers })
     .then((v) => v.json())
-    .then((result) => {
+    .then((fullResult) => {
+      const { requireAuth, key, stringToSign, ...rest } = fullResult;
       return {
-        ...result,
-        validFromDate: new Date(result.validFromDate),
-        validToDate: new Date(result.validToDate),
+        requireAuth,
+        key,
+        stringToSign,
+        certInfo: {
+          ...rest,
+          validFromDate: new Date(rest.validFromDate),
+          validToDate: new Date(rest.validToDate),
+        },
       };
     });
 };
-export const getCaPem = () => {
+
+export const setAuthSettings: (
+  headers: LocalHeaders,
+  requireAuth: boolean
+) => Promise<AuthSettings> = (
+  localHeaders: LocalHeaders,
+  requireAuth: boolean
+) => {
+  const headers = { ...localHeaders, ...jsonHeaders };
+  return fetch(`/api/auth_settings`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ requireAuth }),
+  }).then((v) => v.json());
+};
+
+export const createUser: (
+  headers: LocalHeaders,
+  publicKey: string
+) => Promise<UserId> = (localHeaders: LocalHeaders, publicKey: string) => {
+  const headers = { ...localHeaders, ...jsonHeaders };
+  return fetch(`/api/user`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ publicKey }),
+  }).then((v) => v.json());
+};
+
+export const updateUser: (
+  localHeaders: LocalHeaders,
+  publicKey: string,
+  userId: string
+) => Promise<UserId> = (
+  localHeaders: LocalHeaders,
+  publicKey: string,
+  userId: string
+) => {
+  const headers = { ...localHeaders, ...jsonHeaders };
+  return fetch(`/api/user/${userId}`, {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify({ publicKey }),
+  }).then((v) => v.json());
+};
+
+export const generateCert = (headers: LocalHeaders) => {
+  return fetch(`/api/regenerate_cert`, { method: "POST", headers });
+};
+export const getCaPem = (headers: LocalHeaders) => {
   return (
     fetch(`/api/root_pem`, {
       headers: {
         "Content-Disposition": "attachment; filename=ca.crt",
+        ...headers,
       },
     })
       .then((response) => {

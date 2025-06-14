@@ -16,7 +16,8 @@ id -u minidsp &>/dev/null || sudo useradd -m minidsp
 getent group minidspgroup || sudo groupadd minidspgroup
 sudo usermod -aG bluetooth minidsp
 sudo usermod -aG gpio minidsp
-sudo usermod -aG plugdev minidsp
+sudo usermod -aG plugdev minidsp # HID, but is it needed??
+sudo usermod -aG input minidsp #HID
 sudo usermod -aG minidspgroup minidsp
 echo "completed user and group setup"
 echo "install dependent software"
@@ -26,10 +27,16 @@ mkdir -p /home/minidsp/ssl
 # update to node 24
 curl -fsSL https://deb.nodesource.com/setup_24.x | sudo bash
 sudo apt-get install nodejs -y
+
+# install package that only updates security
+sudo apt-get install -y unattended-upgrades apt-listchanges
+## TODO actually enable/configure see https://www.reddit.com/r/debian/comments/18p215e/auto_install_only_security_updates/
+
 echo "finished installing dependent software"
 
 # add group to /etc/sudoers
 if [ -z "$(sudo grep '%minidspgroup ALL=(ALL) NOPASSWD: /usr/bin/systemctl reload nginx' /etc/sudoers )" ]; then echo "%minidspgroup ALL=(ALL) NOPASSWD: /usr/bin/systemctl reload nginx" | sudo EDITOR='tee -a' visudo; fi;
+if [ -z "$(sudo grep '%minidspgroup ALL=(ALL) NOPASSWD: /usr/sbin/rfkill unblock bluetooth' /etc/sudoers )" ]; then echo "%minidspgroup ALL=(ALL) NOPASSWD: /usr/sbin/rfkill unblock bluetooth" | sudo EDITOR='tee -a' visudo; fi;
 
 sed -i -e "s/HOSTNAME/${DOMAIN}/g" nginx.conf
 sed -i -e "s/HOSTNAME/${DOMAIN}/g" minidsp-ui.service
@@ -43,3 +50,5 @@ sudo systemctl enable minidsp-ui
 sudo systemctl enable minidsp-bt
 sudo systemctl enable nginx
 sudo chown -R  minidsp:minidspgroup /home/minidsp/
+
+
