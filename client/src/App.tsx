@@ -42,7 +42,8 @@ import {
 
 import { ColorTheme, DEFAULT_COLOR_THEME, themes } from "./styles/modes";
 import Settings from "./components/Settings";
-import SSLNotification from "./components/Notification";
+import SSLNotification from "./components/SSLNotification";
+import NoUserNotification from "./components/NoUserNotification";
 import { sign } from "./services/keyCreation";
 // custom hook for parameter updates
 function useParameterUpdates(
@@ -112,7 +113,7 @@ function App() {
     useMiniDspParams();
 
   const {
-    state: { stringToSign, certInfo },
+    state: { stringToSign, certInfo, requireAuth },
     dispatch: authDispatch,
   } = useAuthSettingsParams();
 
@@ -170,13 +171,6 @@ function App() {
 
   const { dispatch: userDispatch } = useUserParams();
 
-  /// Cert state management
-  /*const [certInfo, setCertInfo] = useState<SSLCert | undefined>(undefined);
-  // TODO put this in a state file
-  useEffect(() => {
-    //no need for authentication on this endpoint
-    getCertInfo({}).then(setCertInfo);
-  }, [setCertInfo]);*/
   useEffect(() => {
     //no need for authentication on this endpoint
     getAuthSettings({}).then((result) =>
@@ -190,15 +184,17 @@ function App() {
   useEffect(() => {
     const userId = getUserId();
     const privateKey = getPrivateKey() || "";
-    sign(stringToSign, privateKey).then((signature) => {
-      userDispatch({
-        type: SetUser.UPDATE,
-        value: {
-          userId,
-          signature,
-        },
-      });
-    });
+    sign(stringToSign, privateKey)
+      .then((signature) => {
+        userDispatch({
+          type: SetUser.UPDATE,
+          value: {
+            userId,
+            signature,
+          },
+        });
+      })
+      .catch(console.error);
   }, [stringToSign, userDispatch]);
 
   return (
@@ -245,6 +241,7 @@ function App() {
           {certInfo && (
             <SSLNotification sslInfo={certInfo} currentDate={new Date()} />
           )}
+          <NoUserNotification signature={signature} />
         </Box>
       </Box>
     </ThemeProvider>

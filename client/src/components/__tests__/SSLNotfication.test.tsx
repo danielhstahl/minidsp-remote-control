@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import SSLNotification, { showNotification } from "../Notification";
+import SSLNotification, { showNotification } from "../SSLNotification";
 
 describe("SSNNotification", () => {
   it("shows notification", () => {

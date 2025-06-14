@@ -59,6 +59,11 @@ export const addAuthHeaders = (userId: string, signature: string) => {
     authorization: `Bearer ${signature}`,
   };
 };
+export const addBasicAuthHeader = (code: string) => {
+  return {
+    authorization: `Basic ${btoa(`:${code}`)}`,
+  };
+};
 export type LocalHeaders = {
   [key: string]: string;
 };

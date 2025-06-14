@@ -2,6 +2,7 @@ import { createFastify } from "../routes.ts";
 import { subtle } from "node:crypto";
 import { describe, it, before, after } from "node:test";
 import assert from "node:assert";
+
 describe("api auth", () => {
   const PORT = 4001;
   const DB_NAME = ":memory:";
@@ -169,5 +170,35 @@ describe("api auth crypto", () => {
       },
     }).then((r) => r.json());
     assert.equal(result.userId, "1");
+  });
+
+  it("authenticates basic auth", async () => {
+    const KEY = "MYMOCKKEY";
+
+    const key = Buffer.from(`:${KEY}`).toString("base64");
+    try {
+      //if, for some reason, it is open after the previous test, then force it to require auth
+      await fetch(`http://localhost:${PORT}/api/auth_settings`, {
+        method: "POST",
+        body: JSON.stringify({ requireAuth: true }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }).then((r) => r.json());
+      console.log("FYI: setting back to requiring auth");
+    } catch {
+      console.log("Already required auth");
+    }
+    const reset = await fetch(`http://localhost:${PORT}/api/auth_settings`, {
+      method: "POST",
+      body: JSON.stringify({ requireAuth: false }),
+      headers: {
+        "Content-Type": "application/json",
+        authorization: `Basic ${key}`,
+      },
+    }).then((r) => r.json());
+    //console.log(reset);
+    const { requireAuth: newRequireAuth } = reset;
+    assert.equal(newRequireAuth, false);
   });
 });

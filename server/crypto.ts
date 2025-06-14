@@ -50,31 +50,75 @@ export const verifyKey = async (
   return result;
 };
 
-export const auth = async (
-  request: FastifyRequest<{ Headers: Headers }>,
-  reply: FastifyReply,
-  getSettings: () => { requireAuth: boolean },
-  verifyKey: (v1: string, v2: string, v3: string) => Promise<boolean>,
-  userObj: { [key: string]: string },
-  stringToSign: string
-) => {
+interface AuthStrategy {
+  isAuthenticated: boolean;
+  description: string;
+}
+// start auth strategies
+export const noAuthStrategy = async (
+  getSettings: () => { requireAuth: boolean }
+): Promise<AuthStrategy> => {
   const { requireAuth } = getSettings();
-  if (!requireAuth) {
-    return;
-  }
-  const authHeader = request.headers["authorization"]; //base64 string signed value
-  const userId = request.headers["x-user-id"];
+  return { isAuthenticated: !requireAuth, description: "" }; //return true if no auth required
+};
+export const privateKeyStrategy = async (
+  authHeader: string,
+  publicKey: string,
+  stringToSign: string,
+  verifyKeyInput: (
+    v1: string,
+    v2: string,
+    v3: string
+  ) => Promise<boolean> = verifyKey
+): Promise<AuthStrategy> => {
   if (authHeader.startsWith("Bearer ")) {
     const signature = authHeader.substring(7, authHeader.length);
-    const result = await verifyKey(signature, userObj[userId], stringToSign);
-    if (result) {
-      return; //keep going
-    } else {
-      reply.code(403);
-      reply.send("Authentication Failed");
-    }
+    const result = await verifyKeyInput(signature, publicKey, stringToSign);
+    return {
+      isAuthenticated: result,
+      description: !result ? "Authentication Failed" : "",
+    };
   } else {
-    reply.code(403);
-    reply.send("Bearer token not properly formatted");
+    return {
+      isAuthenticated: false,
+      description: "Bearer token not properly formatted",
+    };
   }
+};
+export const basicAuthStrategy = async (
+  authHeader: string,
+  compareToken: string
+) => {
+  if (authHeader.startsWith("Basic ")) {
+    const basicToken = Buffer.from(authHeader.substring(6), "base64")
+      .toString()
+      .substring(1); //remove initial ":"
+    const isAuthenticated = compareToken === basicToken;
+    return {
+      isAuthenticated,
+      description: !isAuthenticated ? "Authentication Failed" : "",
+    };
+  } else {
+    return {
+      isAuthenticated: false,
+      description: "Basic token not properly formatted",
+    };
+  }
+};
+type authFnc = () => Promise<AuthStrategy>;
+
+export const betterAuth = async (...fncs: authFnc[]) => {
+  const n = fncs.length;
+  let fncResults = [];
+  for (let i = 0; i < n; ++i) {
+    const result = await fncs[i]();
+    if (result.isAuthenticated) {
+      return result;
+    }
+    fncResults.push(result.description);
+  }
+  return {
+    isAuthenticated: false,
+    description: fncResults.find((v) => v !== ""),
+  };
 };

@@ -6,7 +6,13 @@ import path from "path";
 import fs from "fs";
 import { turnOn, turnOff, getStatus, openPin } from "./gpio.ts";
 import { X509Certificate } from "crypto";
-import { auth, verifyKey, setCronRotation } from "./crypto.ts";
+import {
+  setCronRotation,
+  betterAuth,
+  noAuthStrategy,
+  privateKeyStrategy,
+  basicAuthStrategy,
+} from "./crypto.ts";
 import {
   getAllUsers,
   setDefaultSettings,
@@ -23,9 +29,15 @@ import {
   setMinidspVol,
   setMinidspPreset,
 } from "./minidsp.ts";
+
+interface Headers {
+  "x-user-id": string;
+  authorization: string;
+}
+
 //cat /sys/kernel/debug/gpio
 const {
-  env: { RELAY_PIN, USE_RELAY, DOMAIN },
+  env: { RELAY_PIN, USE_RELAY, DOMAIN, COMPARE_STRING },
 } = process;
 function powerOff(gpio) {
   return turnOff(gpio);
@@ -82,7 +94,13 @@ interface AuthBody {
 interface UserBody {
   publicKey: string;
 }
-
+const AUTHORIZATION_KEY = "authorization";
+const X_USER_KEY = "x-user-id";
+const getHeadersFromObject = (headers: Headers) => ({
+  ...headers,
+  [AUTHORIZATION_KEY]: headers[AUTHORIZATION_KEY] || "",
+  [X_USER_KEY]: headers[X_USER_KEY] || "",
+});
 export const createFastify = (dbName: string) => {
   const db = setupDatabase(dbName);
   const fastify = Fastify({
@@ -98,8 +116,31 @@ export const createFastify = (dbName: string) => {
     const userObj = getAllUsers(db);
     setDefaultSettings(db);
     const getSettingsHof = () => getSettings(db) || { requireAuth: false };
-    const authHof = (req, reply, stringToSign) => {
-      return auth(req, reply, getSettingsHof, verifyKey, userObj, stringToSign);
+
+    const authHof = (
+      req: FastifyRequest<{ Headers: Headers }>,
+      stringToSign: string
+    ) => {
+      const { [AUTHORIZATION_KEY]: authHeader, [X_USER_KEY]: userId } =
+        getHeadersFromObject(req.headers);
+      const publicKey = userObj[userId];
+      const strategy1 = () => noAuthStrategy(getSettingsHof);
+      const strategy2 = () =>
+        privateKeyStrategy(authHeader, publicKey, stringToSign);
+      return betterAuth(strategy1, strategy2);
+    };
+    const authHofAuthSettings = (
+      req: FastifyRequest<{ Headers: Headers }>,
+      stringToSign: string
+    ) => {
+      const { [AUTHORIZATION_KEY]: authHeader, [X_USER_KEY]: userId } =
+        getHeadersFromObject(req.headers);
+      const publicKey = userObj[userId];
+      const strategy1 = () => noAuthStrategy(getSettingsHof);
+      const strategy2 = () =>
+        privateKeyStrategy(authHeader, publicKey, stringToSign);
+      const strategy3 = () => basicAuthStrategy(authHeader, COMPARE_STRING);
+      return betterAuth(strategy1, strategy2, strategy3);
     };
     fastify.get("/api/root_pem", (req, reply) => {
       const stream = fs.createReadStream(ROOT_PEM_PATH);
@@ -123,9 +164,19 @@ export const createFastify = (dbName: string) => {
     });
     fastify.post(
       "/api/auth_settings",
-      async (req: FastifyRequest<{ Body: AuthBody }>, reply) => {
+      async (
+        req: FastifyRequest<{ Body: AuthBody; Headers: Headers }>,
+        reply
+      ) => {
         const stringToSign = getStringToSign();
-        await authHof(req, reply, stringToSign);
+        const { isAuthenticated, description } = await authHofAuthSettings(
+          req,
+          stringToSign
+        );
+        if (!isAuthenticated) {
+          reply.code(403);
+          return reply.send(description);
+        }
         const { requireAuth } = req.body;
         setSettings(db, requireAuth);
         reply.send({ requireAuth, stringToSign });
@@ -133,8 +184,18 @@ export const createFastify = (dbName: string) => {
     );
     fastify.post(
       "/api/user",
-      async (req: FastifyRequest<{ Body: UserBody }>, reply) => {
-        await authHof(req, reply, getStringToSign());
+      async (
+        req: FastifyRequest<{ Body: UserBody; Headers: Headers }>,
+        reply
+      ) => {
+        const { isAuthenticated, description } = await authHof(
+          req,
+          getStringToSign()
+        );
+        if (!isAuthenticated) {
+          reply.code(403);
+          return reply.send(description);
+        }
         const { publicKey } = req.body;
         const { key: userId } = createUser(db, publicKey);
         //cache so don't have to reload database
@@ -145,69 +206,127 @@ export const createFastify = (dbName: string) => {
     fastify.patch(
       "/api/user/:userId",
       async (
-        req: FastifyRequest<{ Body: UserBody; Params: UserParams }>,
+        req: FastifyRequest<{
+          Body: UserBody;
+          Params: UserParams;
+          Headers: Headers;
+        }>,
         reply
       ) => {
-        await authHof(req, reply, getStringToSign());
+        const { isAuthenticated, description } = await authHof(
+          req,
+          getStringToSign()
+        );
+        if (!isAuthenticated) {
+          reply.code(403);
+          return reply.send(description);
+        }
         const { userId } = req.params;
         const { publicKey } = req.body;
-        console.error(userId);
-        console.error(publicKey);
-        console.error(req.body);
         updateUser(db, publicKey, userId);
         //cache so don't have to reload database
         userObj[userId] = publicKey;
         reply.send({ userId });
       }
     );
-    fastify.post("/api/regenerate_cert", async (req, reply) => {
-      await authHof(req, reply, getStringToSign());
-      generateCert()
-        .then(() => {
-          reply.send({ success: true });
-        })
-        .catch((e) => {
-          reply.send({ success: false, message: e });
-        });
-    });
-    fastify.get("/api/status", async (req, reply) => {
-      await authHof(req, reply, getStringToSign());
-      Promise.all([
-        minidspStatus(),
-        USE_GPIO ? powerStatus(gpio) : Promise.resolve("on"),
-      ])
-        .then(([minidsp, power]) => {
-          const { preset, source, volume } = minidsp;
-          reply.send({ preset, source, volume, power });
-        })
-        .catch((e) => {
-          reply.send({ success: false, message: e });
-        });
-    });
-    fastify.post("/api/volume/up", async (req, reply) => {
-      await authHof(req, reply, getStringToSign());
-      incrementMinidspVol(VOLUME_INCREMENT)
-        .then(() => {
-          reply.send({ success: true });
-        })
-        .catch((e) => {
-          reply.send({ success: false, message: e });
-        });
-    });
-    fastify.post("/api/volume/down", async (req, reply) => {
-      await authHof(req, reply, getStringToSign());
-      incrementMinidspVol(-VOLUME_INCREMENT)
-        .then(() => {
-          reply.send({ success: true });
-        })
-        .catch((e) => {
-          reply.send({ success: false, message: e });
-        });
-    });
+    fastify.post(
+      "/api/regenerate_cert",
+      async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
+        const { isAuthenticated, description } = await authHof(
+          req,
+          getStringToSign()
+        );
+        if (!isAuthenticated) {
+          reply.code(403);
+          return reply.send(description);
+        }
+        generateCert()
+          .then(() => {
+            reply.send({ success: true });
+          })
+          .catch((e) => {
+            reply.send({ success: false, message: e });
+          });
+      }
+    );
+    fastify.get(
+      "/api/status",
+      async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
+        const { isAuthenticated, description } = await authHof(
+          req,
+          getStringToSign()
+        );
+        if (!isAuthenticated) {
+          reply.code(403);
+          return reply.send(description);
+        }
+        Promise.all([
+          minidspStatus(),
+          USE_GPIO ? powerStatus(gpio) : Promise.resolve("on"),
+        ])
+          .then(([minidsp, power]) => {
+            const { preset, source, volume } = minidsp;
+            reply.send({ preset, source, volume, power });
+          })
+          .catch((e) => {
+            reply.send({ success: false, message: e });
+          });
+      }
+    );
+    fastify.post(
+      "/api/volume/up",
+      async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
+        const { isAuthenticated, description } = await authHof(
+          req,
+          getStringToSign()
+        );
+        if (!isAuthenticated) {
+          reply.code(403);
+          return reply.send(description);
+        }
+        incrementMinidspVol(VOLUME_INCREMENT)
+          .then(() => {
+            reply.send({ success: true });
+          })
+          .catch((e) => {
+            reply.send({ success: false, message: e });
+          });
+      }
+    );
+    fastify.post(
+      "/api/volume/down",
+      async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
+        const { isAuthenticated, description } = await authHof(
+          req,
+          getStringToSign()
+        );
+        if (!isAuthenticated) {
+          reply.code(403);
+          return reply.send(description);
+        }
+        incrementMinidspVol(-VOLUME_INCREMENT)
+          .then(() => {
+            reply.send({ success: true });
+          })
+          .catch((e) => {
+            reply.send({ success: false, message: e });
+          });
+      }
+    );
     fastify.post(
       "/api/volume/:volume",
-      async (req: FastifyRequest<{ Params: VolumeParams }>, reply) => {
-        await authHof(req, reply, getStringToSign());
+      async (
+        req: FastifyRequest<{ Params: VolumeParams; Headers: Headers }>,
+        reply
+      ) => {
+        const { isAuthenticated, description } = await authHof(
+          req,
+          getStringToSign()
+        );
+        if (!isAuthenticated) {
+          reply.code(403);
+          return reply.send(description);
+        }
         const { volume } = req.params;
         setMinidspVol(volume)
           .then(() => {
@@ -220,8 +339,18 @@ export const createFastify = (dbName: string) => {
     );
     fastify.post(
       "/api/preset/:preset",
-      async (req: FastifyRequest<{ Params: PresetParams }>, reply) => {
-        await authHof(req, reply, getStringToSign());
+      async (
+        req: FastifyRequest<{ Params: PresetParams; Headers: Headers }>,
+        reply
+      ) => {
+        const { isAuthenticated, description } = await authHof(
+          req,
+          getStringToSign()
+        );
+        if (!isAuthenticated) {
+          reply.code(403);
+          return reply.send(description);
+        }
         const { preset } = req.params;
         setMinidspPreset(preset)
           .then(() => {
@@ -234,8 +363,18 @@ export const createFastify = (dbName: string) => {
     );
     fastify.post(
       "/api/source/:source",
-      async (req: FastifyRequest<{ Params: SourceParams }>, reply) => {
-        await authHof(req, reply, getStringToSign());
+      async (
+        req: FastifyRequest<{ Params: SourceParams; Headers: Headers }>,
+        reply
+      ) => {
+        const { isAuthenticated, description } = await authHof(
+          req,
+          getStringToSign()
+        );
+        if (!isAuthenticated) {
+          reply.code(403);
+          return reply.send(description);
+        }
         const { source } = req.params;
         setMinidspInput(source)
           .then(() => {
@@ -246,32 +385,58 @@ export const createFastify = (dbName: string) => {
           });
       }
     );
-    fastify.post("/api/power/on", async (req, reply) => {
-      await authHof(req, reply, getStringToSign());
-      if (!USE_GPIO) {
-        return reply.send({ success: false, message: "Power not implemented" });
+    fastify.post(
+      "/api/power/on",
+      async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
+        const { isAuthenticated, description } = await authHof(
+          req,
+          getStringToSign()
+        );
+        if (!isAuthenticated) {
+          reply.code(403);
+          return reply.send(description);
+        }
+        if (!USE_GPIO) {
+          return reply.send({
+            success: false,
+            message: "Power not implemented",
+          });
+        }
+        powerOn(gpio)
+          .then(() => {
+            reply.send({ success: true });
+          })
+          .catch((e) => {
+            reply.send({ success: false, message: e });
+          });
       }
-      powerOn(gpio)
-        .then(() => {
-          reply.send({ success: true });
-        })
-        .catch((e) => {
-          reply.send({ success: false, message: e });
-        });
-    });
-    fastify.post("/api/power/off", async (req, reply) => {
-      await authHof(req, reply, getStringToSign());
-      if (!USE_GPIO) {
-        return reply.send({ success: false, message: "Power not implemented" });
+    );
+    fastify.post(
+      "/api/power/off",
+      async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
+        const { isAuthenticated, description } = await authHof(
+          req,
+          getStringToSign()
+        );
+        if (!isAuthenticated) {
+          reply.code(403);
+          return reply.send(description);
+        }
+        if (!USE_GPIO) {
+          return reply.send({
+            success: false,
+            message: "Power not implemented",
+          });
+        }
+        powerOff(gpio)
+          .then(() => {
+            reply.send({ success: true });
+          })
+          .catch((e) => {
+            reply.send({ success: false, message: e });
+          });
       }
-      powerOff(gpio)
-        .then(() => {
-          reply.send({ success: true });
-        })
-        .catch((e) => {
-          reply.send({ success: false, message: e });
-        });
-    });
+    );
   });
   return fastify;
 };

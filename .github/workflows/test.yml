@@ -4,7 +4,8 @@ jobs:
   run_server_tests:
     name: Run server test
     runs-on: ubuntu-latest
-
+    env:
+      COMPARE_STRING: MYMOCKKEY
     defaults:
       run:
         working-directory: ./server
