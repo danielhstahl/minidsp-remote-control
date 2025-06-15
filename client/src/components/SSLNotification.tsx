@@ -15,7 +15,7 @@ export const showNotification = (currentDate: Date, expiryDate: Date) => {
 
 export const calculateDays = (currentDate: Date, expiryDate: Date) => {
   return Math.floor(
-    (expiryDate.getTime() - currentDate.getTime()) / MS_TO_DAYS,
+    (expiryDate.getTime() - currentDate.getTime()) / MS_TO_DAYS
   );
 };
 

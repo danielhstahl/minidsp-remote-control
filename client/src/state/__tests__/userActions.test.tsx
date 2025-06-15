@@ -1,0 +1,59 @@
+import { render } from "@testing-library/react";
+import {
+  SetUser,
+  userReducer,
+  UserProvider,
+  useUserParams,
+} from "../userActions";
+
+describe("userReducer", () => {
+  const initialState = {
+    userId: "-1",
+    signature: "",
+  };
+
+  it("should return initial state when called with unknown action", () => {
+    const result = userReducer(initialState, {
+      // @ts-ignore - Testing invalid action type
+      type: "UNKNOWN",
+      // @ts-ignore - Testing invalid action type
+      value: {},
+    });
+    expect(result).toBe(initialState);
+  });
+
+  it("should update state when called with UPDATE action", () => {
+    const newState = {
+      userId: "2",
+      signature: "signature",
+    };
+
+    const result = userReducer(initialState, {
+      type: SetUser.UPDATE,
+      value: newState,
+    });
+
+    expect(result).toEqual(newState);
+  });
+});
+
+describe("UserProvider and useProvider", () => {
+  it("should provide initial state to children", () => {
+    const TestComponent = () => {
+      const { state } = useUserParams();
+      return <div data-testid="test">{JSON.stringify(state)}</div>;
+    };
+
+    const { getByTestId } = render(
+      <UserProvider>
+        <TestComponent />
+      </UserProvider>
+    );
+
+    const element = getByTestId("test");
+    expect(JSON.parse(element.textContent!)).toEqual({
+      userId: "-1",
+      signature: "",
+    });
+  });
+});

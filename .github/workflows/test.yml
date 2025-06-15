@@ -1,17 +1,24 @@
 on: push
-  
+
 jobs:
   run_server_tests:
-    name: Run rust test
+    name: Run server test
     runs-on: ubuntu-latest
+    env:
+      COMPARE_STRING: MYMOCKKEY
     defaults:
       run:
         working-directory: ./server
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.1.0"
+      - name: Install
+        run: npm ci
 
-    - name: Install 
-      run: npm ci
+      - name: test
+        run: npm test
 
   run_ui_tests:
     name: Run UI tests
@@ -19,11 +26,13 @@ jobs:
     defaults:
       run:
         working-directory: ./client
+    env:
+      NODE_OPTIONS: "--max_old_space_size=4096"
     steps:
-    - uses: actions/checkout@v4
-    - name: install deps
-      run: npm ci
-    - name: run tests
-      run: npm run test -- --coverage .
-    - name: compile
-      run: npm run build
+      - uses: actions/checkout@v4
+      - name: install deps
+        run: npm ci
+      - name: run tests
+        run: npm run test -- --coverage .
+      - name: compile
+        run: npm run build
