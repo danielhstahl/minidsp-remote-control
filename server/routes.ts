@@ -8,7 +8,7 @@ import { turnOn, turnOff, getStatus, openPin } from "./gpio.ts";
 import { X509Certificate } from "crypto";
 import {
   setCronRotation,
-  betterAuth,
+  checkStrategies,
   noAuthStrategy,
   privateKeyStrategy,
   basicAuthStrategy,
@@ -116,31 +116,18 @@ export const createFastify = (dbName: string) => {
     const userObj = getAllUsers(db);
     setDefaultSettings(db);
     const getSettingsHof = () => getSettings(db) || { requireAuth: false };
-
-    const authHof = (
+    const getStrategiesHof = (
       req: FastifyRequest<{ Headers: Headers }>,
       stringToSign: string
     ) => {
       const { [AUTHORIZATION_KEY]: authHeader, [X_USER_KEY]: userId } =
         getHeadersFromObject(req.headers);
       const publicKey = userObj[userId];
-      const strategy1 = () => noAuthStrategy(getSettingsHof);
-      const strategy2 = () =>
+      const noStrategy = () => noAuthStrategy(getSettingsHof);
+      const pKStrategy = () =>
         privateKeyStrategy(authHeader, publicKey, stringToSign);
-      return betterAuth(strategy1, strategy2);
-    };
-    const authHofAuthSettings = (
-      req: FastifyRequest<{ Headers: Headers }>,
-      stringToSign: string
-    ) => {
-      const { [AUTHORIZATION_KEY]: authHeader, [X_USER_KEY]: userId } =
-        getHeadersFromObject(req.headers);
-      const publicKey = userObj[userId];
-      const strategy1 = () => noAuthStrategy(getSettingsHof);
-      const strategy2 = () =>
-        privateKeyStrategy(authHeader, publicKey, stringToSign);
-      const strategy3 = () => basicAuthStrategy(authHeader, COMPARE_STRING);
-      return betterAuth(strategy1, strategy2, strategy3);
+      const basicStrategy = () => basicAuthStrategy(authHeader, COMPARE_STRING);
+      return { noStrategy, pKStrategy, basicStrategy };
     };
     fastify.get("/api/root_pem", (req, reply) => {
       const stream = fs.createReadStream(ROOT_PEM_PATH);
@@ -169,9 +156,14 @@ export const createFastify = (dbName: string) => {
         reply
       ) => {
         const stringToSign = getStringToSign();
-        const { isAuthenticated, description } = await authHofAuthSettings(
+        const { noStrategy, pKStrategy, basicStrategy } = getStrategiesHof(
           req,
           stringToSign
+        );
+        const { isAuthenticated, description } = await checkStrategies(
+          noStrategy,
+          pKStrategy,
+          basicStrategy
         );
         if (!isAuthenticated) {
           reply.code(403);
@@ -188,9 +180,13 @@ export const createFastify = (dbName: string) => {
         req: FastifyRequest<{ Body: UserBody; Headers: Headers }>,
         reply
       ) => {
-        const { isAuthenticated, description } = await authHof(
+        const { noStrategy, pKStrategy } = getStrategiesHof(
           req,
           getStringToSign()
+        );
+        const { isAuthenticated, description } = await checkStrategies(
+          noStrategy,
+          pKStrategy
         );
         if (!isAuthenticated) {
           reply.code(403);
@@ -213,9 +209,13 @@ export const createFastify = (dbName: string) => {
         }>,
         reply
       ) => {
-        const { isAuthenticated, description } = await authHof(
+        const { noStrategy, pKStrategy } = getStrategiesHof(
           req,
           getStringToSign()
+        );
+        const { isAuthenticated, description } = await checkStrategies(
+          noStrategy,
+          pKStrategy
         );
         if (!isAuthenticated) {
           reply.code(403);
@@ -232,9 +232,13 @@ export const createFastify = (dbName: string) => {
     fastify.post(
       "/api/regenerate_cert",
       async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
-        const { isAuthenticated, description } = await authHof(
+        const { noStrategy, pKStrategy } = getStrategiesHof(
           req,
           getStringToSign()
+        );
+        const { isAuthenticated, description } = await checkStrategies(
+          noStrategy,
+          pKStrategy
         );
         if (!isAuthenticated) {
           reply.code(403);
@@ -252,9 +256,13 @@ export const createFastify = (dbName: string) => {
     fastify.get(
       "/api/status",
       async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
-        const { isAuthenticated, description } = await authHof(
+        const { noStrategy, pKStrategy } = getStrategiesHof(
           req,
           getStringToSign()
+        );
+        const { isAuthenticated, description } = await checkStrategies(
+          noStrategy,
+          pKStrategy
         );
         if (!isAuthenticated) {
           reply.code(403);
@@ -276,9 +284,13 @@ export const createFastify = (dbName: string) => {
     fastify.post(
       "/api/volume/up",
       async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
-        const { isAuthenticated, description } = await authHof(
+        const { noStrategy, pKStrategy } = getStrategiesHof(
           req,
           getStringToSign()
+        );
+        const { isAuthenticated, description } = await checkStrategies(
+          noStrategy,
+          pKStrategy
         );
         if (!isAuthenticated) {
           reply.code(403);
@@ -296,9 +308,13 @@ export const createFastify = (dbName: string) => {
     fastify.post(
       "/api/volume/down",
       async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
-        const { isAuthenticated, description } = await authHof(
+        const { noStrategy, pKStrategy } = getStrategiesHof(
           req,
           getStringToSign()
+        );
+        const { isAuthenticated, description } = await checkStrategies(
+          noStrategy,
+          pKStrategy
         );
         if (!isAuthenticated) {
           reply.code(403);
@@ -319,9 +335,13 @@ export const createFastify = (dbName: string) => {
         req: FastifyRequest<{ Params: VolumeParams; Headers: Headers }>,
         reply
       ) => {
-        const { isAuthenticated, description } = await authHof(
+        const { noStrategy, pKStrategy } = getStrategiesHof(
           req,
           getStringToSign()
+        );
+        const { isAuthenticated, description } = await checkStrategies(
+          noStrategy,
+          pKStrategy
         );
         if (!isAuthenticated) {
           reply.code(403);
@@ -343,9 +363,13 @@ export const createFastify = (dbName: string) => {
         req: FastifyRequest<{ Params: PresetParams; Headers: Headers }>,
         reply
       ) => {
-        const { isAuthenticated, description } = await authHof(
+        const { noStrategy, pKStrategy } = getStrategiesHof(
           req,
           getStringToSign()
+        );
+        const { isAuthenticated, description } = await checkStrategies(
+          noStrategy,
+          pKStrategy
         );
         if (!isAuthenticated) {
           reply.code(403);
@@ -367,9 +391,13 @@ export const createFastify = (dbName: string) => {
         req: FastifyRequest<{ Params: SourceParams; Headers: Headers }>,
         reply
       ) => {
-        const { isAuthenticated, description } = await authHof(
+        const { noStrategy, pKStrategy } = getStrategiesHof(
           req,
           getStringToSign()
+        );
+        const { isAuthenticated, description } = await checkStrategies(
+          noStrategy,
+          pKStrategy
         );
         if (!isAuthenticated) {
           reply.code(403);
@@ -388,9 +416,13 @@ export const createFastify = (dbName: string) => {
     fastify.post(
       "/api/power/on",
       async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
-        const { isAuthenticated, description } = await authHof(
+        const { noStrategy, pKStrategy } = getStrategiesHof(
           req,
           getStringToSign()
+        );
+        const { isAuthenticated, description } = await checkStrategies(
+          noStrategy,
+          pKStrategy
         );
         if (!isAuthenticated) {
           reply.code(403);
@@ -414,9 +446,13 @@ export const createFastify = (dbName: string) => {
     fastify.post(
       "/api/power/off",
       async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
-        const { isAuthenticated, description } = await authHof(
+        const { noStrategy, pKStrategy } = getStrategiesHof(
           req,
           getStringToSign()
+        );
+        const { isAuthenticated, description } = await checkStrategies(
+          noStrategy,
+          pKStrategy
         );
         if (!isAuthenticated) {
           reply.code(403);

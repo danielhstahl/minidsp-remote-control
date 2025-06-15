@@ -9,7 +9,7 @@ interface Headers {
 }
 import {
   setCronRotation,
-  betterAuth,
+  checkStrategies,
   noAuthStrategy,
   privateKeyStrategy,
   basicAuthStrategy,
@@ -53,7 +53,7 @@ const authHof = (
   const strategy1 = () => noAuthStrategy(getSettingsHof);
   const strategy2 = () =>
     privateKeyStrategy(authHeader, publicKey, stringToSign);
-  return betterAuth(strategy1, strategy2);
+  return checkStrategies(strategy1, strategy2);
 };
 const COMPARE_STRING = "MOCK_COMPARE_STRING";
 const authHofAuthSettings = (
@@ -67,7 +67,7 @@ const authHofAuthSettings = (
   const strategy2 = () =>
     privateKeyStrategy(authHeader, publicKey, stringToSign);
   const strategy3 = () => basicAuthStrategy(authHeader, COMPARE_STRING);
-  return betterAuth(strategy1, strategy2, strategy3);
+  return checkStrategies(strategy1, strategy2, strategy3);
 };
 
 fastify.register(async function (fastify) {

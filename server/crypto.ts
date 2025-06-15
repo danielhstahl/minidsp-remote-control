@@ -105,9 +105,9 @@ export const basicAuthStrategy = async (
     };
   }
 };
-type authFnc = () => Promise<AuthStrategy>;
+type AuthFnc = () => Promise<AuthStrategy>;
 
-export const betterAuth = async (...fncs: authFnc[]) => {
+export const checkStrategies = async (...fncs: AuthFnc[]) => {
   const n = fncs.length;
   let fncResults = [];
   for (let i = 0; i < n; ++i) {
