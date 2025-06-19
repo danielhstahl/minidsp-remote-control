@@ -23,14 +23,19 @@ const AuthSwitch = ({ mode }: Props) => {
       checked={requireAuth}
       onChange={(e) => {
         const switchValue = e.target.checked;
-        setAuthSettings(addAuthHeaders(userId, signature), switchValue).then(
-          (result) => {
+        setAuthSettings(addAuthHeaders(userId, signature), switchValue)
+          .then((result) => {
             authDispatch({
               type: SetKeys.UPDATE,
               value: result,
             });
-          }
-        );
+          })
+          .catch((e) => {
+            authDispatch({
+              type: SetKeys.UPDATE,
+              value: { ...rest, requireAuth: !switchValue },
+            });
+          });
         authDispatch({
           type: SetKeys.UPDATE,
           value: { ...rest, requireAuth: switchValue },
