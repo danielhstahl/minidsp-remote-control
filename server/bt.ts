@@ -1,13 +1,15 @@
 "use strict";
 
-import { Adapter, Device, createBluetooth } from "node-ble";
+import NodeBLE from "node-ble";
+const { createBluetooth } = NodeBLE;
+import type { Adapter, Device } from "node-ble";
 import { setMinidspVol } from "./minidsp.ts";
 const { bluetooth } = createBluetooth();
 //eg, hci1
 const {
   env: { BLUETOOTH_DEVICE_ID },
-} = require("process");
-const HID = require("node-hid");
+} = process;
+import HID from "node-hid";
 const VOLUME_INCREMENT = 0.5;
 const TIMEOUT_MS = 1000;
 const HID_DEVICE_ID = 0; //hex 0000
@@ -15,7 +17,7 @@ const HID_VENDOR_ID = 2007; //hex 07d7
 
 const _findDevice: (
   adapter: Adapter,
-  deviceName: string
+  deviceName: string,
 ) => Promise<Device | undefined> = async (adapter, deviceName) => {
   const devices = await adapter.devices();
   const results = await Promise.all(
@@ -28,7 +30,7 @@ const _findDevice: (
             return { isDevice: name === deviceName, device };
           });
       });
-    })
+    }),
   );
   return results.find((result) => result.isDevice)?.device;
 };
