@@ -61,13 +61,13 @@ const GenerateCerts = () => {
                       signature,
                     },
                   });
-                }
+                },
               )
             : Promise.all([
                 updateUser(
                   addAuthHeaders(userId, signature),
                   publicKey,
-                  userId
+                  userId,
                 ),
                 userDispatch({
                   type: SetUser.UPDATE,
@@ -77,7 +77,7 @@ const GenerateCerts = () => {
                   },
                 }),
               ]);
-        }
+        },
       )
       .then(() => {
         setMessage({

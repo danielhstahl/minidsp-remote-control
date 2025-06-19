@@ -71,43 +71,36 @@ export type LocalHeaders = {
 const jsonHeaders = {
   "Content-Type": "application/json",
 };
-export const getStatus: (localHeaders: LocalHeaders) => Promise<HtxWrite> = (
-  localHeaders: LocalHeaders
+export const getStatus: (headers: LocalHeaders) => Promise<HtxWrite> = (
+  headers: LocalHeaders,
 ) => {
-  const headers = { ...localHeaders, ...jsonHeaders };
   return fetch("/api/status", { headers }).then((v) => v.json());
 };
 
-export const setVolume = (localHeaders: LocalHeaders, volume: number) => {
-  const headers = { ...localHeaders, ...jsonHeaders };
+export const setVolume = (headers: LocalHeaders, volume: number) => {
   return fetch(`/api/volume/${volume}`, { method: "POST", headers });
 };
 
-export const volumeUp = (localHeaders: LocalHeaders) => {
-  const headers = { ...localHeaders, ...jsonHeaders };
+export const volumeUp = (headers: LocalHeaders) => {
   return fetch(`/api/volume/up`, { method: "POST", headers });
 };
 
-export const volumeDown = (localHeaders: LocalHeaders) => {
-  const headers = { ...localHeaders, ...jsonHeaders };
+export const volumeDown = (headers: LocalHeaders) => {
   return fetch(`/api/volume/down`, { method: "POST", headers });
 };
 
-export const setPreset = (localHeaders: LocalHeaders, preset: number) => {
-  const headers = { ...localHeaders, ...jsonHeaders };
+export const setPreset = (headers: LocalHeaders, preset: number) => {
   return fetch(`/api/preset/${preset}`, { method: "POST", headers });
 };
-export const setPower = (localHeaders: LocalHeaders, powerToTurnTo: Power) => {
-  const headers = { ...localHeaders, ...jsonHeaders };
+export const setPower = (headers: LocalHeaders, powerToTurnTo: Power) => {
   return fetch(`/api/power/${powerToTurnTo}`, { method: "POST", headers });
 };
-export const setSource = (localHeaders: LocalHeaders, source: Source) => {
-  const headers = { ...localHeaders, ...jsonHeaders };
+export const setSource = (headers: LocalHeaders, source: Source) => {
   return fetch(`/api/source/${source}`, { method: "POST", headers });
 };
 
 export const getAuthSettings: (
-  headers: LocalHeaders
+  headers: LocalHeaders,
 ) => Promise<AuthSettings> = (headers: LocalHeaders) => {
   return fetch(`/api/auth_settings`, { headers })
     .then((v) => v.json())
@@ -128,10 +121,10 @@ export const getAuthSettings: (
 
 export const setAuthSettings: (
   headers: LocalHeaders,
-  requireAuth: boolean
+  requireAuth: boolean,
 ) => Promise<AuthSettings> = (
   localHeaders: LocalHeaders,
-  requireAuth: boolean
+  requireAuth: boolean,
 ) => {
   const headers = { ...localHeaders, ...jsonHeaders };
   return fetch(`/api/auth_settings`, {
@@ -143,7 +136,7 @@ export const setAuthSettings: (
 
 export const createUser: (
   headers: LocalHeaders,
-  publicKey: string
+  publicKey: string,
 ) => Promise<UserId> = (localHeaders: LocalHeaders, publicKey: string) => {
   const headers = { ...localHeaders, ...jsonHeaders };
   return fetch(`/api/user`, {
@@ -156,11 +149,11 @@ export const createUser: (
 export const updateUser: (
   localHeaders: LocalHeaders,
   publicKey: string,
-  userId: string
+  userId: string,
 ) => Promise<UserId> = (
   localHeaders: LocalHeaders,
   publicKey: string,
-  userId: string
+  userId: string,
 ) => {
   const headers = { ...localHeaders, ...jsonHeaders };
   return fetch(`/api/user/${userId}`, {
