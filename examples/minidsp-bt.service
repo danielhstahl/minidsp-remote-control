@@ -19,8 +19,7 @@ RestartSec=1
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=minidsp-bt
-User=root # give up on running as non-root
-# SupplementaryGroups=bluetooth plugdev
+User=root
 CPUSchedulingPolicy=fifo
 CPUSchedulingPriority=10
 
