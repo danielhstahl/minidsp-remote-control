@@ -4,10 +4,17 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-import { getCaPem, generateCert } from "../services/api";
+import FormGroup from "@mui/material/FormGroup";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
-import { useState } from "react";
+import { ColorTheme } from "../styles/modes";
+import { Link, useLocation } from "react-router";
+import Divider from "@mui/material/Divider";
+import GenerateCerts from "./GenerateCerts";
+import GenerateKeyPair from "./GenerateKeyPair";
+import AuthSwitch from "./AuthSwitch";
+import DownloadCaPem from "./DownloadCaPem";
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialogContent-root": {
     padding: theme.spacing(2),
@@ -17,29 +24,25 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   },
 }));
 interface SettingInputs {
-  open: boolean;
-  setOpen: (isOpen: boolean) => void;
+  mode: ColorTheme;
 }
-const Settings = ({ open, setOpen }: SettingInputs) => {
-  const handleClose = () => setOpen(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const handleGenerateCert = () => {
-    setIsLoading(true);
-    generateCert().finally(() => setIsLoading(false));
-  };
+const Settings = ({ mode }: SettingInputs) => {
+  const { pathname } = useLocation();
+  const open = pathname === "/settings";
   return (
     <>
       <BootstrapDialog
-        onClose={handleClose}
         aria-labelledby="customized-dialog-title"
         open={open}
+        fullScreen
       >
         <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
           Settings
         </DialogTitle>
         <IconButton
           aria-label="close"
-          onClick={handleClose}
+          component={Link}
+          to="/"
           sx={(theme) => ({
             position: "absolute",
             right: 8,
@@ -51,20 +54,22 @@ const Settings = ({ open, setOpen }: SettingInputs) => {
         </IconButton>
 
         <DialogContent dividers>
-          <Button color="primary" onClick={getCaPem}>
-            Download root cert
-          </Button>{" "}
-          If using SSL, add your root cert to the trust store.
-          <br />
-          <Button loading={isLoading} onClick={handleGenerateCert}>
-            Re-generate certs
-          </Button>{" "}
-          {isLoading
-            ? "Re-creating certs, this may take some time"
-            : "Re-create the SSL certs"}
+          <FormGroup>
+            <DownloadCaPem />
+            <br />
+            <GenerateCerts />
+            <br />
+            <Divider />
+            <GenerateKeyPair />
+            <br />
+            <FormControlLabel
+              control={<AuthSwitch mode={mode} />}
+              label="Require Authentication"
+            />
+          </FormGroup>
         </DialogContent>
         <DialogActions>
-          <Button autoFocus onClick={handleClose}>
+          <Button component={Link} to="/">
             Ok
           </Button>
         </DialogActions>

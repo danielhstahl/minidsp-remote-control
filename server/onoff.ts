@@ -1,7 +1,7 @@
 "use strict";
 //copied from https://github.com/fivdi/onoff/blob/master/onoff.js
 //but removed dependencies
-const fs = require("fs");
+import fs from "fs";
 
 const GPIO_ROOT_PATH = "/sys/class/gpio/";
 
@@ -11,7 +11,7 @@ const LOW_BUF = Buffer.from("0");
 const HIGH = 1;
 const LOW = 0;
 
-const exportGpio = (gpio) => {
+const exportGpio = (gpio: Gpio) => {
   if (!fs.existsSync(gpio._gpioPath)) {
     // The GPIO hasn't been exported yet so export it
     fs.writeFileSync(GPIO_ROOT_PATH + "export", "" + gpio._gpio);
@@ -43,7 +43,7 @@ const waitForGpioAccessPermission = (
   gpio,
   direction,
   edge,
-  gpioPreviouslyExported,
+  gpioPreviouslyExported
 ) => {
   let permissionRequiredPaths = [gpio._gpioPath + "value"];
 
@@ -82,7 +82,7 @@ const configureGpio = (
   direction,
   edge,
   options,
-  gpioPreviouslyExported,
+  gpioPreviouslyExported
 ) => {
   const throwIfNeeded = (err) => {
     if (gpioPreviouslyExported === false) {
@@ -127,17 +127,23 @@ const configureGpio = (
 };
 
 class Gpio {
-  constructor(gpio, direction, edge, options) {
-    if (typeof edge === "object" && !options) {
-      options = edge;
-      edge = undefined;
-    }
-
-    options = options || {};
+  _gpio: number;
+  _gpioPath: string;
+  _debounceTimeout: number;
+  _readBuffer: Buffer;
+  _readSyncBuffer: Buffer;
+  _valueFd: number;
+  _risingEnabled: boolean;
+  _fallingEnabled: boolean;
+  HIGH = HIGH;
+  LOW = LOW;
+  constructor(gpio: number, direction: "in" | "out") {
+    const edge = undefined;
+    const options = {};
 
     this._gpio = gpio;
     this._gpioPath = GPIO_ROOT_PATH + "gpio" + this._gpio + "/";
-    this._debounceTimeout = options.debounceTimeout || 0;
+    this._debounceTimeout = 0;
     this._readBuffer = Buffer.alloc(16);
     this._readSyncBuffer = Buffer.alloc(16);
 
@@ -150,7 +156,7 @@ class Gpio {
     this._valueFd = fs.openSync(this._gpioPath + "value", "r+");
   }
 
-  read(callback) {
+  read(callback = undefined) {
     const readValue = (callback) => {
       fs.read(this._valueFd, this._readBuffer, 0, 1, 0, (err, bytes, buf) => {
         if (typeof callback === "function") {
@@ -183,7 +189,7 @@ class Gpio {
     return convertBufferToBit(this._readSyncBuffer);
   }
 
-  write(value, callback) {
+  write(value, callback = undefined) {
     const writeValue = (value, callback) => {
       const writeBuffer = convertBitToBuffer(value);
       fs.write(this._valueFd, writeBuffer, 0, writeBuffer.length, 0, callback);
@@ -192,7 +198,7 @@ class Gpio {
     if (callback) {
       writeValue(value, callback);
     } else {
-      return new Promise((resolve, reject) => {
+      return new Promise<void>((resolve, reject) => {
         writeValue(value, (err) => {
           if (err) {
             reject(err);
@@ -236,19 +242,18 @@ class Gpio {
 
   activeLow() {
     return convertBufferToBoolean(
-      fs.readFileSync(this._gpioPath + "active_low"),
+      fs.readFileSync(this._gpioPath + "active_low")
     );
   }
 
   setActiveLow(invert) {
     fs.writeFileSync(
       this._gpioPath + "active_low",
-      convertBooleanToBuffer(!!invert),
+      convertBooleanToBuffer(!!invert)
     );
   }
 
   unexport() {
-    this.unwatchAll();
     fs.closeSync(this._valueFd);
     try {
       fs.writeFileSync(GPIO_ROOT_PATH + "unexport", "" + this._gpio);
@@ -285,7 +290,5 @@ const convertBufferToBit = (buffer) =>
 const convertBooleanToBuffer = (boolean) => (boolean ? HIGH_BUF : LOW_BUF);
 const convertBufferToBoolean = (buffer) => buffer[0] === HIGH_BUF[0];
 
-Gpio.HIGH = HIGH;
-Gpio.LOW = LOW;
-
-module.exports.Gpio = Gpio;
+//module.exports.Gpio = Gpio;
+export default Gpio; //

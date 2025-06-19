@@ -18,93 +18,120 @@ import {
   setSource,
   volumeUp,
   volumeDown,
-  getCertInfo,
-  SSLCert,
+  getAuthSettings,
+  HtxWrite,
+  addAuthHeaders,
+  LocalHeaders,
+  AuthSettings,
 } from "./services/api";
 import StatusCard from "./components/PowerCard";
 import VolumeCard from "./components/VolumeCard";
 import AppBar from "./components/AppBar";
-import { WriteAction, useWriteParams } from "./state/writeActions";
-import { saveColorTheme, getColorTheme } from "./state/persistance";
+import {
+  MinidspAction,
+  useMiniDspParams,
+  Action,
+} from "./state/minidspActions";
+import { SetKeys, useAuthSettingsParams } from "./state/credActions";
+import { SetUser, useUserParams } from "./state/userActions";
+import {
+  saveColorTheme,
+  getColorTheme,
+  getPrivateKey,
+  getUserId,
+} from "./state/persistance";
 
 import { ColorTheme, DEFAULT_COLOR_THEME, themes } from "./styles/modes";
 import Settings from "./components/Settings";
-import SSLNotification from "./components/Notification";
-
+import SSLNotification from "./components/SSLNotification";
+import NoUserNotification from "./components/NoUserNotification";
+import { sign } from "./services/keyCreation";
 // custom hook for parameter updates
 function useParameterUpdates(
-  writeDispatch: any,
-  writeParams: any,
+  miniDspDispatch: (_: Action) => void,
+  miniDspParams: HtxWrite,
+  headers: LocalHeaders,
   resetRefresh: React.MutableRefObject<NodeJS.Timeout | undefined>,
 ) {
   return useMemo(
     () => ({
       updatePreset: (preset: Preset) => {
-        writeDispatch({
-          type: WriteAction.UPDATE,
-          value: { ...writeParams, preset },
+        miniDspDispatch({
+          type: MinidspAction.UPDATE,
+          value: { ...miniDspParams, preset },
         });
-        setPreset(preset);
+        setPreset(headers, preset);
         clearInterval(resetRefresh.current);
       },
       updateVolume: (volume: number) => {
-        writeDispatch({
-          type: WriteAction.UPDATE,
-          value: { ...writeParams, volume },
+        miniDspDispatch({
+          type: MinidspAction.UPDATE,
+          value: { ...miniDspParams, volume },
         });
-        setVolume(volume);
+        setVolume(headers, volume);
         clearInterval(resetRefresh.current);
       },
       volumeUp: (volume: number, increment: number) => {
-        writeDispatch({
-          type: WriteAction.UPDATE,
-          value: { ...writeParams, volume: volume + increment },
+        miniDspDispatch({
+          type: MinidspAction.UPDATE,
+          value: { ...miniDspParams, volume: volume + increment },
         });
-        volumeUp();
+        volumeUp(headers);
         clearInterval(resetRefresh.current);
       },
       volumeDown: (volume: number, increment: number) => {
-        writeDispatch({
-          type: WriteAction.UPDATE,
-          value: { ...writeParams, volume: volume - increment },
+        miniDspDispatch({
+          type: MinidspAction.UPDATE,
+          value: { ...miniDspParams, volume: volume - increment },
         });
-        volumeDown();
+        volumeDown(headers);
         clearInterval(resetRefresh.current);
       },
       updatePower: (power: Power) => {
-        writeDispatch({
-          type: WriteAction.UPDATE,
-          value: { ...writeParams, power },
+        miniDspDispatch({
+          type: MinidspAction.UPDATE,
+          value: { ...miniDspParams, power },
         });
-        setPower(power);
+        setPower(headers, power);
         clearInterval(resetRefresh.current);
       },
       updateSource: (source: Source) => {
-        writeDispatch({
-          type: WriteAction.UPDATE,
-          value: { ...writeParams, source },
+        miniDspDispatch({
+          type: MinidspAction.UPDATE,
+          value: { ...miniDspParams, source },
         });
-        setSource(source);
+        setSource(headers, source);
         clearInterval(resetRefresh.current);
       },
     }),
-    [writeDispatch, writeParams, resetRefresh],
+    [miniDspDispatch, miniDspParams, resetRefresh, headers],
   );
 }
 
 function App() {
   /// Params state management
-  const { dispatch: writeDispatch, state: writeParams } = useWriteParams();
+  const { dispatch: miniDspDispatch, state: miniDspParams } =
+    useMiniDspParams();
+
+  const {
+    state: { certInfo },
+    dispatch: authDispatch,
+  } = useAuthSettingsParams();
+
+  const {
+    state: { userId, signature },
+  } = useUserParams();
+
   const holdRefresh = useRef<undefined | ReturnType<typeof setTimeout>>(
     undefined,
   );
 
   const getParams = useCallback(
     () =>
-      getStatus().then((status) =>
-        writeDispatch({ type: WriteAction.UPDATE, value: status }),
+      getStatus(addAuthHeaders(userId, signature)).then((status) =>
+        miniDspDispatch({ type: MinidspAction.UPDATE, value: status }),
       ),
-    [writeDispatch],
+    [miniDspDispatch, userId, signature],
   );
 
   const getParamsLater = useCallback(() => {
@@ -113,7 +140,12 @@ function App() {
     }, 3000);
   }, [getParams]);
 
-  const updates = useParameterUpdates(writeDispatch, writeParams, holdRefresh);
+  const updates = useParameterUpdates(
+    miniDspDispatch,
+    miniDspParams,
+    addAuthHeaders(userId, signature),
+    holdRefresh,
+  );
 
   useEffect(() => {
     //on initial load, get params immediately
@@ -138,25 +170,40 @@ function App() {
   };
   const theme = themes[selectedTheme];
 
-  /// Settings state management
-  const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
+  const { dispatch: userDispatch } = useUserParams();
 
-  /// Cert state management
-  const [certInfo, setCertInfo] = useState<SSLCert | undefined>(undefined);
   useEffect(() => {
-    getCertInfo().then(setCertInfo);
-  }, []);
+    //no need for authentication on this endpoint
+    getAuthSettings({})
+      .then((result: AuthSettings) => {
+        authDispatch({
+          type: SetKeys.UPDATE,
+          value: result,
+        });
+        return result.stringToSign;
+      })
+      .then((stringToSign: string) => {
+        const privateKey = getPrivateKey() || "";
+        return sign(stringToSign, privateKey);
+      })
+      .then((signature) => {
+        const userId = getUserId();
+        userDispatch({
+          type: SetUser.UPDATE,
+          value: {
+            userId,
+            signature,
+          },
+        });
+      });
+  }, [authDispatch, userDispatch]);
+
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ display: "flex" }}>
         <CssBaseline />
-        <AppBar
-          mode={selectedTheme}
-          setMode={setThemeAndSave}
-          settingsOpen={settingsOpen}
-          setSettingsOpen={setSettingsOpen}
-        />
-        <Settings open={settingsOpen} setOpen={setSettingsOpen} />
+        <AppBar mode={selectedTheme} setMode={setThemeAndSave} />
+        <Settings mode={selectedTheme} />
         <Box
           component="main"
           sx={{
@@ -173,9 +220,9 @@ function App() {
               <Grid size={{ xs: 12, md: 12, lg: 12 }}>
                 <StatusCard
                   onPowerToggle={updates.updatePower}
-                  power={writeParams.power}
-                  preset={writeParams.preset}
-                  source={writeParams.source}
+                  power={miniDspParams.power}
+                  preset={miniDspParams.preset}
+                  source={miniDspParams.source}
                   onPresetChange={updates.updatePreset}
                   onSourceChange={updates.updateSource}
                   mode={selectedTheme}
@@ -186,7 +233,7 @@ function App() {
                   onVolumeSet={updates.updateVolume}
                   onVolumeUp={updates.volumeUp}
                   onVolumeDown={updates.volumeDown}
-                  volume={writeParams.volume}
+                  volume={miniDspParams.volume}
                   mode={selectedTheme}
                 />
               </Grid>
@@ -195,6 +242,7 @@ function App() {
           {certInfo && (
             <SSLNotification sslInfo={certInfo} currentDate={new Date()} />
           )}
+          <NoUserNotification signature={signature} />
         </Box>
       </Box>
     </ThemeProvider>

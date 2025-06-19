@@ -9,6 +9,8 @@ import ToggleButton from "@mui/material/ToggleButton";
 import IconButton from "@mui/material/IconButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import { ColorTheme } from "../styles/modes";
+import { Link } from "react-router";
+
 const drawerWidth: number = 240;
 interface AppBarProps extends MuiAppBarProps {
   open?: boolean;
@@ -34,16 +36,9 @@ const AppBar = styled(MuiAppBar, {
 interface AppBarMenuProps {
   setMode: (mode: ColorTheme) => void;
   mode: ColorTheme;
-  settingsOpen: boolean;
-  setSettingsOpen: (isOpen: boolean) => void;
 }
 
-const AppBarMenu = ({
-  setMode,
-  mode,
-  settingsOpen,
-  setSettingsOpen,
-}: AppBarMenuProps) => {
+const AppBarMenu = ({ setMode, mode }: AppBarMenuProps) => {
   return (
     <AppBar position="absolute" open={false}>
       <Toolbar
@@ -60,10 +55,7 @@ const AppBarMenu = ({
         >
           MiniDSP
         </Typography>
-        <IconButton
-          onClick={() => setSettingsOpen(!settingsOpen)}
-          aria-label="settings"
-        >
+        <IconButton component={Link} to="/settings" aria-label="settings">
           <SettingsIcon />
         </IconButton>
         <ToggleButtonGroup
