@@ -28,9 +28,10 @@ mkdir -p /home/minidsp/ssl
 curl -fsSL https://deb.nodesource.com/setup_24.x | sudo bash
 sudo apt-get install nodejs -y
 
-# install package that only updates security
+# install package that auto-updates packages
 sudo apt-get install -y unattended-upgrades apt-listchanges
-## TODO actually enable/configure see https://www.reddit.com/r/debian/comments/18p215e/auto_install_only_security_updates/
+echo unattended-upgrades unattended-upgrades/enable_auto_updates boolean true | sudo debconf-set-selections
+sudo dpkg-reconfigure -f noninteractive unattended-upgrades
 
 echo "finished installing dependent software"
 
@@ -40,6 +41,10 @@ if [ -z "$(sudo grep '%minidspgroup ALL=(ALL) NOPASSWD: /usr/sbin/rfkill unblock
 
 sed -i -e "s/HOSTNAME/${DOMAIN}/g" nginx.conf
 sed -i -e "s/HOSTNAME/${DOMAIN}/g" minidsp-ui.service
+
+sudo apt-get install -y uuid-runtime
+uuid=$(uuidgen)
+sed -i -e "s/STRING_TO_USE_IF_PRIVATE_KEY_IS_LOST/${uuid}/g" minidsp-ui.service
 # copy services
 sudo cp minidsp-ui.service /lib/systemd/system/minidsp-ui.service
 sudo cp minidsp-bt.service /lib/systemd/system/minidsp-bt.service
@@ -50,5 +55,3 @@ sudo systemctl enable minidsp-ui
 sudo systemctl enable minidsp-bt
 sudo systemctl enable nginx
 sudo chown -R  minidsp:minidspgroup /home/minidsp/
-
-
