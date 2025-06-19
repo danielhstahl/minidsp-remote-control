@@ -20,6 +20,7 @@ describe("NoUserNotification", () => {
           },
         });
       }, [authDispatch]);
+      return <></>;
     };
     render(
       <AuthSettingsProvider>

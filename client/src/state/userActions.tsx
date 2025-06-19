@@ -8,7 +8,6 @@ import {
 
 export enum SetUser {
   UPDATE,
-  //SET_SIGNATURE
 }
 type Action = {
   type: SetUser;

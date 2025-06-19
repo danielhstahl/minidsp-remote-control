@@ -22,6 +22,7 @@ import {
   HtxWrite,
   addAuthHeaders,
   LocalHeaders,
+  AuthSettings,
 } from "./services/api";
 import StatusCard from "./components/PowerCard";
 import VolumeCard from "./components/VolumeCard";
@@ -113,7 +114,7 @@ function App() {
     useMiniDspParams();
 
   const {
-    state: { stringToSign, certInfo },
+    state: { certInfo },
     dispatch: authDispatch,
   } = useAuthSettingsParams();
 
