@@ -3,7 +3,7 @@
 import NodeBLE from "node-ble";
 const { createBluetooth } = NodeBLE;
 import type { Adapter, Device } from "node-ble";
-import { setMinidspVol } from "./minidsp.ts";
+import { incrementMinidspVol } from "./minidsp.ts";
 const { bluetooth } = createBluetooth();
 //eg, hci1
 const {
@@ -69,11 +69,11 @@ const hidSession = async () => {
     const [dataType] = data;
     if (dataType === 1) {
       ///volume down
-      setMinidspVol(-VOLUME_INCREMENT);
+      incrementMinidspVol(-VOLUME_INCREMENT);
     }
     if (dataType === 2) {
       ///volume up
-      setMinidspVol(VOLUME_INCREMENT);
+      incrementMinidspVol(VOLUME_INCREMENT);
     }
   });
   return new Promise((res) => {
