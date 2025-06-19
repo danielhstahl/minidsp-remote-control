@@ -50,7 +50,7 @@ function useParameterUpdates(
   miniDspDispatch: (_: Action) => void,
   miniDspParams: HtxWrite,
   headers: LocalHeaders,
-  resetRefresh: React.MutableRefObject<NodeJS.Timeout | undefined>
+  resetRefresh: React.MutableRefObject<NodeJS.Timeout | undefined>,
 ) {
   return useMemo(
     () => ({
@@ -103,7 +103,7 @@ function useParameterUpdates(
         clearInterval(resetRefresh.current);
       },
     }),
-    [miniDspDispatch, miniDspParams, resetRefresh, headers]
+    [miniDspDispatch, miniDspParams, resetRefresh, headers],
   );
 }
 
@@ -122,15 +122,15 @@ function App() {
   } = useUserParams();
 
   const holdRefresh = useRef<undefined | ReturnType<typeof setTimeout>>(
-    undefined
+    undefined,
   );
 
   const getParams = useCallback(
     () =>
       getStatus(addAuthHeaders(userId, signature)).then((status) =>
-        miniDspDispatch({ type: MinidspAction.UPDATE, value: status })
+        miniDspDispatch({ type: MinidspAction.UPDATE, value: status }),
       ),
-    [miniDspDispatch, userId, signature]
+    [miniDspDispatch, userId, signature],
   );
 
   const getParamsLater = useCallback(() => {
@@ -143,7 +143,7 @@ function App() {
     miniDspDispatch,
     miniDspParams,
     addAuthHeaders(userId, signature),
-    holdRefresh
+    holdRefresh,
   );
 
   useEffect(() => {
@@ -161,7 +161,7 @@ function App() {
 
   /// Theme state management
   const [selectedTheme, setSelectedTheme] = useState<ColorTheme>(
-    getColorTheme() || DEFAULT_COLOR_THEME
+    getColorTheme() || DEFAULT_COLOR_THEME,
   );
   const setThemeAndSave = (theme: ColorTheme) => {
     setSelectedTheme(theme);
@@ -173,19 +173,20 @@ function App() {
 
   useEffect(() => {
     //no need for authentication on this endpoint
-    getAuthSettings({}).then((result) =>
-      authDispatch({
-        type: SetKeys.UPDATE,
-        value: result,
+    getAuthSettings({})
+      .then((result: AuthSettings) => {
+        authDispatch({
+          type: SetKeys.UPDATE,
+          value: result,
+        });
+        return result.stringToSign;
       })
-    );
-  }, [authDispatch]);
-
-  useEffect(() => {
-    const userId = getUserId();
-    const privateKey = getPrivateKey() || "";
-    sign(stringToSign, privateKey)
+      .then((stringToSign: string) => {
+        const privateKey = getPrivateKey() || "";
+        return sign(stringToSign, privateKey);
+      })
       .then((signature) => {
+        const userId = getUserId();
         userDispatch({
           type: SetUser.UPDATE,
           value: {
@@ -193,9 +194,8 @@ function App() {
             signature,
           },
         });
-      })
-      .catch(console.error);
-  }, [stringToSign, userDispatch]);
+      });
+  }, [authDispatch, userDispatch]);
 
   return (
     <ThemeProvider theme={theme}>
