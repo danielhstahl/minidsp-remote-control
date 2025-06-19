@@ -13,14 +13,13 @@ Type=simple
 ExecStartPre=/usr/sbin/rfkill unblock bluetooth
 ExecStartPre=bluetoothctl power off
 ExecStartPre=bluetoothctl power on
-ExecStart=node /usr/bin/minidsp-ui/bt
+ExecStart=node /usr/bin/minidsp-ui/bt.ts
 Restart=always
 RestartSec=1
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=minidsp-bt
-User=root # give up on running as non-root
-# SupplementaryGroups=bluetooth plugdev
+User=root
 CPUSchedulingPolicy=fifo
 CPUSchedulingPriority=10
 

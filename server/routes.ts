@@ -65,8 +65,8 @@ function generateCert() {
         } else {
           res();
         }
-      }
-    )
+      },
+    ),
   );
 }
 const VOLUME_INCREMENT = 0.5;
@@ -118,7 +118,7 @@ export const createFastify = (dbName: string) => {
     const getSettingsHof = () => getSettings(db) || { requireAuth: false };
     const getStrategiesHof = (
       req: FastifyRequest<{ Headers: Headers }>,
-      stringToSign: string
+      stringToSign: string,
     ) => {
       const { [AUTHORIZATION_KEY]: authHeader, [X_USER_KEY]: userId } =
         getHeadersFromObject(req.headers);
@@ -137,7 +137,7 @@ export const createFastify = (dbName: string) => {
     fastify.get("/api/auth_settings", (req, reply) => {
       fs.readFile(ROOT_PEM_PATH, function (err, contents) {
         const x509 = new X509Certificate(contents);
-        reply.send({
+        return reply.send({
           subject: x509.subject,
           issuer: x509.issuer,
           validFrom: x509.validFrom,
@@ -153,51 +153,49 @@ export const createFastify = (dbName: string) => {
       "/api/auth_settings",
       async (
         req: FastifyRequest<{ Body: AuthBody; Headers: Headers }>,
-        reply
+        reply,
       ) => {
         const stringToSign = getStringToSign();
         const { noStrategy, pKStrategy, basicStrategy } = getStrategiesHof(
           req,
-          stringToSign
+          stringToSign,
         );
         const { isAuthenticated, description } = await checkStrategies(
           noStrategy,
           pKStrategy,
-          basicStrategy
+          basicStrategy,
         );
         if (!isAuthenticated) {
-          reply.code(403);
-          return reply.send(description);
+          return reply.code(403).send(description);
         }
         const { requireAuth } = req.body;
         setSettings(db, requireAuth);
-        reply.send({ requireAuth, stringToSign });
-      }
+        return reply.send({ requireAuth, stringToSign });
+      },
     );
     fastify.post(
       "/api/user",
       async (
         req: FastifyRequest<{ Body: UserBody; Headers: Headers }>,
-        reply
+        reply,
       ) => {
         const { noStrategy, pKStrategy } = getStrategiesHof(
           req,
-          getStringToSign()
+          getStringToSign(),
         );
         const { isAuthenticated, description } = await checkStrategies(
           noStrategy,
-          pKStrategy
+          pKStrategy,
         );
         if (!isAuthenticated) {
-          reply.code(403);
-          return reply.send(description);
+          return reply.code(403).send(description);
         }
         const { publicKey } = req.body;
         const { key: userId } = createUser(db, publicKey);
         //cache so don't have to reload database
         userObj[userId] = publicKey;
-        reply.send({ userId: userId.toString() });
-      }
+        return reply.send({ userId: userId.toString() });
+      },
     );
     fastify.patch(
       "/api/user/:userId",
@@ -207,226 +205,216 @@ export const createFastify = (dbName: string) => {
           Params: UserParams;
           Headers: Headers;
         }>,
-        reply
+        reply,
       ) => {
         const { noStrategy, pKStrategy } = getStrategiesHof(
           req,
-          getStringToSign()
+          getStringToSign(),
         );
         const { isAuthenticated, description } = await checkStrategies(
           noStrategy,
-          pKStrategy
+          pKStrategy,
         );
         if (!isAuthenticated) {
-          reply.code(403);
-          return reply.send(description);
+          return reply.code(403).send(description);
         }
         const { userId } = req.params;
         const { publicKey } = req.body;
         updateUser(db, publicKey, userId);
         //cache so don't have to reload database
         userObj[userId] = publicKey;
-        reply.send({ userId });
-      }
+        return reply.send({ userId });
+      },
     );
     fastify.post(
       "/api/regenerate_cert",
       async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
         const { noStrategy, pKStrategy } = getStrategiesHof(
           req,
-          getStringToSign()
+          getStringToSign(),
         );
         const { isAuthenticated, description } = await checkStrategies(
           noStrategy,
-          pKStrategy
+          pKStrategy,
         );
         if (!isAuthenticated) {
-          reply.code(403);
-          return reply.send(description);
+          return reply.code(403).send(description);
         }
-        generateCert()
+        return generateCert()
           .then(() => {
             reply.send({ success: true });
           })
           .catch((e) => {
             reply.send({ success: false, message: e });
           });
-      }
+      },
     );
     fastify.get(
       "/api/status",
       async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
         const { noStrategy, pKStrategy } = getStrategiesHof(
           req,
-          getStringToSign()
+          getStringToSign(),
         );
         const { isAuthenticated, description } = await checkStrategies(
           noStrategy,
-          pKStrategy
+          pKStrategy,
         );
         if (!isAuthenticated) {
-          reply.code(403);
-          return reply.send(description);
+          return reply.code(403).send(description);
         }
-        Promise.all([
-          minidspStatus(),
-          USE_GPIO ? powerStatus(gpio) : Promise.resolve("on"),
-        ])
-          .then(([minidsp, power]) => {
-            const { preset, source, volume } = minidsp;
-            reply.send({ preset, source, volume, power });
-          })
-          .catch((e) => {
-            reply.send({ success: false, message: e });
-          });
-      }
+        try {
+          const [minidsp, power] = await Promise.all([
+            minidspStatus(),
+            USE_GPIO ? powerStatus(gpio) : Promise.resolve("on"),
+          ]);
+          const { preset, source, volume } = minidsp;
+          return reply.send({ preset, source, volume, power });
+        } catch (e) {
+          return reply.send({ success: false, message: e });
+        }
+      },
     );
     fastify.post(
       "/api/volume/up",
       async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
         const { noStrategy, pKStrategy } = getStrategiesHof(
           req,
-          getStringToSign()
+          getStringToSign(),
         );
         const { isAuthenticated, description } = await checkStrategies(
           noStrategy,
-          pKStrategy
+          pKStrategy,
         );
         if (!isAuthenticated) {
-          reply.code(403);
-          return reply.send(description);
+          return reply.code(403).send(description);
         }
-        incrementMinidspVol(VOLUME_INCREMENT)
+        return incrementMinidspVol(VOLUME_INCREMENT)
           .then(() => {
             reply.send({ success: true });
           })
           .catch((e) => {
             reply.send({ success: false, message: e });
           });
-      }
+      },
     );
     fastify.post(
       "/api/volume/down",
       async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
         const { noStrategy, pKStrategy } = getStrategiesHof(
           req,
-          getStringToSign()
+          getStringToSign(),
         );
         const { isAuthenticated, description } = await checkStrategies(
           noStrategy,
-          pKStrategy
+          pKStrategy,
         );
         if (!isAuthenticated) {
-          reply.code(403);
-          return reply.send(description);
+          return reply.code(403).send(description);
         }
-        incrementMinidspVol(-VOLUME_INCREMENT)
+        return incrementMinidspVol(-VOLUME_INCREMENT)
           .then(() => {
             reply.send({ success: true });
           })
           .catch((e) => {
             reply.send({ success: false, message: e });
           });
-      }
+      },
     );
     fastify.post(
       "/api/volume/:volume",
       async (
         req: FastifyRequest<{ Params: VolumeParams; Headers: Headers }>,
-        reply
+        reply,
       ) => {
         const { noStrategy, pKStrategy } = getStrategiesHof(
           req,
-          getStringToSign()
+          getStringToSign(),
         );
         const { isAuthenticated, description } = await checkStrategies(
           noStrategy,
-          pKStrategy
+          pKStrategy,
         );
         if (!isAuthenticated) {
-          reply.code(403);
-          return reply.send(description);
+          return reply.code(403).send(description);
         }
         const { volume } = req.params;
-        setMinidspVol(volume)
+        return setMinidspVol(volume)
           .then(() => {
             reply.send({ success: true });
           })
           .catch((e) => {
             reply.send({ success: false, message: e });
           });
-      }
+      },
     );
     fastify.post(
       "/api/preset/:preset",
       async (
         req: FastifyRequest<{ Params: PresetParams; Headers: Headers }>,
-        reply
+        reply,
       ) => {
         const { noStrategy, pKStrategy } = getStrategiesHof(
           req,
-          getStringToSign()
+          getStringToSign(),
         );
         const { isAuthenticated, description } = await checkStrategies(
           noStrategy,
-          pKStrategy
+          pKStrategy,
         );
         if (!isAuthenticated) {
-          reply.code(403);
-          return reply.send(description);
+          return reply.code(403).send(description);
         }
         const { preset } = req.params;
-        setMinidspPreset(preset)
+        return setMinidspPreset(preset)
           .then(() => {
             reply.send({ success: true });
           })
           .catch((e) => {
             reply.send({ success: false, message: e });
           });
-      }
+      },
     );
     fastify.post(
       "/api/source/:source",
       async (
         req: FastifyRequest<{ Params: SourceParams; Headers: Headers }>,
-        reply
+        reply,
       ) => {
         const { noStrategy, pKStrategy } = getStrategiesHof(
           req,
-          getStringToSign()
+          getStringToSign(),
         );
         const { isAuthenticated, description } = await checkStrategies(
           noStrategy,
-          pKStrategy
+          pKStrategy,
         );
         if (!isAuthenticated) {
-          reply.code(403);
-          return reply.send(description);
+          return reply.code(403).send(description);
         }
         const { source } = req.params;
-        setMinidspInput(source)
+        return setMinidspInput(source)
           .then(() => {
             reply.send({ success: true });
           })
           .catch((e) => {
             reply.send({ success: false, message: e });
           });
-      }
+      },
     );
     fastify.post(
       "/api/power/on",
       async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
         const { noStrategy, pKStrategy } = getStrategiesHof(
           req,
-          getStringToSign()
+          getStringToSign(),
         );
         const { isAuthenticated, description } = await checkStrategies(
           noStrategy,
-          pKStrategy
+          pKStrategy,
         );
         if (!isAuthenticated) {
-          reply.code(403);
-          return reply.send(description);
+          return reply.code(403).send(description);
         }
         if (!USE_GPIO) {
           return reply.send({
@@ -434,29 +422,28 @@ export const createFastify = (dbName: string) => {
             message: "Power not implemented",
           });
         }
-        powerOn(gpio)
+        return powerOn(gpio)
           .then(() => {
             reply.send({ success: true });
           })
           .catch((e) => {
             reply.send({ success: false, message: e });
           });
-      }
+      },
     );
     fastify.post(
       "/api/power/off",
       async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
         const { noStrategy, pKStrategy } = getStrategiesHof(
           req,
-          getStringToSign()
+          getStringToSign(),
         );
         const { isAuthenticated, description } = await checkStrategies(
           noStrategy,
-          pKStrategy
+          pKStrategy,
         );
         if (!isAuthenticated) {
-          reply.code(403);
-          return reply.send(description);
+          return reply.code(403).send(description);
         }
         if (!USE_GPIO) {
           return reply.send({
@@ -464,14 +451,14 @@ export const createFastify = (dbName: string) => {
             message: "Power not implemented",
           });
         }
-        powerOff(gpio)
+        return powerOff(gpio)
           .then(() => {
             reply.send({ success: true });
           })
           .catch((e) => {
             reply.send({ success: false, message: e });
           });
-      }
+      },
     );
   });
   return fastify;
