@@ -24,6 +24,7 @@ echo "install dependent software"
 sudo apt install nginx
 mkdir -p /home/minidsp/nginx
 mkdir -p /home/minidsp/ssl
+mkdir -p /home/minidsp/db
 # update to node 24
 curl -fsSL https://deb.nodesource.com/setup_24.x | sudo bash
 sudo apt-get install nodejs -y
