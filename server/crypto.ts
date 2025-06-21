@@ -1,11 +1,6 @@
 "use strict";
 import { randomUUID, subtle } from "node:crypto"; //).webcrypto;
 import cron from "node-cron";
-import type { FastifyRequest, FastifyReply } from "fastify";
-interface Headers {
-  "x-user-id": string;
-  authorization: string;
-}
 export const setCronRotation = () => {
   // can be arbitrary string, just needs to be the same client and server
   // not senstive
