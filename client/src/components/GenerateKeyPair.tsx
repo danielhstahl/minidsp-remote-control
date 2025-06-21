@@ -2,7 +2,7 @@ import Button from "@mui/material/Button";
 import Message from "./Message";
 import { useState } from "react";
 import { AlertColor } from "@mui/material";
-import { savePrivateKey } from "../state/persistance";
+import { savePrivateKey, saveUserId } from "../state/persistance";
 import { SetUser, useUserParams } from "../state/userActions";
 import KeyIcon from "@mui/icons-material/Key";
 import { addAuthHeaders, createUser, updateUser } from "../services/api";
@@ -53,30 +53,31 @@ const GenerateCerts = () => {
           //what to do about new users? or do I just override?
           userId === "-1"
             ? createUser(addAuthHeaders(userId, signature), publicKey).then(
-                (user) => {
-                  userDispatch({
-                    type: SetUser.UPDATE,
-                    value: {
-                      ...user,
-                      signature,
-                    },
-                  });
-                },
-              )
-            : Promise.all([
-                updateUser(
-                  addAuthHeaders(userId, signature),
-                  publicKey,
-                  userId,
-                ),
+              (user) => {
+                saveUserId(user.userId)
                 userDispatch({
                   type: SetUser.UPDATE,
                   value: {
-                    userId,
+                    ...user,
                     signature,
                   },
-                }),
-              ]);
+                });
+              },
+            )
+            : Promise.all([
+              updateUser(
+                addAuthHeaders(userId, signature),
+                publicKey,
+                userId,
+              ),
+              userDispatch({
+                type: SetUser.UPDATE,
+                value: {
+                  userId,
+                  signature,
+                },
+              }),
+            ]);
         },
       )
       .then(() => {
