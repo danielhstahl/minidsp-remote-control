@@ -27,7 +27,7 @@ describe("api auth", () => {
     assert.equal(stringToSign.length > 10, true);
   });
 
-  it("appropriately sets off and returns 403 if incorrect auth", async () => {
+  it("appropriately sets off and returns 401 if incorrect auth", async () => {
     const response = await fetch(`http://localhost:${PORT}/api/auth_settings`, {
       method: "POST",
       body: JSON.stringify({ requireAuth: true }),
@@ -46,7 +46,7 @@ describe("api auth", () => {
         authorization: "hello",
       },
     });
-    assert.equal(responseNoAuth.status, 403);
+    assert.equal(responseNoAuth.status, 401);
   });
 });
 
@@ -95,7 +95,7 @@ const generateKeyPair = async () => {
       hash: "SHA-256",
     },
     true,
-    ["sign", "verify"]
+    ["sign", "verify"],
   );
   return Promise.all([
     subtle
@@ -148,7 +148,7 @@ describe("api auth crypto", () => {
         hash: "SHA-256",
       },
       false,
-      ["sign"]
+      ["sign"],
     );
     const signatureAB = await subtle.sign(
       {
@@ -156,7 +156,7 @@ describe("api auth crypto", () => {
         saltLength: 32,
       },
       privateKeyCrypto,
-      thingToSign
+      thingToSign,
     );
     const signature = Buffer.from(signatureAB).toString("base64");
 
@@ -197,7 +197,6 @@ describe("api auth crypto", () => {
         authorization: `Basic ${key}`,
       },
     }).then((r) => r.json());
-    //console.log(reset);
     const { requireAuth: newRequireAuth } = reset;
     assert.equal(newRequireAuth, false);
   });

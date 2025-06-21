@@ -1,17 +1,12 @@
 "use strict";
 import { randomUUID, subtle } from "node:crypto"; //).webcrypto;
 import cron from "node-cron";
-import type { FastifyRequest, FastifyReply } from "fastify";
-interface Headers {
-  "x-user-id": string;
-  authorization: string;
-}
 export const setCronRotation = () => {
   // can be arbitrary string, just needs to be the same client and server
   // not senstive
   let uuid = "123";
   //run at 3 in the morning
-  const schedule = cron.schedule("0 3 * * *", () => {
+  const schedule = cron.schedule(`0 3 * * *`, () => {
     uuid = randomUUID();
   });
   schedule.execute(); //execute immediately
@@ -24,7 +19,7 @@ export const setCronRotation = () => {
 export const verifyKey = async (
   signature: string,
   publicKey: string,
-  stringToSign: string
+  stringToSign: string,
 ) => {
   const publicKeyCrypto = await subtle.importKey(
     "spki",
@@ -34,7 +29,7 @@ export const verifyKey = async (
       hash: "SHA-256",
     },
     false,
-    ["verify"]
+    ["verify"],
   );
   let enc = new TextEncoder();
   const encoding = enc.encode(stringToSign);
@@ -45,7 +40,7 @@ export const verifyKey = async (
     },
     publicKeyCrypto,
     Buffer.from(signature, "base64"),
-    encoding
+    encoding,
   );
   return result;
 };
@@ -56,10 +51,15 @@ interface AuthStrategy {
 }
 // start auth strategies
 export const noAuthStrategy = async (
-  getSettings: () => { requireAuth: boolean }
+  getSettings: () => { requireAuth: boolean },
 ): Promise<AuthStrategy> => {
   const { requireAuth } = getSettings();
-  return { isAuthenticated: !requireAuth, description: "" }; //return true if no auth required
+  return {
+    isAuthenticated: !requireAuth,
+    description: requireAuth
+      ? "Auth required"
+      : "No auth required, access is permitted",
+  }; //return true if no auth required
 };
 export const privateKeyStrategy = async (
   authHeader: string,
@@ -68,15 +68,17 @@ export const privateKeyStrategy = async (
   verifyKeyInput: (
     v1: string,
     v2: string,
-    v3: string
-  ) => Promise<boolean> = verifyKey
+    v3: string,
+  ) => Promise<boolean> = verifyKey,
 ): Promise<AuthStrategy> => {
   if (authHeader.startsWith("Bearer ")) {
     const signature = authHeader.substring(7, authHeader.length);
     const result = await verifyKeyInput(signature, publicKey, stringToSign);
     return {
       isAuthenticated: result,
-      description: !result ? "Authentication Failed" : "",
+      description: !result
+        ? "Authentication Failed"
+        : "Authentication succeeded with private key strategy",
     };
   } else {
     return {
@@ -87,7 +89,7 @@ export const privateKeyStrategy = async (
 };
 export const basicAuthStrategy = async (
   authHeader: string,
-  compareToken: string
+  compareToken: string,
 ) => {
   if (authHeader.startsWith("Basic ")) {
     const basicToken = Buffer.from(authHeader.substring(6), "base64")
@@ -96,7 +98,9 @@ export const basicAuthStrategy = async (
     const isAuthenticated = compareToken === basicToken;
     return {
       isAuthenticated,
-      description: !isAuthenticated ? "Authentication Failed" : "",
+      description: !isAuthenticated
+        ? "Authentication Failed"
+        : "Authentication succeeded with API Key",
     };
   } else {
     return {
@@ -104,21 +108,4 @@ export const basicAuthStrategy = async (
       description: "Basic token not properly formatted",
     };
   }
-};
-type AuthFnc = () => Promise<AuthStrategy>;
-
-export const checkStrategies = async (...fncs: AuthFnc[]) => {
-  const n = fncs.length;
-  let fncResults = [];
-  for (let i = 0; i < n; ++i) {
-    const result = await fncs[i]();
-    if (result.isAuthenticated) {
-      return result;
-    }
-    fncResults.push(result.description);
-  }
-  return {
-    isAuthenticated: false,
-    description: fncResults.find((v) => v !== ""),
-  };
 };
