@@ -122,6 +122,7 @@ export const createFastify = (dbName: string) => {
     logger: true,
   });
   fastify.addHook("onClose", async (_instance) => {
+    console.log("closing")
     db.close();
     const { schedule } = getSchedule();
     await schedule.destroy();
@@ -164,7 +165,7 @@ export const createFastify = (dbName: string) => {
       reply.send(stream).type("application/octet-stream").code(200);
     });
     fastify.get("/api/auth_settings", (_req, reply) => {
-      fs.readFile(ROOT_PEM_PATH, function (_err, c) {
+      fs.readFile(ROOT_PEM_PATH, function (_err, contents) {
         const x509 = new X509Certificate(contents);
         return reply.send({
           subject: x509.subject,
