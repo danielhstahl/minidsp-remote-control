@@ -5,7 +5,7 @@ import { AlertColor } from "@mui/material";
 import { savePrivateKey, saveUserId } from "../state/persistance";
 import { SetUser, useUserParams } from "../state/userActions";
 import KeyIcon from "@mui/icons-material/Key";
-import { addAuthHeaders, createUser, updateUser } from "../services/api";
+import { addAuthHeaders, createUser, updateUser, UserId } from "../services/api";
 import { generateKeyPair, sign } from "../services/keyCreation";
 import { useAuthSettingsParams } from "../state/credActions";
 
@@ -17,7 +17,7 @@ const GenerateCerts = () => {
   const [isLoading, setIsLoading] = useState(false);
   const {
     dispatch: userDispatch,
-    state: { userId, signature },
+    state: { userId, signature: originalSignature },
   } = useUserParams();
   const {
     state: { stringToSign },
@@ -32,67 +32,45 @@ const GenerateCerts = () => {
       messageType: "success",
     });
   };
-  const handleGenerateKeyPairHOF = () => {
+  const handleGenerateKeyPairHOF = async () => {
     setIsLoading(true);
-    generateKeyPair()
-      .then(({ publicKey, privateKey }) => {
-        savePrivateKey(privateKey); //local storage
-        return sign(stringToSign, privateKey).then((signature) => ({
-          signature,
-          publicKey,
-        }));
-      })
-      .then(
-        ({
-          signature,
-          publicKey,
-        }: {
-          signature: string;
-          publicKey: string;
-        }) => {
-          //no user yet, so create one
-          userId === "-1"
-            ? createUser(addAuthHeaders(userId, signature), publicKey).then(
-              (user) => {
-                saveUserId(user.userId)
-                userDispatch({
-                  type: SetUser.UPDATE,
-                  value: {
-                    ...user,
-                    signature,
-                  },
-                });
-              },
-            ) //user exists, so update
-            : Promise.all([
-              updateUser(
-                addAuthHeaders(userId, signature),
-                publicKey,
-                userId,
-              ),
-              userDispatch({
-                type: SetUser.UPDATE,
-                value: {
-                  userId,
-                  signature,
-                },
-              }),
-            ]);
+    const { publicKey, privateKey } = await generateKeyPair()
+    savePrivateKey(privateKey); //local storage
+    const signature = await sign(stringToSign, privateKey)
+
+    const userPromise: Promise<UserId> = userId === "-1" ?
+      //no user yet, so create one
+      createUser(addAuthHeaders(userId, originalSignature), publicKey).then(
+        (user) => {
+          saveUserId(user.userId)
+          return user
         },
+      ) :
+      //user exists, so update
+      updateUser(
+        addAuthHeaders(userId, originalSignature),
+        publicKey,
+        userId,
       )
-      .then(() => {
-        setMessage({
-          isMessageOpen: true,
-          messageType: "success",
-        });
+    await userPromise.then((user) => {
+      userDispatch({
+        type: SetUser.UPDATE,
+        value: {
+          ...user,
+          signature,
+        },
       })
-      .catch((e) => {
-        setMessage({
-          isMessageOpen: true,
-          messageType: "error",
-        });
-      })
-      .finally(() => setIsLoading(false));
+      setMessage({
+        isMessageOpen: true,
+        messageType: "success",
+      });
+    }).catch(() => {
+      setMessage({
+        isMessageOpen: true,
+        messageType: "error",
+      });
+    })
+    setIsLoading(false);
   };
   return (
     <>
@@ -112,7 +90,7 @@ const GenerateCerts = () => {
           },
         }}
       >
-        {signature !== "" ? "Regenerate RSA Key Pair" : "Create RSA Key Pair"}
+        {originalSignature !== "" ? "Regenerate RSA Key Pair" : "Create RSA Key Pair"}
       </Button>
       <Message
         open={message.isMessageOpen}
