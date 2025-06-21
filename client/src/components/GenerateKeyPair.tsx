@@ -50,33 +50,33 @@ const GenerateCerts = () => {
           signature: string;
           publicKey: string;
         }) => {
-          //what to do about new users? or do I just override?
+          //no user yet, so create one
           userId === "-1"
             ? createUser(addAuthHeaders(userId, signature), publicKey).then(
-                (user) => {
-                  userDispatch({
-                    type: SetUser.UPDATE,
-                    value: {
-                      ...user,
-                      signature,
-                    },
-                  });
-                },
-              )
-            : Promise.all([
-                updateUser(
-                  addAuthHeaders(userId, signature),
-                  publicKey,
-                  userId,
-                ),
+              (user) => {
                 userDispatch({
                   type: SetUser.UPDATE,
                   value: {
-                    userId,
+                    ...user,
                     signature,
                   },
-                }),
-              ]);
+                });
+              },
+            ) //user exists, so update
+            : Promise.all([
+              updateUser(
+                addAuthHeaders(userId, signature),
+                publicKey,
+                userId,
+              ),
+              userDispatch({
+                type: SetUser.UPDATE,
+                value: {
+                  userId,
+                  signature,
+                },
+              }),
+            ]);
         },
       )
       .then(() => {
