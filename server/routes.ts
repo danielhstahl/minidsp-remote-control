@@ -184,7 +184,7 @@ export const createFastify = (dbName: string) => {
         preHandler: fastify.auth([
           fastify.verifyNoAuth,
           fastify.verifyPrivateKey,
-          fastify.verifyApiKey
+          fastify.verifyApiKey //get out of jail (if end up locked out).  only this route has this verification
         ], { relation: 'or' }),
       },
       async (

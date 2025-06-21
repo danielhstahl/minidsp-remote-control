@@ -10,7 +10,6 @@ interface Headers {
 }
 import {
   setCronRotation,
-  //checkStrategies,
   noAuthStrategy,
   privateKeyStrategy,
   basicAuthStrategy,
