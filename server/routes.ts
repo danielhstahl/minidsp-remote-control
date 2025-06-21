@@ -101,6 +101,11 @@ const getHeadersFromObject = (headers: Headers) => ({
   [AUTHORIZATION_KEY]: headers[AUTHORIZATION_KEY] || "",
   [X_USER_KEY]: headers[X_USER_KEY] || "",
 });
+
+const logAuthDescription = (req: FastifyRequest, description: string) => {
+  req.log.info(`Authentication result: ${description}`);
+};
+
 export const createFastify = (dbName: string) => {
   const db = setupDatabase(dbName);
   const fastify = Fastify({
@@ -165,6 +170,7 @@ export const createFastify = (dbName: string) => {
           pKStrategy,
           basicStrategy,
         );
+        logAuthDescription(req, description);
         if (!isAuthenticated) {
           return reply.code(403).send(description);
         }
@@ -187,6 +193,7 @@ export const createFastify = (dbName: string) => {
           noStrategy,
           pKStrategy,
         );
+        logAuthDescription(req, description);
         if (!isAuthenticated) {
           return reply.code(403).send(description);
         }
@@ -215,6 +222,7 @@ export const createFastify = (dbName: string) => {
           noStrategy,
           pKStrategy,
         );
+        logAuthDescription(req, description);
         if (!isAuthenticated) {
           return reply.code(403).send(description);
         }
@@ -237,6 +245,7 @@ export const createFastify = (dbName: string) => {
           noStrategy,
           pKStrategy,
         );
+        logAuthDescription(req, description);
         if (!isAuthenticated) {
           return reply.code(403).send(description);
         }
@@ -260,6 +269,7 @@ export const createFastify = (dbName: string) => {
           noStrategy,
           pKStrategy,
         );
+        logAuthDescription(req, description);
         if (!isAuthenticated) {
           return reply.code(403).send(description);
         }
@@ -286,6 +296,7 @@ export const createFastify = (dbName: string) => {
           noStrategy,
           pKStrategy,
         );
+        logAuthDescription(req, description);
         if (!isAuthenticated) {
           return reply.code(403).send(description);
         }
@@ -309,6 +320,7 @@ export const createFastify = (dbName: string) => {
           noStrategy,
           pKStrategy,
         );
+        logAuthDescription(req, description);
         if (!isAuthenticated) {
           return reply.code(403).send(description);
         }
@@ -335,6 +347,7 @@ export const createFastify = (dbName: string) => {
           noStrategy,
           pKStrategy,
         );
+        logAuthDescription(req, description);
         if (!isAuthenticated) {
           return reply.code(403).send(description);
         }
@@ -362,6 +375,7 @@ export const createFastify = (dbName: string) => {
           noStrategy,
           pKStrategy,
         );
+        logAuthDescription(req, description);
         if (!isAuthenticated) {
           return reply.code(403).send(description);
         }
@@ -389,6 +403,7 @@ export const createFastify = (dbName: string) => {
           noStrategy,
           pKStrategy,
         );
+        logAuthDescription(req, description);
         if (!isAuthenticated) {
           return reply.code(403).send(description);
         }
@@ -413,6 +428,7 @@ export const createFastify = (dbName: string) => {
           noStrategy,
           pKStrategy,
         );
+        logAuthDescription(req, description);
         if (!isAuthenticated) {
           return reply.code(403).send(description);
         }
@@ -442,6 +458,7 @@ export const createFastify = (dbName: string) => {
           noStrategy,
           pKStrategy,
         );
+        logAuthDescription(req, description);
         if (!isAuthenticated) {
           return reply.code(403).send(description);
         }

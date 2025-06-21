@@ -1,5 +1,4 @@
 import {
-  //auth,
   checkStrategies,
   noAuthStrategy,
   privateKeyStrategy,
@@ -12,13 +11,13 @@ describe("noAuthStrategy", () => {
   it("returns authenticated if no auth required", async () => {
     assert.deepEqual(await noAuthStrategy(() => ({ requireAuth: false })), {
       isAuthenticated: true,
-      description: "",
+      description: "No auth required, access is permitted",
     });
   });
   it("returns not authenticated if auth required", async () => {
     assert.deepEqual(await noAuthStrategy(() => ({ requireAuth: true })), {
       isAuthenticated: false,
-      description: "",
+      description: "Auth required",
     });
   });
 });
@@ -29,9 +28,12 @@ describe("privateKeyStrategy", () => {
       "Bearer helloworld",
       "mypublickey",
       "stringToSign",
-      mockVerify
+      mockVerify,
     );
-    assert.deepEqual(result, { isAuthenticated: true, description: "" });
+    assert.deepEqual(result, {
+      isAuthenticated: true,
+      description: "Authentication succeeded with private key strategy",
+    });
   });
   it("returns not authenticated if header isn't correct", async () => {
     const mockVerify = mock.fn((v1, v2, v3) => Promise.resolve(true));
@@ -39,7 +41,7 @@ describe("privateKeyStrategy", () => {
       "helloworld",
       "mypublickey",
       "stringToSign",
-      mockVerify
+      mockVerify,
     );
     assert.deepEqual(result, {
       isAuthenticated: false,
@@ -52,7 +54,7 @@ describe("privateKeyStrategy", () => {
       "Bearer helloworld",
       "mypublickey",
       "stringToSign",
-      mockVerify
+      mockVerify,
     );
     assert.deepEqual(result, {
       isAuthenticated: false,
@@ -65,7 +67,10 @@ describe("basicKeyStrategy", () => {
   it("returns authenticated if it equals key", async () => {
     const key = Buffer.from(":helloworld").toString("base64");
     const result = await basicAuthStrategy(`Basic ${key}`, "helloworld");
-    assert.deepEqual(result, { isAuthenticated: true, description: "" });
+    assert.deepEqual(result, {
+      isAuthenticated: true,
+      description: "Authentication succeeded with API Key",
+    });
   });
   it("returns not authenticated if header isn't correct", async () => {
     const key = Buffer.from(":helloworld").toString("base64");
@@ -88,26 +93,26 @@ describe("basicKeyStrategy", () => {
 describe("checkStrategies", () => {
   it("returns isAuthenticated if one of the strategies authenticates", async () => {
     const mock1 = mock.fn(() =>
-      Promise.resolve({ isAuthenticated: false, description: "" })
+      Promise.resolve({ isAuthenticated: false, description: "" }),
     );
     const mock2 = mock.fn(() =>
-      Promise.resolve({ isAuthenticated: true, description: "" })
+      Promise.resolve({ isAuthenticated: true, description: "" }),
     );
     const mock3 = mock.fn(() =>
-      Promise.resolve({ isAuthenticated: false, description: "helloworld" })
+      Promise.resolve({ isAuthenticated: false, description: "helloworld" }),
     );
     const result = await checkStrategies(mock1, mock2, mock3);
     assert.deepEqual(result, { isAuthenticated: true, description: "" });
   });
   it("returns not authenticated if all the strategies fails", async () => {
     const mock1 = mock.fn(() =>
-      Promise.resolve({ isAuthenticated: false, description: "" })
+      Promise.resolve({ isAuthenticated: false, description: "" }),
     );
     const mock2 = mock.fn(() =>
-      Promise.resolve({ isAuthenticated: false, description: "" })
+      Promise.resolve({ isAuthenticated: false, description: "" }),
     );
     const mock3 = mock.fn(() =>
-      Promise.resolve({ isAuthenticated: false, description: "helloworld" })
+      Promise.resolve({ isAuthenticated: false, description: "helloworld" }),
     );
     const result = await checkStrategies(mock1, mock2, mock3);
     assert.deepEqual(result, {
