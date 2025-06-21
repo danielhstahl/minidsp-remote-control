@@ -9,8 +9,11 @@ import assert from "node:assert";
 
 
 describe("setCronRotation", () => {
-  it("returns 123 immediately", () => {
-    assert.equal(setCronRotation()().uuid, "123")
+  it("returns 123 immediately", async () => {
+    const cron = setCronRotation()
+    assert.equal(cron().uuid, "123")
+    const { schedule } = cron();
+    await schedule.destroy();
   })
   it("returns random uuid after next tick", async () => {
     const cron = setCronRotation()
@@ -21,6 +24,8 @@ describe("setCronRotation", () => {
     })
     assert.notEqual(result, "123")
     assert.equal(result.length, 36)
+    const { schedule } = cron();
+    await schedule.destroy();
   })
   it("returns another uuid after another execute", async () => {
     const cron = setCronRotation()
@@ -32,6 +37,8 @@ describe("setCronRotation", () => {
     await cron().schedule.execute()
     const nextResult = cron().uuid
     assert.notEqual(initResult, nextResult)
+    const { schedule } = cron();
+    await schedule.destroy();
   })
 })
 

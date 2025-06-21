@@ -122,7 +122,6 @@ export const createFastify = (dbName: string) => {
     logger: true,
   });
   fastify.addHook("onClose", async (_instance) => {
-    console.log("closing")
     db.close();
     const { schedule } = getSchedule();
     await schedule.destroy();
