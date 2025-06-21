@@ -114,17 +114,3 @@ export const basicAuthStrategy = async (
     };
   }
 };
-//type AuthFnc = () => Promise<AuthStrategy>;
-
-/*export const checkStrategies = async (...fncs: AuthFnc[]) => {
-  const n = fncs.length;
-  let fncResults = [];
-  for (let i = 0; i < n; ++i) {
-    const result = await fncs[i]();
-    if (result.isAuthenticated) {
-      return result;
-    }
-    fncResults.push(result);
-  }
-  return fncResults[n - 1];
-};*/

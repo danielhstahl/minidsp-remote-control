@@ -1,5 +1,4 @@
 import {
-  //checkStrategies,
   noAuthStrategy,
   privateKeyStrategy,
   basicAuthStrategy,
@@ -89,36 +88,3 @@ describe("basicKeyStrategy", () => {
     });
   });
 });
-/*
-describe("checkStrategies", () => {
-  it("returns isAuthenticated if one of the strategies authenticates", async () => {
-    const mock1 = mock.fn(() =>
-      Promise.resolve({ isAuthenticated: false, description: "" }),
-    );
-    const mock2 = mock.fn(() =>
-      Promise.resolve({ isAuthenticated: true, description: "" }),
-    );
-    const mock3 = mock.fn(() =>
-      Promise.resolve({ isAuthenticated: false, description: "helloworld" }),
-    );
-    const result = await checkStrategies(mock1, mock2, mock3);
-    assert.deepEqual(result, { isAuthenticated: true, description: "" });
-  });
-  it("returns not authenticated if all the strategies fails", async () => {
-    const mock1 = mock.fn(() =>
-      Promise.resolve({ isAuthenticated: false, description: "" }),
-    );
-    const mock2 = mock.fn(() =>
-      Promise.resolve({ isAuthenticated: false, description: "" }),
-    );
-    const mock3 = mock.fn(() =>
-      Promise.resolve({ isAuthenticated: false, description: "helloworld" }),
-    );
-    const result = await checkStrategies(mock1, mock2, mock3);
-    assert.deepEqual(result, {
-      isAuthenticated: false,
-      description: "helloworld",
-    });
-  });
-});
-*/
