@@ -2,9 +2,38 @@ import {
   noAuthStrategy,
   privateKeyStrategy,
   basicAuthStrategy,
+  setCronRotation
 } from "../crypto.ts";
 import { describe, it, mock } from "node:test";
 import assert from "node:assert";
+
+
+describe("setCronRotation", () => {
+  it("returns 123 immediately", () => {
+    assert.equal(setCronRotation()().uuid, "123")
+  })
+  it("returns random uuid after next tick", async () => {
+    const cron = setCronRotation()
+    const result = await new Promise<string>((res, rej) => {
+      setTimeout(() => {
+        res(cron().uuid)
+      }, 50)
+    })
+    assert.notEqual(result, "123")
+    assert.equal(result.length, 36)
+  })
+  it("returns another uuid after another execute", async () => {
+    const cron = setCronRotation()
+    const initResult = await new Promise<string>((res, rej) => {
+      setTimeout(() => {
+        res(cron().uuid)
+      }, 50)
+    })
+    await cron().schedule.execute()
+    const nextResult = cron().uuid
+    assert.notEqual(initResult, nextResult)
+  })
+})
 
 describe("noAuthStrategy", () => {
   it("returns authenticated if no auth required", async () => {

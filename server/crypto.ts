@@ -6,7 +6,7 @@ export const setCronRotation = () => {
   // not senstive
   let uuid = "123";
   //run at 3 in the morning
-  const schedule = cron.schedule("0 3 * * *", () => {
+  const schedule = cron.schedule(`0 3 * * *`, () => {
     uuid = randomUUID();
   });
   schedule.execute(); //execute immediately
