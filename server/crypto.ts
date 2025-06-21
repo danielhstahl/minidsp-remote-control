@@ -114,9 +114,9 @@ export const basicAuthStrategy = async (
     };
   }
 };
-type AuthFnc = () => Promise<AuthStrategy>;
+//type AuthFnc = () => Promise<AuthStrategy>;
 
-export const checkStrategies = async (...fncs: AuthFnc[]) => {
+/*export const checkStrategies = async (...fncs: AuthFnc[]) => {
   const n = fncs.length;
   let fncResults = [];
   for (let i = 0; i < n; ++i) {
@@ -127,4 +127,4 @@ export const checkStrategies = async (...fncs: AuthFnc[]) => {
     fncResults.push(result);
   }
   return fncResults[n - 1];
-};
+};*/

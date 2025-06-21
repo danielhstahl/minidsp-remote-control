@@ -1,6 +1,7 @@
 "use strict";
 import Fastify from "fastify";
-import type { FastifyRequest } from "fastify";
+import FastifyAuth from "@fastify/auth"
+import type { FastifyReply, FastifyRequest } from "fastify";
 import { execFile } from "child_process";
 import path from "path";
 import fs from "fs";
@@ -8,7 +9,6 @@ import { turnOn, turnOff, getStatus, openPin } from "./gpio.ts";
 import { X509Certificate } from "crypto";
 import {
   setCronRotation,
-  checkStrategies,
   noAuthStrategy,
   privateKeyStrategy,
   basicAuthStrategy,
@@ -33,6 +33,13 @@ import {
 interface Headers {
   "x-user-id": string;
   authorization: string;
+}
+declare module 'fastify' {
+  export interface FastifyInstance {
+    verifyApiKey(req: FastifyRequest, reply: FastifyReply): Promise<void>;
+    verifyNoAuth(req: FastifyRequest, reply: FastifyReply): Promise<void>;
+    verifyPrivateKey(req: FastifyRequest, reply: FastifyReply): Promise<void>;
+  }
 }
 
 //cat /sys/kernel/debug/gpio
@@ -108,39 +115,56 @@ const logAuthDescription = (req: FastifyRequest, description: string) => {
 
 export const createFastify = (dbName: string) => {
   const db = setupDatabase(dbName);
+  const getSettingsHof = () => getSettings(db) || { requireAuth: false };
+  const userObj = getAllUsers(db);
+  setDefaultSettings(db);
   const fastify = Fastify({
     logger: true,
   });
-  fastify.addHook("onClose", async (instance) => {
+  fastify.addHook("onClose", async (_instance) => {
     db.close();
     const { schedule } = getSchedule();
     await schedule.destroy();
   });
-  fastify.register(async function (fastify) {
-    const gpio = USE_GPIO ? openPin(parseInt(RELAY_PIN)) : undefined;
-    const userObj = getAllUsers(db);
-    setDefaultSettings(db);
-    const getSettingsHof = () => getSettings(db) || { requireAuth: false };
-    const getStrategiesHof = (
-      req: FastifyRequest<{ Headers: Headers }>,
-      stringToSign: string,
-    ) => {
+  fastify.decorate('verifyNoAuth', async function (request, _reply) {
+    const { description, isAuthenticated } = await noAuthStrategy(getSettingsHof)
+    logAuthDescription(request, description)
+    if (!isAuthenticated) {
+      throw new Error(description) // pass an error if the authentication fails
+    }
+  })
+    .decorate('verifyPrivateKey', async function (request: FastifyRequest<{ Headers: Headers }>, _reply) {
       const { [AUTHORIZATION_KEY]: authHeader, [X_USER_KEY]: userId } =
-        getHeadersFromObject(req.headers);
+        getHeadersFromObject(request.headers);
       const publicKey = userObj[userId];
-      const noStrategy = () => noAuthStrategy(getSettingsHof);
-      const pKStrategy = () =>
-        privateKeyStrategy(authHeader, publicKey, stringToSign);
-      const basicStrategy = () => basicAuthStrategy(authHeader, COMPARE_STRING);
-      return { noStrategy, pKStrategy, basicStrategy };
-    };
-    fastify.get("/api/root_pem", (req, reply) => {
+      const stringToSign = getStringToSign();
+      const { description, isAuthenticated } = await privateKeyStrategy(authHeader, publicKey, stringToSign)
+      logAuthDescription(request, description)
+      if (!isAuthenticated) {
+        throw new Error(description) // pass an error if the authentication fails
+      }
+    })
+    .decorate('verifyApiKey', async function (request: FastifyRequest<{ Headers: Headers }>, _reply) {
+      const { [AUTHORIZATION_KEY]: authHeader } =
+        getHeadersFromObject(request.headers);
+      const { description, isAuthenticated } = await basicAuthStrategy(authHeader, COMPARE_STRING)
+      logAuthDescription(request, description)
+      if (!isAuthenticated) {
+        throw new Error(description) // pass an error if the authentication fails
+      }
+    })
+    .register(FastifyAuth)
+
+  fastify.after(async function () {
+    const gpio = USE_GPIO ? openPin(parseInt(RELAY_PIN)) : undefined;
+
+    fastify.get("/api/root_pem", (_req, reply) => {
       const stream = fs.createReadStream(ROOT_PEM_PATH);
       reply.header("Content-Disposition", "attachment; filename=rootCA.pem");
       reply.send(stream).type("application/octet-stream").code(200);
     });
-    fastify.get("/api/auth_settings", (req, reply) => {
-      fs.readFile(ROOT_PEM_PATH, function (err, contents) {
+    fastify.get("/api/auth_settings", (_req, reply) => {
+      fs.readFile(ROOT_PEM_PATH, function (_err, c) {
         const x509 = new X509Certificate(contents);
         return reply.send({
           subject: x509.subject,
@@ -156,24 +180,18 @@ export const createFastify = (dbName: string) => {
     });
     fastify.post(
       "/api/auth_settings",
+      {
+        preHandler: fastify.auth([
+          fastify.verifyNoAuth,
+          fastify.verifyPrivateKey,
+          fastify.verifyApiKey
+        ], { relation: 'or' }),
+      },
       async (
         req: FastifyRequest<{ Body: AuthBody; Headers: Headers }>,
         reply,
       ) => {
         const stringToSign = getStringToSign();
-        const { noStrategy, pKStrategy, basicStrategy } = getStrategiesHof(
-          req,
-          stringToSign,
-        );
-        const { isAuthenticated, description } = await checkStrategies(
-          noStrategy,
-          pKStrategy,
-          basicStrategy,
-        );
-        logAuthDescription(req, description);
-        if (!isAuthenticated) {
-          return reply.code(403).send(description);
-        }
         const { requireAuth } = req.body;
         setSettings(db, requireAuth);
         return reply.send({ requireAuth, stringToSign });
@@ -181,22 +199,16 @@ export const createFastify = (dbName: string) => {
     );
     fastify.post(
       "/api/user",
+      {
+        preHandler: fastify.auth([
+          fastify.verifyNoAuth,
+          fastify.verifyPrivateKey
+        ], { relation: 'or' }),
+      },
       async (
         req: FastifyRequest<{ Body: UserBody; Headers: Headers }>,
         reply,
       ) => {
-        const { noStrategy, pKStrategy } = getStrategiesHof(
-          req,
-          getStringToSign(),
-        );
-        const { isAuthenticated, description } = await checkStrategies(
-          noStrategy,
-          pKStrategy,
-        );
-        logAuthDescription(req, description);
-        if (!isAuthenticated) {
-          return reply.code(403).send(description);
-        }
         const { publicKey } = req.body;
         const { key: userId } = createUser(db, publicKey);
         //cache so don't have to reload database
@@ -206,6 +218,12 @@ export const createFastify = (dbName: string) => {
     );
     fastify.patch(
       "/api/user/:userId",
+      {
+        preHandler: fastify.auth([
+          fastify.verifyNoAuth,
+          fastify.verifyPrivateKey
+        ], { relation: 'or' }),
+      },
       async (
         req: FastifyRequest<{
           Body: UserBody;
@@ -214,18 +232,6 @@ export const createFastify = (dbName: string) => {
         }>,
         reply,
       ) => {
-        const { noStrategy, pKStrategy } = getStrategiesHof(
-          req,
-          getStringToSign(),
-        );
-        const { isAuthenticated, description } = await checkStrategies(
-          noStrategy,
-          pKStrategy,
-        );
-        logAuthDescription(req, description);
-        if (!isAuthenticated) {
-          return reply.code(403).send(description);
-        }
         const { userId } = req.params;
         const { publicKey } = req.body;
         updateUser(db, publicKey, userId);
@@ -236,19 +242,13 @@ export const createFastify = (dbName: string) => {
     );
     fastify.post(
       "/api/regenerate_cert",
-      async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
-        const { noStrategy, pKStrategy } = getStrategiesHof(
-          req,
-          getStringToSign(),
-        );
-        const { isAuthenticated, description } = await checkStrategies(
-          noStrategy,
-          pKStrategy,
-        );
-        logAuthDescription(req, description);
-        if (!isAuthenticated) {
-          return reply.code(403).send(description);
-        }
+      {
+        preHandler: fastify.auth([
+          fastify.verifyNoAuth,
+          fastify.verifyPrivateKey
+        ], { relation: 'or' }),
+      },
+      async (_req, reply) => {
         return generateCert()
           .then(() => {
             reply.send({ success: true });
@@ -260,19 +260,13 @@ export const createFastify = (dbName: string) => {
     );
     fastify.get(
       "/api/status",
-      async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
-        const { noStrategy, pKStrategy } = getStrategiesHof(
-          req,
-          getStringToSign(),
-        );
-        const { isAuthenticated, description } = await checkStrategies(
-          noStrategy,
-          pKStrategy,
-        );
-        logAuthDescription(req, description);
-        if (!isAuthenticated) {
-          return reply.code(403).send(description);
-        }
+      {
+        preHandler: fastify.auth([
+          fastify.verifyNoAuth,
+          fastify.verifyPrivateKey
+        ], { relation: 'or' }),
+      },
+      async (_req, reply) => {
         try {
           const [minidsp, power] = await Promise.all([
             minidspStatus(),
@@ -287,19 +281,13 @@ export const createFastify = (dbName: string) => {
     );
     fastify.post(
       "/api/volume/up",
-      async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
-        const { noStrategy, pKStrategy } = getStrategiesHof(
-          req,
-          getStringToSign(),
-        );
-        const { isAuthenticated, description } = await checkStrategies(
-          noStrategy,
-          pKStrategy,
-        );
-        logAuthDescription(req, description);
-        if (!isAuthenticated) {
-          return reply.code(403).send(description);
-        }
+      {
+        preHandler: fastify.auth([
+          fastify.verifyNoAuth,
+          fastify.verifyPrivateKey
+        ], { relation: 'or' }),
+      },
+      async (_req, reply) => {
         return incrementMinidspVol(VOLUME_INCREMENT)
           .then(() => {
             reply.send({ success: true });
@@ -311,19 +299,13 @@ export const createFastify = (dbName: string) => {
     );
     fastify.post(
       "/api/volume/down",
-      async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
-        const { noStrategy, pKStrategy } = getStrategiesHof(
-          req,
-          getStringToSign(),
-        );
-        const { isAuthenticated, description } = await checkStrategies(
-          noStrategy,
-          pKStrategy,
-        );
-        logAuthDescription(req, description);
-        if (!isAuthenticated) {
-          return reply.code(403).send(description);
-        }
+      {
+        preHandler: fastify.auth([
+          fastify.verifyNoAuth,
+          fastify.verifyPrivateKey
+        ], { relation: 'or' }),
+      },
+      async (_req, reply) => {
         return incrementMinidspVol(-VOLUME_INCREMENT)
           .then(() => {
             reply.send({ success: true });
@@ -335,22 +317,16 @@ export const createFastify = (dbName: string) => {
     );
     fastify.post(
       "/api/volume/:volume",
+      {
+        preHandler: fastify.auth([
+          fastify.verifyNoAuth,
+          fastify.verifyPrivateKey
+        ], { relation: 'or' }),
+      },
       async (
         req: FastifyRequest<{ Params: VolumeParams; Headers: Headers }>,
         reply,
       ) => {
-        const { noStrategy, pKStrategy } = getStrategiesHof(
-          req,
-          getStringToSign(),
-        );
-        const { isAuthenticated, description } = await checkStrategies(
-          noStrategy,
-          pKStrategy,
-        );
-        logAuthDescription(req, description);
-        if (!isAuthenticated) {
-          return reply.code(403).send(description);
-        }
         const { volume } = req.params;
         return setMinidspVol(volume)
           .then(() => {
@@ -363,22 +339,16 @@ export const createFastify = (dbName: string) => {
     );
     fastify.post(
       "/api/preset/:preset",
+      {
+        preHandler: fastify.auth([
+          fastify.verifyNoAuth,
+          fastify.verifyPrivateKey
+        ], { relation: 'or' }),
+      },
       async (
         req: FastifyRequest<{ Params: PresetParams; Headers: Headers }>,
         reply,
       ) => {
-        const { noStrategy, pKStrategy } = getStrategiesHof(
-          req,
-          getStringToSign(),
-        );
-        const { isAuthenticated, description } = await checkStrategies(
-          noStrategy,
-          pKStrategy,
-        );
-        logAuthDescription(req, description);
-        if (!isAuthenticated) {
-          return reply.code(403).send(description);
-        }
         const { preset } = req.params;
         return setMinidspPreset(preset)
           .then(() => {
@@ -391,22 +361,16 @@ export const createFastify = (dbName: string) => {
     );
     fastify.post(
       "/api/source/:source",
+      {
+        preHandler: fastify.auth([
+          fastify.verifyNoAuth,
+          fastify.verifyPrivateKey
+        ], { relation: 'or' }),
+      },
       async (
         req: FastifyRequest<{ Params: SourceParams; Headers: Headers }>,
         reply,
       ) => {
-        const { noStrategy, pKStrategy } = getStrategiesHof(
-          req,
-          getStringToSign(),
-        );
-        const { isAuthenticated, description } = await checkStrategies(
-          noStrategy,
-          pKStrategy,
-        );
-        logAuthDescription(req, description);
-        if (!isAuthenticated) {
-          return reply.code(403).send(description);
-        }
         const { source } = req.params;
         return setMinidspInput(source)
           .then(() => {
@@ -419,19 +383,13 @@ export const createFastify = (dbName: string) => {
     );
     fastify.post(
       "/api/power/on",
-      async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
-        const { noStrategy, pKStrategy } = getStrategiesHof(
-          req,
-          getStringToSign(),
-        );
-        const { isAuthenticated, description } = await checkStrategies(
-          noStrategy,
-          pKStrategy,
-        );
-        logAuthDescription(req, description);
-        if (!isAuthenticated) {
-          return reply.code(403).send(description);
-        }
+      {
+        preHandler: fastify.auth([
+          fastify.verifyNoAuth,
+          fastify.verifyPrivateKey
+        ], { relation: 'or' }),
+      },
+      async (_req, reply) => {
         if (!USE_GPIO) {
           return reply.send({
             success: false,
@@ -449,19 +407,13 @@ export const createFastify = (dbName: string) => {
     );
     fastify.post(
       "/api/power/off",
-      async (req: FastifyRequest<{ Headers: Headers }>, reply) => {
-        const { noStrategy, pKStrategy } = getStrategiesHof(
-          req,
-          getStringToSign(),
-        );
-        const { isAuthenticated, description } = await checkStrategies(
-          noStrategy,
-          pKStrategy,
-        );
-        logAuthDescription(req, description);
-        if (!isAuthenticated) {
-          return reply.code(403).send(description);
-        }
+      {
+        preHandler: fastify.auth([
+          fastify.verifyNoAuth,
+          fastify.verifyPrivateKey
+        ], { relation: 'or' }),
+      },
+      async (_req, reply) => {
         if (!USE_GPIO) {
           return reply.send({
             success: false,

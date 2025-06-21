@@ -1,5 +1,5 @@
 import {
-  checkStrategies,
+  //checkStrategies,
   noAuthStrategy,
   privateKeyStrategy,
   basicAuthStrategy,
@@ -89,7 +89,7 @@ describe("basicKeyStrategy", () => {
     });
   });
 });
-
+/*
 describe("checkStrategies", () => {
   it("returns isAuthenticated if one of the strategies authenticates", async () => {
     const mock1 = mock.fn(() =>
@@ -121,3 +121,4 @@ describe("checkStrategies", () => {
     });
   });
 });
+*/
