@@ -16,4 +16,4 @@ export const getPrivateKey = () => localStorage.getItem(RSA_KEY) as string;
 export const saveUserId = (userId: string) =>
   localStorage.setItem(USER_ID_KEY, userId);
 
-export const getUserId = () => localStorage.getItem(USER_ID_KEY) as string;
+export const getUserId = () => localStorage.getItem(USER_ID_KEY) || "-1" as string;

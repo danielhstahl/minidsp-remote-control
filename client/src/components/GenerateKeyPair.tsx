@@ -50,7 +50,7 @@ const GenerateCerts = () => {
           signature: string;
           publicKey: string;
         }) => {
-          //what to do about new users? or do I just override?
+          //no user yet, so create one
           userId === "-1"
             ? createUser(addAuthHeaders(userId, signature), publicKey).then(
               (user) => {
@@ -63,7 +63,7 @@ const GenerateCerts = () => {
                   },
                 });
               },
-            )
+            ) //user exists, so update
             : Promise.all([
               updateUser(
                 addAuthHeaders(userId, signature),
