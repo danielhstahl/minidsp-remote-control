@@ -20,6 +20,11 @@ Versions lower than 1.0 support `minidsp-rs` 1.9.  Only volume control is suppor
 
 Server is a simple NodeJS server.  It makes call directly to the underlying binaries required for MiniDSP.  See https://minidsp-rs.pages.dev/cli/.
 
+### Rust prep
+In `minidsp-server`:
+
+`DATABASE_URL="sqlite:$(pwd)/minidsp.sqlite" cargo sqlx prepare`
+
 ## Installing/running
 
 Download the packaged static UI and server code `minidsp-ui.tar.gz` from `releases`.  Extract the tar.gz, and run `npm ci` to install the dependencies.  Run the server with `sudo node index` or `sudo npm start`.  The server has to run as root to access the `gpio` pins.  If you do not want or need to access these pins, don't run as root.  It is recommended to run the server as a service.  See [examples/install_script.sh](./examples/install_script.sh) for an example of how to install server.  See [examples/minidsp-ui.service](./examples/minidsp-ui.service) for an example of how to run the server as a service.

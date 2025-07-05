@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "\nSELECT key as \"key: i64\", public_key as \"public_key: String\" from users\nWHERE key = ?1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "key: i64",
+        "ordinal": 0,
+        "type_info": "Int64"
+      },
+      {
+        "name": "public_key: String",
+        "ordinal": 1,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "ff40e373e1d814c926ad26be75f0f0f814308a52f32004980f2ddea7edfff079"
+}

@@ -57,3 +57,4 @@ export const sign = async (stringToSign: string, privateKey: string) => {
   );
   return bufferToBase64(signature);
 };
+

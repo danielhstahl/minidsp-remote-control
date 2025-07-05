@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\nUPDATE settings SET require_auth=?1;\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "f96aecff44d30b8e39ed238a916e1b158b4c26a7e8928444b1899fd9775adc4a"
+}

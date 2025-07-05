@@ -46,6 +46,7 @@ import Settings from "./components/Settings";
 import SSLNotification from "./components/SSLNotification";
 import NoUserNotification from "./components/NoUserNotification";
 import { sign } from "./services/keyCreation";
+import { runExample } from "./services/jwtCreation";
 // custom hook for parameter updates
 function useParameterUpdates(
   miniDspDispatch: (_: Action) => void,
@@ -112,7 +113,7 @@ function App() {
   /// Params state management
   const { dispatch: miniDspDispatch, state: miniDspParams } =
     useMiniDspParams();
-
+  runExample()
   const {
     state: { certInfo },
     dispatch: authDispatch,
