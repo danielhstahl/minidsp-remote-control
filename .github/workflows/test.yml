@@ -42,6 +42,9 @@ jobs:
   run_rust_builds:
     name: Run rust builds
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./minidsp-server 
     strategy:
       fail-fast: false
       matrix:
