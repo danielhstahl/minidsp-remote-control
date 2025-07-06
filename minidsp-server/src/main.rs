@@ -72,37 +72,40 @@ fn rocket() -> _ {
         Err(_e) => panic!("Env variable DOMAIN needs to be defined!"),
     };
 
+    let mut base_routes = routes![
+        index,
+        root_pem,
+        auth_settings,
+        update_settings_anon,
+        update_settings_user,
+        update_settings_basic,
+        update_user_anon,
+        update_user_user,
+        create_user_anon,
+        create_user_user,
+        regenerate_cert_anon,
+        regenerate_cert_user,
+        get_status_anon,
+        get_status_user,
+        set_volume_up_anon,
+        set_volume_up_user,
+        set_volume_down_anon,
+        set_volume_down_user,
+        set_preset_anon,
+        set_preset_user,
+        set_source_anon,
+        set_source_user,
+    ];
+    #[cfg(feature = "gpio")]
+    let gpio_routes = routes![set_power_anon, set_power_user];
+    #[cfg(feature = "gpio")]
+    base_routes.append(&mut gpio_routes);
+
     let rocket_build = rocket::build()
         .attach(MinidspDb::init())
         .attach(AdHoc::try_on_ignite("DB Migrations", run_migrations))
         .manage(domain)
-        .mount(
-            "/",
-            routes![
-                index,
-                root_pem,
-                auth_settings,
-                update_settings_anon,
-                update_settings_user,
-                update_settings_basic,
-                update_user_anon,
-                update_user_user,
-                create_user_anon,
-                create_user_user,
-                regenerate_cert_anon,
-                regenerate_cert_user,
-                get_status_anon,
-                get_status_user,
-                set_volume_up_anon,
-                set_volume_up_user,
-                set_volume_down_anon,
-                set_volume_down_user,
-                set_preset_anon,
-                set_preset_user,
-                set_source_anon,
-                set_source_user,
-            ],
-        );
+        .mount("/", base_routes);
 
     #[cfg(feature = "gpio")]
     let relay_pin_str = match env::var("RELAY_PIN") {

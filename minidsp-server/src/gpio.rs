@@ -10,8 +10,8 @@ pub enum PowerStatus {
     ON,
 }
 
-impl FromParam for PowerStatus {
-    type Error = &str;
+impl FromParam<'_> for PowerStatus<'_> {
+    type Error = &'_ str;
 
     fn from_param(param: &str) -> Result<Self, Self::Error> {
         match param {
