@@ -20,7 +20,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write # release changes require contents write
-
+    defaults:
+      run:
+        working-directory: ./minidsp-server
     strategy:
       fail-fast: false
       matrix:
@@ -48,13 +50,13 @@ jobs:
       - name: Release
         run: |
           cd target/${{ matrix.target }}/release  
-          tar czvf ../../../avprocessor-${{ matrix.target }}.tar.gz avprocessor
+          tar czvf ../../../minidsp-server-${{ matrix.target }}-${{ matrix.feature_flag }}.tar.gz minidsp-server
         
       - name: upload artifact
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          gh release upload ${{ github.event.release.tag_name }} avprocessor-${{ matrix.target }}-${{ matrix.feature_flag }}.tar.gz
+          gh release upload ${{ github.event.release.tag_name }} minidsp-server-${{ matrix.target }}-${{ matrix.feature_flag }}.tar.gz
 
   build_ui:
     runs-on: ubuntu-latest
