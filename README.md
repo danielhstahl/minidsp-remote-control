@@ -25,6 +25,15 @@ In `minidsp-server`:
 
 `DATABASE_URL="sqlite:$(pwd)/minidsp.sqlite" cargo sqlx prepare`
 
+//in vscode settings.json
+{
+    "rust-analyzer.cargo.target": "aarch64-unknown-linux-gnu",
+    "rust-analyzer.cargo.features": [
+        "gpio"
+    ]
+}
+
+
 ## Installing/running
 
 Download the packaged static UI and server code `minidsp-ui.tar.gz` from `releases`.  Extract the tar.gz, and run `npm ci` to install the dependencies.  Run the server with `sudo node index` or `sudo npm start`.  The server has to run as root to access the `gpio` pins.  If you do not want or need to access these pins, don't run as root.  It is recommended to run the server as a service.  See [examples/install_script.sh](./examples/install_script.sh) for an example of how to install server.  See [examples/minidsp-ui.service](./examples/minidsp-ui.service) for an example of how to run the server as a service.

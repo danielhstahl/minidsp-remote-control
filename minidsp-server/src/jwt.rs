@@ -1,12 +1,11 @@
-use crate::MinidspDb;
 use crate::db::get_user;
+use crate::{Domain, MinidspDb};
 use base64::engine::Engine as _;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
 use rocket::http::Status;
 use rocket::request::{FromRequest, Outcome, Request};
 use rocket::serde::{Deserialize, Serialize};
-use std::env;
 use std::fmt;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
@@ -117,9 +116,10 @@ impl<'r> FromRequest<'r> for User {
                 return Outcome::Error((Status::Unauthorized, ()));
             }
         };
-        let audience = match env::var("DOMAIN") {
-            Ok(aud) => aud,
-            Err(_e) => {
+
+        let audience = match req.rocket().state::<Domain>() {
+            Some(domain) => &domain.domain_name,
+            None => {
                 return Outcome::Error((Status::Unauthorized, ()));
             }
         };

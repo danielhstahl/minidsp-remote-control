@@ -1,22 +1,30 @@
+use rocket::serde::{Deserialize, Serialize};
+use rppal::gpio::Gpio;
+use rppal::system::DeviceInfo;
 use std::error::Error;
 use std::thread;
 use std::time::Duration;
 
-use rppal::gpio::Gpio;
-use rppal::system::DeviceInfo;
+// Gpio uses BCM pin numbering.
+//const GPIO_RELAY_PIN: u8 = 21; //533, see cat /sys/kernel/debug/gpio
 
-// Gpio uses BCM pin numbering. BCM GPIO 23 is tied to physical pin 16.
-const GPIO_RELAY_PIN: u8 = 21; //533, see cat /sys/kernel/debug/gpio
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+enum PowerStatus {
+    OFF,
+    ON,
+}
 
-fn main() -> Result<(), Box<dyn Error>> {
-    println!("Blinking an LED on a {}.", DeviceInfo::new()?.model());
-
-    let mut pin = Gpio::new()?.get(GPIO_LED)?.into_output();
-
-    // Blink the LED by setting the pin's logic level high for 500 ms.
+pub fn get_status(pin: &Gpio::OutputPin) -> PowerStatus {
+    if pin.is_set_high() {
+        PowerStatus::ON
+    } else {
+        PowerStatus::OFF
+    }
+}
+pub fn power_on(pin: &mut Gpio::OutputPin) {
     pin.set_high();
-    //thread::sleep(Duration::from_millis(500));
+}
+pub fn power_off(pin: &mut Gpio::OutputPin) {
     pin.set_low();
-
-    Ok(())
 }

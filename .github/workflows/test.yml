@@ -19,6 +19,22 @@ jobs:
 
       - name: test
         run: npm test
+        
+  run_rust_tests:
+    name: Run rust test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        run: rustup update stable
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+      - name: Generate code coverage
+        run: |
+          cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+          cat lcov.info
+        env:
+          SQLX_OFFLINE: true # needed to keep it from trying to connect to a database
 
   run_ui_tests:
     name: Run UI tests

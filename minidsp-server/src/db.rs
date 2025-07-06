@@ -114,3 +114,17 @@ UPDATE settings SET require_auth=?1;
         require_auth,
     })
 }
+
+pub async fn set_default_settings(pool: &SqlitePool) -> Result<(), sqlx::Error> {
+    if get_settings(pool).await.is_err() {
+        sqlx::query!(
+            r#"
+INSERT INTO settings (require_auth) VALUES (?1);
+        "#,
+            false
+        )
+        .execute(pool)
+        .await?;
+    }
+    Ok(())
+}

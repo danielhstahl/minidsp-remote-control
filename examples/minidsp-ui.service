@@ -11,7 +11,7 @@ StartLimitBurst=10
 Type=simple
 Environment="COMPARE_STRING=STRING_TO_USE_IF_PRIVATE_KEY_IS_LOST"
 Environment="USE_RELAY=1"
-Environment="RELAY_PIN=533"
+Environment="RELAY_PIN=21"
 Environment="DOMAIN=HOSTNAME"
 Environment="DB_PATH=/home/minidsp/db/minidsp"
 ExecStart=node /usr/bin/minidsp-ui/index.ts

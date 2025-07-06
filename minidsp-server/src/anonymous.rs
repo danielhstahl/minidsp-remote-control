@@ -23,7 +23,7 @@ impl<'r> FromRequest<'r> for Anonymous {
 
         let settings = match get_settings(&db).await {
             Ok(settings) => settings,
-            Err(e) => {
+            Err(_e) => {
                 return Outcome::Error((Status::Unauthorized, ()));
             }
         };

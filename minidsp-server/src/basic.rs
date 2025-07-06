@@ -16,7 +16,7 @@ fn basic_auth(auth_header: &str, compare_string: &str) -> Result<(), BasicAuthEr
     };
     let decoded_token = match BASE64.decode(token) {
         Ok(detok) => Ok(detok),
-        Err(e) => Err(BasicAuthError {
+        Err(_e) => Err(BasicAuthError {
             msg: "Invalid Token".to_string(),
         }),
     }?;
@@ -43,13 +43,13 @@ impl<'r> FromRequest<'r> for Basic {
         };
         let compare_string = match env::var("COMPARE_STRING") {
             Ok(token) => token,
-            Err(e) => {
+            Err(_e) => {
                 return Outcome::Error((Status::Unauthorized, ()));
             }
         };
         match basic_auth(auth_header, &compare_string) {
             Ok(()) => Outcome::Success(Basic {}),
-            Err(e) => Outcome::Error((Status::Unauthorized, ())),
+            Err(_e) => Outcome::Error((Status::Unauthorized, ())),
         }
     }
 }
