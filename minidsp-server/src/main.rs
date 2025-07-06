@@ -97,7 +97,7 @@ fn rocket() -> _ {
         set_source_user,
     ];
     #[cfg(feature = "gpio")]
-    let gpio_routes = routes![set_power_anon, set_power_user];
+    let mut gpio_routes = routes![set_power_anon, set_power_user];
     #[cfg(feature = "gpio")]
     base_routes.append(&mut gpio_routes);
 
@@ -124,8 +124,8 @@ fn rocket() -> _ {
             Gpio::new().unwrap().get(relay_pin).unwrap().into_output(),
         )),
     });
-    #[cfg(feature = "gpio")]
-    rocket_build.mount("/", routes![set_power_anon, set_power_user]);
+    //#[cfg(feature = "gpio")]
+    //rocket_build.mount("/", routes![set_power_anon, set_power_user]);
 
     rocket_build
 }
