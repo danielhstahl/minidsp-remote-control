@@ -117,7 +117,9 @@ fn rocket() -> _ {
     };
     #[cfg(feature = "gpio")]
     rocket_build.manage(GpioPin {
-        pin: Arc::new(Mutex::new(Gpio::new()?.get(relay_pin)?.into_output())),
+        pin: Arc::new(Mutex::new(
+            Gpio::new().unwrap().get(relay_pin).unwrap().into_output(),
+        )),
     });
     #[cfg(feature = "gpio")]
     rocket_build.mount("/", routes![set_power_anon, set_power_user]);
@@ -405,7 +407,7 @@ async fn set_power_anon(
 #[get("/api/power/<power>", rank = 2)]
 async fn set_power_user(
     _user: jwt::User,
-    gpio: &State<Gpio>,
+    gpio: &State<GpioPin>,
     power: gpio::PowerStatus,
 ) -> Result<Json<Success>, BadRequest<String>> {
     let mut pin = match gpio.pin.lock() {

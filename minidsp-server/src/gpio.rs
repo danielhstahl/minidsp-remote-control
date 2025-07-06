@@ -5,15 +5,15 @@ use rppal::gpio::OutputPin;
 // Gpio uses BCM pin numbering.
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
-enum PowerStatus {
+pub enum PowerStatus {
     OFF,
     ON,
 }
 
-impl<'r> FromParam<'r> for PowerStatus<'r> {
-    type Error = &'r str;
+impl FromParam for PowerStatus {
+    type Error = &str;
 
-    fn from_param(param: &'r str) -> Result<Self, Self::Error> {
+    fn from_param(param: &str) -> Result<Self, Self::Error> {
         match param {
             "off" => Ok(PowerStatus::OFF),
             "on" => Ok(PowerStatus::ON),
