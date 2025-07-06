@@ -10,7 +10,7 @@ pub enum PowerStatus {
     ON,
 }
 
-impl FromParam<'a> for PowerStatus {
+impl<'a> FromParam<'a> for PowerStatus {
     type Error = &'a str;
 
     fn from_param(param: &'a str) -> Result<Self, Self::Error> {

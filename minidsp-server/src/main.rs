@@ -31,9 +31,11 @@ use std::sync::{Arc, Mutex};
 #[database("minidsp")]
 struct MinidspDb(rocket_db_pools::sqlx::SqlitePool);
 
-#[cfg(feature = "gpio")]
 struct GpioPin {
+    #[cfg(feature = "gpio")]
     pin: Arc<Mutex<OutputPin>>,
+    #[cfg(not(feature = "gpio"))]
+    pin: bool,
 }
 
 struct Domain {
@@ -100,11 +102,20 @@ fn rocket() -> _ {
     let mut gpio_routes = routes![set_power_anon, set_power_user];
     #[cfg(feature = "gpio")]
     base_routes.append(&mut gpio_routes);
-
+    //hacky, but should work...use a dummy GpioPin when not using the Gpio feature
+    #[cfg(feature = "gpio")]
+    let gpio_pin = GpioPin {
+        pin: Arc::new(Mutex::new(
+            Gpio::new().unwrap().get(relay_pin).unwrap().into_output(),
+        )),
+    };
+    #[cfg(not(feature = "gpio"))]
+    let gpio_pin = GpioPin { pin: false };
     let rocket_build = rocket::build()
         .attach(MinidspDb::init())
         .attach(AdHoc::try_on_ignite("DB Migrations", run_migrations))
         .manage(domain)
+        .manage(gpio_pin)
         .mount("/", base_routes);
 
     #[cfg(feature = "gpio")]
