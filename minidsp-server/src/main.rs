@@ -24,17 +24,16 @@ use rocket::{Build, Rocket, State};
 use rocket_db_pools::sqlx;
 use rocket_db_pools::{Connection, Database};
 use std::env;
-use std::sync::atomic::AtomicPtr;
+
+#[cfg(feature = "gpio")]
+use std::sync::{Arc, Mutex};
 #[derive(Database)]
 #[database("minidsp")]
 struct MinidspDb(rocket_db_pools::sqlx::SqlitePool);
 
-struct TestStruct {
-    hi: usize,
-}
 #[cfg(feature = "gpio")]
 struct GpioPin {
-    pin: AtomicPtr<OutputPin>,
+    pin: Arc<Mutex<OutputPin>>,
 }
 
 struct Domain {
@@ -118,7 +117,7 @@ fn rocket() -> _ {
     };
     #[cfg(feature = "gpio")]
     rocket_build.manage(GpioPin {
-        pin: AtomicPtr::new(Gpio::new()?.get(relay_pin)?.into_output()),
+        pin: Arc::new(Mutex::new(Gpio::new()?.get(relay_pin)?.into_output())),
     });
     #[cfg(feature = "gpio")]
     rocket_build.mount("/", routes![set_power_anon, set_power_user]);
@@ -278,7 +277,12 @@ async fn get_status_anon(
     _anon: anonymous::Anonymous,
     gpio: &State<GpioPin>,
 ) -> Result<Json<FullStatus>, BadRequest<String>> {
-    let power_status = gpio::get_status(&gpio.pin.into_inner());
+    let pin = match gpio.pin.lock() {
+        Ok(pin) => Ok(pin),
+        Err(e) => Err(BadRequest(e.to_string())),
+    }?;
+    let power_status = gpio::get_status(&pin);
+    drop(pin);
     let minidsp_status = minidsp::get_minidsp_status().map_err(|e| BadRequest(e.to_string()))?;
 
     Ok(Json(FullStatus {
@@ -292,7 +296,12 @@ async fn get_status_user(
     _user: jwt::User,
     gpio: &State<GpioPin>,
 ) -> Result<Json<FullStatus>, BadRequest<String>> {
-    let power_status = gpio::get_status(&gpio.pin.into_inner());
+    let pin = match gpio.pin.lock() {
+        Ok(pin) => Ok(pin),
+        Err(e) => Err(BadRequest(e.to_string())),
+    }?;
+    let power_status = gpio::get_status(&pin);
+    drop(pin);
     let minidsp_status = minidsp::get_minidsp_status().map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(FullStatus {
         minidsp_status,
@@ -382,9 +391,13 @@ async fn set_power_anon(
     gpio: &State<GpioPin>,
     power: gpio::PowerStatus,
 ) -> Result<Json<Success>, BadRequest<String>> {
+    let mut pin = match gpio.pin.lock() {
+        Ok(pin) => Ok(pin),
+        Err(e) => Err(BadRequest(e.to_string())),
+    }?;
     match power {
-        gpio::PowerStatus::ON => gpio::power_on(&mut gpio.pin.get_mut()),
-        gpio::PowerStatus::OFF => gpio::power_off(&mut gpio.pin.get_mut()),
+        gpio::PowerStatus::ON => gpio::power_on(&mut pin),
+        gpio::PowerStatus::OFF => gpio::power_off(&mut pin),
     };
     Ok(Json(Success { success: true }))
 }
@@ -395,9 +408,13 @@ async fn set_power_user(
     gpio: &State<Gpio>,
     power: gpio::PowerStatus,
 ) -> Result<Json<Success>, BadRequest<String>> {
+    let mut pin = match gpio.pin.lock() {
+        Ok(pin) => Ok(pin),
+        Err(e) => Err(BadRequest(e.to_string())),
+    }?;
     match power {
-        gpio::PowerStatus::ON => gpio::power_on(&mut gpio.pin.get_mut()),
-        gpio::PowerStatus::OFF => gpio::power_off(&mut gpio.pin.get_mut()),
+        gpio::PowerStatus::ON => gpio::power_on(&mut pin),
+        gpio::PowerStatus::OFF => gpio::power_off(&mut pin),
     };
     Ok(Json(Success { success: true }))
 }
