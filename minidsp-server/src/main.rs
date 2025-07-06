@@ -6,7 +6,9 @@ mod db;
 #[cfg(feature = "gpio")]
 mod gpio;
 #[cfg(feature = "gpio")]
-use rppal::gpio::Gpio::OutputPin;
+use rppal::gpio::Gpio;
+#[cfg(feature = "gpio")]
+use rppal::gpio::OutputPin;
 mod jwt;
 mod minidsp;
 mod sslcert;
