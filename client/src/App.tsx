@@ -113,7 +113,6 @@ function App() {
   /// Params state management
   const { dispatch: miniDspDispatch, state: miniDspParams } =
     useMiniDspParams();
-  runExample()
   const {
     state: { certInfo },
     dispatch: authDispatch,

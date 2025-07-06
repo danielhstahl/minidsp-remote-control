@@ -92,7 +92,7 @@ async function generateJwt(privateKey: string, claims: Claims, audience: string,
     const dataToSign = `${encodedHeader}.${encodedClaims}`;
 
     const privateKeyBuffer = await base64ToBuffer(privateKey);
-    const privateKeyCrypto = await crypto.subtle.importKey(
+    const privateKeyCrypto = await window.crypto.subtle.importKey(
         "pkcs8",
         privateKeyBuffer,
         {
@@ -104,7 +104,7 @@ async function generateJwt(privateKey: string, claims: Claims, audience: string,
     );
 
     // Sign the data
-    const signature = await crypto.subtle.sign(
+    const signature = await window.crypto.subtle.sign(
         {
             name: "RSASSA-PKCS1-v1_5", //check this
             hash: { name: "SHA-256" },
@@ -125,7 +125,7 @@ export async function runExample() {
     // In a real application, you would load an existing private key securely,
     // not generate it in the browser every time.
     console.log("Generating RSA key pair...");
-    const { publicKey, privateKey } = await crypto.subtle.generateKey(
+    const { publicKey, privateKey } = await window.crypto.subtle.generateKey(
         {
             name: "RSASSA-PKCS1-v1_5",
             modulusLength: 2048,
