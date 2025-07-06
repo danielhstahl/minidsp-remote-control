@@ -31,7 +31,7 @@ jobs:
         - armv7-unknown-linux-gnueabihf
         - aarch64-unknown-linux-gnu
         feature_flag:
-        - gpio
+        - --features gpio
         - ""
     steps:
       - uses: actions/checkout@v4
@@ -43,20 +43,20 @@ jobs:
 
       - name: Compile
         run: |
-          ./cross build --release --target ${{ matrix.target }} --features ${{ matrix.feature_flag }}
+          ./cross build --release --target ${{ matrix.target }} ${{ matrix.feature_flag }} 
         env:
           SQLX_OFFLINE: true # needed to keep it from trying to connect to a database
 
       - name: Release
         run: |
           cd target/${{ matrix.target }}/release  
-          tar czvf ../../../minidsp-server-${{ matrix.target }}-${{ matrix.feature_flag }}.tar.gz minidsp-server
+          tar czvf ../../../minidsp-server-${{ matrix.target }}${{ matrix.feature_flag != '' && '-gpio' || ''}}.tar.gz minidsp-server
         
       - name: upload artifact
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          gh release upload ${{ github.event.release.tag_name }} minidsp-server-${{ matrix.target }}-${{ matrix.feature_flag }}.tar.gz
+          gh release upload ${{ github.event.release.tag_name }} minidsp-server-${{ matrix.target }}${{ matrix.feature_flag != '' && '-gpio' || ''}}.tar.gz
 
   build_ui:
     runs-on: ubuntu-latest

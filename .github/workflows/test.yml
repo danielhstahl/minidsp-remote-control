@@ -50,7 +50,7 @@ jobs:
         - armv7-unknown-linux-gnueabihf
         - aarch64-unknown-linux-gnu
         feature_flag:
-        - gpio
+        - --features gpio
         - ""
     steps:
     - name: Install Rust
@@ -61,7 +61,7 @@ jobs:
 
     - name: Compile
       run: |
-        ./cross build --release --target ${{ matrix.target }} --features ${{ matrix.feature_flag }}
+        ./cross build --release --target ${{ matrix.target }} ${{ matrix.feature_flag }}
       env:
         SQLX_OFFLINE: true # needed to keep it from trying to connect to a database
   run_ui_tests:
