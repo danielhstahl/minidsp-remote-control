@@ -1,3 +1,4 @@
+use rocket::request::FromParam;
 use rocket::serde::{Deserialize, Serialize};
 use rppal::gpio::OutputPin;
 
@@ -9,6 +10,17 @@ enum PowerStatus {
     ON,
 }
 
+impl<'r> FromParam<'r> for PowerStatus<'r> {
+    type Error = &'r str;
+
+    fn from_param(param: &'r str) -> Result<Self, Self::Error> {
+        match param {
+            "off" => Ok(PowerStatus::OFF),
+            "on" => Ok(PowerStatus::ON),
+            _ => Err(param),
+        }
+    }
+}
 pub fn get_status(pin: &OutputPin) -> PowerStatus {
     if pin.is_set_high() {
         PowerStatus::ON

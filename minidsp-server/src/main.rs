@@ -14,9 +14,6 @@ mod minidsp;
 mod sslcert;
 use crate::anonymous::Anonymous;
 use crate::db::{DbUser, Settings};
-#[cfg(not(feature = "gpio"))]
-use crate::minidsp::MinidspStatus;
-#[cfg(feature = "gpio")]
 use crate::minidsp::MinidspStatus;
 use rocket::fairing::{self, AdHoc};
 use rocket::response::status::BadRequest;
@@ -27,13 +24,17 @@ use rocket::{Build, Rocket, State};
 use rocket_db_pools::sqlx;
 use rocket_db_pools::{Connection, Database};
 use std::env;
+use std::sync::atomic::AtomicPtr;
 #[derive(Database)]
 #[database("minidsp")]
 struct MinidspDb(rocket_db_pools::sqlx::SqlitePool);
 
+struct TestStruct {
+    hi: usize,
+}
 #[cfg(feature = "gpio")]
-struct Gpio {
-    pin: OutputPin,
+struct GpioPin {
+    pin: AtomicPtr<OutputPin>,
 }
 
 struct Domain {
@@ -116,8 +117,8 @@ fn rocket() -> _ {
         Err(_e) => panic!("RELAY_PIN needs to be parseable to u8!"),
     };
     #[cfg(feature = "gpio")]
-    rocket_build.manage(Gpio {
-        pin: Gpio::new()?.get(relay_pin)?.into_output(),
+    rocket_build.manage(GpioPin {
+        pin: AtomicPtr::new(Gpio::new()?.get(relay_pin)?.into_output()),
     });
     #[cfg(feature = "gpio")]
     rocket_build.mount("/", routes![set_power_anon, set_power_user]);
@@ -275,9 +276,9 @@ pub struct FullStatus {
 #[post("/api/status")]
 async fn get_status_anon(
     _anon: anonymous::Anonymous,
-    gpio: &State<Gpio>,
+    gpio: &State<GpioPin>,
 ) -> Result<Json<FullStatus>, BadRequest<String>> {
-    let power_status = gpio::get_status(&gpio.pin);
+    let power_status = gpio::get_status(&gpio.pin.into_inner());
     let minidsp_status = minidsp::get_minidsp_status().map_err(|e| BadRequest(e.to_string()))?;
 
     Ok(Json(FullStatus {
@@ -289,9 +290,9 @@ async fn get_status_anon(
 #[get("/api/status", rank = 2)]
 async fn get_status_user(
     _user: jwt::User,
-    gpio: &State<Gpio>,
+    gpio: &State<GpioPin>,
 ) -> Result<Json<FullStatus>, BadRequest<String>> {
-    let power_status = gpio::get_status(&gpio.pin);
+    let power_status = gpio::get_status(&gpio.pin.into_inner());
     let minidsp_status = minidsp::get_minidsp_status().map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(FullStatus {
         minidsp_status,
@@ -378,12 +379,12 @@ async fn set_source_user(
 #[post("/api/power/<power>")]
 async fn set_power_anon(
     _anon: anonymous::Anonymous,
-    gpio: &State<Gpio>,
+    gpio: &State<GpioPin>,
     power: gpio::PowerStatus,
 ) -> Result<Json<Success>, BadRequest<String>> {
     match power {
-        gpio::PowerStatus::ON => gpio::power_on(&mut gpio.pin),
-        gpio::PowerStatus::OFF => gpio::power_off(&mut gpio.pin),
+        gpio::PowerStatus::ON => gpio::power_on(&mut gpio.pin.get_mut()),
+        gpio::PowerStatus::OFF => gpio::power_off(&mut gpio.pin.get_mut()),
     };
     Ok(Json(Success { success: true }))
 }
@@ -395,8 +396,8 @@ async fn set_power_user(
     power: gpio::PowerStatus,
 ) -> Result<Json<Success>, BadRequest<String>> {
     match power {
-        gpio::PowerStatus::ON => gpio::power_on(&mut gpio.pin),
-        gpio::PowerStatus::OFF => gpio::power_off(&mut gpio.pin),
+        gpio::PowerStatus::ON => gpio::power_on(&mut gpio.pin.get_mut()),
+        gpio::PowerStatus::OFF => gpio::power_off(&mut gpio.pin.get_mut()),
     };
     Ok(Json(Success { success: true }))
 }
