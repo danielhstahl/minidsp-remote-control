@@ -101,7 +101,7 @@ export const setSource = (headers: LocalHeaders, source: Source) => {
 export const getAuthSettings: (
   headers: LocalHeaders,
 ) => Promise<AuthSettings> = (headers: LocalHeaders) => {
-  return fetch(`/api/auth_settings`, { headers })
+  return fetch(`/api/auth/settings`, { headers })
     .then((v) => v.json())
     .then((fullResult) => {
       const { requireAuth, key, ...rest } = fullResult;
@@ -162,11 +162,11 @@ export const updateUser: (
   };
 
 export const generateCert = (headers: LocalHeaders) => {
-  return fetch(`/api/regenerate_cert`, { method: "POST", headers });
+  return fetch(`/api/cert`, { method: "POST", headers });
 };
 export const getCaPem = (headers: LocalHeaders) => {
   return (
-    fetch(`/api/root_pem`, {
+    fetch(`/api/cert`, {
       headers: {
         "Content-Disposition": "attachment; filename=ca.crt",
         ...headers,

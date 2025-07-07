@@ -135,7 +135,7 @@ fn rocket() -> _ {
         .manage(domain)
         .manage(ssl_path)
         .manage(gpio_pin)
-        .mount("/", base_routes)
+        .mount("/api/", base_routes)
 }
 
 #[get("/")]
@@ -143,14 +143,14 @@ fn index() -> &'static str {
     "Hello, world!"
 }
 
-#[get("/api/cert")]
+#[get("/cert")]
 async fn root_pem(ssl_path: &State<SSLPath>) -> std::io::Result<ReaderStream![File]> {
     let root_pem_path = format!("{}/rootCA.pem", ssl_path.path);
     let file = File::open(root_pem_path).await?;
     Ok(ReaderStream::one(file))
 }
 
-#[get("/api/auth/settings")]
+#[get("/auth/settings")]
 async fn auth_settings(db: &MinidspDb) -> Result<Json<db::Settings>, BadRequest<String>> {
     //need to get expiry as well somehow
     let settings = db::get_settings(&**db)
@@ -159,7 +159,7 @@ async fn auth_settings(db: &MinidspDb) -> Result<Json<db::Settings>, BadRequest<
     Ok(Json(settings))
 }
 
-#[post("/api/auth/settings", format = "application/json", data = "<settings>")]
+#[post("/auth/settings", format = "application/json", data = "<settings>")]
 async fn update_settings_anon(
     db: &MinidspDb,
     settings: Json<db::Settings>,
@@ -171,7 +171,7 @@ async fn update_settings_anon(
     Ok(Json(settings))
 }
 #[post(
-    "/api/auth/settings",
+    "/auth/settings",
     rank = 2,
     format = "application/json",
     data = "<settings>"
@@ -187,7 +187,7 @@ async fn update_settings_user(
     Ok(Json(settings))
 }
 #[post(
-    "/api/auth/settings",
+    "/auth/settings",
     rank = 3,
     format = "application/json",
     data = "<settings>"
@@ -203,7 +203,7 @@ async fn update_settings_basic(
     Ok(Json(settings))
 }
 
-#[post("/api/user", format = "application/json", data = "<user>")]
+#[post("/user", format = "application/json", data = "<user>")]
 async fn create_user_anon(
     db: &MinidspDb,
     user: Json<db::UserPublicKey>,
@@ -228,7 +228,7 @@ async fn create_user_user(
     Ok(Json(user))
 }
 
-#[patch("/api/user/<user_id>", format = "application/json", data = "<user>")]
+#[patch("/user/<user_id>", format = "application/json", data = "<user>")]
 async fn update_user_anon(
     db: &MinidspDb,
     user_id: i64,
@@ -242,7 +242,7 @@ async fn update_user_anon(
     Ok(Json(user))
 }
 #[patch(
-    "/api/user/<user_id>",
+    "/user/<user_id>",
     rank = 2,
     format = "application/json",
     data = "<user>"
@@ -260,7 +260,7 @@ async fn update_user_user(
     Ok(Json(user))
 }
 
-#[post("/api/cert")]
+#[post("/cert")]
 async fn regenerate_cert_anon(
     _anon: anonymous::Anonymous,
     domain: &State<Domain>,
@@ -270,7 +270,7 @@ async fn regenerate_cert_anon(
         .map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(Success { success: true }))
 }
-#[post("/api/cert", rank = 2)]
+#[post("/cert", rank = 2)]
 async fn regenerate_cert_user(
     _user: jwt::User,
     domain: &State<Domain>,
@@ -290,7 +290,7 @@ pub struct FullStatus {
 }
 
 #[cfg(feature = "gpio")]
-#[post("/api/status")]
+#[post("/status")]
 async fn get_status_anon(
     _anon: anonymous::Anonymous,
     gpio: &State<GpioPin>,
@@ -309,7 +309,7 @@ async fn get_status_anon(
     }))
 }
 #[cfg(feature = "gpio")]
-#[get("/api/status", rank = 2)]
+#[get("/status", rank = 2)]
 async fn get_status_user(
     _user: jwt::User,
     gpio: &State<GpioPin>,
@@ -328,7 +328,7 @@ async fn get_status_user(
 }
 
 #[cfg(not(feature = "gpio"))]
-#[post("/api/status")]
+#[post("/status")]
 async fn get_status_anon(
     _anon: anonymous::Anonymous,
 ) -> Result<Json<MinidspStatus>, BadRequest<String>> {
@@ -336,39 +336,39 @@ async fn get_status_anon(
     Ok(Json(minidsp_status))
 }
 #[cfg(not(feature = "gpio"))]
-#[get("/api/status", rank = 2)]
+#[get("/status", rank = 2)]
 async fn get_status_user(_user: jwt::User) -> Result<Json<MinidspStatus>, BadRequest<String>> {
     let minidsp_status = minidsp::get_minidsp_status().map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(minidsp_status))
 }
 
-#[post("/api/volume/up")]
+#[post("/volume/up")]
 async fn set_volume_up_anon(
     _anon: anonymous::Anonymous,
 ) -> Result<Json<Success>, BadRequest<String>> {
     minidsp::increment_minidsp_vol(VOLUME_INCREMENT).map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(Success { success: true }))
 }
-#[get("/api/volume/up", rank = 2)]
+#[get("/volume/up", rank = 2)]
 async fn set_volume_up_user(_user: jwt::User) -> Result<Json<Success>, BadRequest<String>> {
     minidsp::increment_minidsp_vol(VOLUME_INCREMENT).map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(Success { success: true }))
 }
 
-#[post("/api/volume/down")]
+#[post("/volume/down")]
 async fn set_volume_down_anon(
     _anon: anonymous::Anonymous,
 ) -> Result<Json<Success>, BadRequest<String>> {
     minidsp::increment_minidsp_vol(-VOLUME_INCREMENT).map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(Success { success: true }))
 }
-#[get("/api/volume/down", rank = 2)]
+#[get("/volume/down", rank = 2)]
 async fn set_volume_down_user(_user: jwt::User) -> Result<Json<Success>, BadRequest<String>> {
     minidsp::increment_minidsp_vol(-VOLUME_INCREMENT).map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(Success { success: true }))
 }
 
-#[post("/api/preset/<preset>")]
+#[post("/preset/<preset>")]
 async fn set_preset_anon(
     _anon: anonymous::Anonymous,
     preset: u8,
@@ -376,7 +376,7 @@ async fn set_preset_anon(
     minidsp::set_minidsp_preset(preset).map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(Success { success: true }))
 }
-#[get("/api/preset/<preset>", rank = 2)]
+#[get("/preset/<preset>", rank = 2)]
 async fn set_preset_user(
     _user: jwt::User,
     preset: u8,
@@ -385,7 +385,7 @@ async fn set_preset_user(
     Ok(Json(Success { success: true }))
 }
 
-#[post("/api/source/<source>")]
+#[post("/source/<source>")]
 async fn set_source_anon(
     _anon: anonymous::Anonymous,
     source: &str,
@@ -393,7 +393,7 @@ async fn set_source_anon(
     minidsp::set_minidsp_source(source).map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(Success { success: true }))
 }
-#[get("/api/source/<source>", rank = 2)]
+#[get("/source/<source>", rank = 2)]
 async fn set_source_user(
     _user: jwt::User,
     source: &str,
@@ -403,7 +403,7 @@ async fn set_source_user(
 }
 
 #[cfg(feature = "gpio")]
-#[post("/api/power/<power>")]
+#[post("/power/<power>")]
 async fn set_power_anon(
     _anon: anonymous::Anonymous,
     gpio: &State<GpioPin>,
@@ -420,7 +420,7 @@ async fn set_power_anon(
     Ok(Json(Success { success: true }))
 }
 #[cfg(feature = "gpio")]
-#[get("/api/power/<power>", rank = 2)]
+#[get("/power/<power>", rank = 2)]
 async fn set_power_user(
     _user: jwt::User,
     gpio: &State<GpioPin>,

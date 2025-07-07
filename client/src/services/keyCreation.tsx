@@ -43,33 +43,6 @@ export async function base64ToBuffer(privateString: string) {
   );
   return await response.arrayBuffer();
 }
-/*
-export const sign = async (stringToSign: string, privateKey: string) => {
-  const privateKeyBuffer = await base64ToBuffer(privateKey);
-  const privateKeyCrypto = await window.crypto.subtle.importKey(
-    "pkcs8",
-    privateKeyBuffer,
-    {
-      name: "RSA-PSS",
-      hash: "SHA-256",
-    },
-    false,
-    ["sign"]
-  );
-  let enc = new TextEncoder();
-  const thingToSign = enc.encode(stringToSign);
-  let signature = await window.crypto.subtle.sign(
-    {
-      name: "RSA-PSS",
-      saltLength: 32,
-    },
-    privateKeyCrypto,
-    thingToSign
-  );
-  return bufferToBase64(signature);
-};*/
-
-
 
 
 interface Claims {
@@ -78,12 +51,6 @@ interface Claims {
 }
 /**
  * Creates and signs a JWT using an RSA private key with SubtleCrypto.
- *
- * @param {CryptoKey} privateKey - The CryptoKey object representing the RSA private key.
- * @param {object} claims - The payload (claims) for the JWT.
- * @param {string} audience - The intended recipient of the token (e.g., your resource server URL).
- * @param {string} issuer - The issuer of the token (e.g., your authorization server URL).
- * @returns {Promise<string>} A promise that resolves with the signed JWT string.
  */
 export async function generateJwt(privateKey: string, claims: Claims, audience: string, issuer: string, minutes_before_expiry: number = 30) {
   const now = Math.floor(Date.now() / 1000); // Current Unix timestamp in seconds
