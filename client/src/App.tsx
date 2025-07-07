@@ -187,11 +187,7 @@ function App() {
     if (requireAuth) {
       const userId = getUserId();
       const privateKey = getPrivateKey() || "";
-      const claims = {
-        id: userId,
-        roles: []
-      };
-      return generateJwt(privateKey, claims, process.env.REACT_APP_AUDIENCE || "", "shouldnotmatter").then((jwt: string) => {
+      return generateJwt(privateKey, userId, process.env.REACT_APP_AUDIENCE || "", "shouldnotmatter").then((jwt: string) => {
         userDispatch({
           type: SetUser.UPDATE,
           value: {

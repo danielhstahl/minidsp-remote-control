@@ -6,7 +6,7 @@ import { savePrivateKey, saveUserId } from "../state/persistance";
 import { SetUser, useUserParams } from "../state/userActions";
 import KeyIcon from "@mui/icons-material/Key";
 import { addAuthHeaders, createUser, updateUser, UserId } from "../services/api";
-import { generateKeyPair, sign } from "../services/keyCreation";
+import { generateKeyPair, generateJwt } from "../services/keyCreation";
 import { useAuthSettingsParams } from "../state/credActions";
 
 interface MessageHandle {
@@ -17,11 +17,8 @@ const GenerateCerts = () => {
   const [isLoading, setIsLoading] = useState(false);
   const {
     dispatch: userDispatch,
-    state: { userId, signature: originalSignature },
+    state: { userId, jwt: originalJwt },
   } = useUserParams();
-  const {
-    state: { stringToSign },
-  } = useAuthSettingsParams();
   const [message, setMessage] = useState<MessageHandle>({
     isMessageOpen: false,
     messageType: "success",
@@ -36,11 +33,11 @@ const GenerateCerts = () => {
     setIsLoading(true);
     const { publicKey, privateKey } = await generateKeyPair()
     savePrivateKey(privateKey); //local storage
-    const signature = await sign(stringToSign, privateKey)
+
 
     const userPromise: Promise<UserId> = userId === "-1" ?
       //no user yet, so create one
-      createUser(addAuthHeaders(userId, originalSignature), publicKey).then(
+      createUser(addAuthHeaders(userId, originalJwt), publicKey).then(
         (user) => {
           saveUserId(user.userId)
           return user
@@ -48,18 +45,21 @@ const GenerateCerts = () => {
       ) :
       //user exists, so update
       updateUser(
-        addAuthHeaders(userId, originalSignature),
+        addAuthHeaders(userId, originalJwt),
         publicKey,
         userId,
       )
     await userPromise.then((user) => {
-      userDispatch({
-        type: SetUser.UPDATE,
-        value: {
-          ...user,
-          signature,
-        },
+      return generateJwt(privateKey, user.userId, process.env.REACT_APP_AUDIENCE || "", "shouldnotmatter").then((jwt: string) => {
+        return userDispatch({
+          type: SetUser.UPDATE,
+          value: {
+            ...user,
+            jwt,
+          },
+        })
       })
+    }).then(() => {
       setMessage({
         isMessageOpen: true,
         messageType: "success",
@@ -90,7 +90,7 @@ const GenerateCerts = () => {
           },
         }}
       >
-        {originalSignature !== "" ? "Regenerate RSA Key Pair" : "Create RSA Key Pair"}
+        {originalJwt !== "" ? "Regenerate RSA Key Pair" : "Create RSA Key Pair"}
       </Button>
       <Message
         open={message.isMessageOpen}

@@ -52,10 +52,13 @@ interface Claims {
 /**
  * Creates and signs a JWT using an RSA private key with SubtleCrypto.
  */
-export async function generateJwt(privateKey: string, claims: Claims, audience: string, issuer: string, minutes_before_expiry: number = 30) {
+export async function generateJwt(privateKey: string, userId: string, audience: string, issuer: string, minutes_before_expiry: number = 30) {
   const now = Math.floor(Date.now() / 1000); // Current Unix timestamp in seconds
   const expiration = now + (minutes_before_expiry * 60);
-
+  const claims = {
+    id: userId,
+    roles: []
+  };
   // Standard JWT header
   const header = {
     alg: "RS256", // Algorithm: RSA-SHA256
