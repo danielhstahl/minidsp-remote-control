@@ -9,7 +9,7 @@ import {
 describe("userReducer", () => {
   const initialState = {
     userId: "-1",
-    signature: "",
+    jwt: "",
   };
 
   it("should return initial state when called with unknown action", () => {
@@ -25,7 +25,7 @@ describe("userReducer", () => {
   it("should update state when called with UPDATE action", () => {
     const newState = {
       userId: "2",
-      signature: "signature",
+      jwt: "signature",
     };
 
     const result = userReducer(initialState, {
@@ -53,7 +53,7 @@ describe("UserProvider and useProvider", () => {
     const element = getByTestId("test");
     expect(JSON.parse(element.textContent!)).toEqual({
       userId: "-1",
-      signature: "",
+      jwt: "",
     });
   });
 });
