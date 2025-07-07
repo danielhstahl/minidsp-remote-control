@@ -13,16 +13,15 @@ mod jwt;
 mod minidsp;
 mod sslcert;
 use crate::anonymous::Anonymous;
-use crate::db::{DbUser, Settings};
 use crate::minidsp::MinidspStatus;
 use rocket::fairing::{self, AdHoc};
 use rocket::response::status::BadRequest;
 use rocket::response::stream::ReaderStream;
-use rocket::serde::{Serialize, json, json::Json};
+use rocket::serde::{Serialize, json::Json};
 use rocket::tokio::fs::File;
 use rocket::{Build, Rocket, State};
+use rocket_db_pools::Database;
 use rocket_db_pools::sqlx;
-use rocket_db_pools::{Connection, Database};
 use std::env;
 
 #[cfg(feature = "gpio")]
@@ -41,6 +40,9 @@ struct GpioPin {
 struct Domain {
     domain_name: String,
 }
+struct SSLPath {
+    path: String,
+}
 
 #[derive(Debug, Serialize)]
 #[serde(crate = "rocket::serde")]
@@ -48,7 +50,6 @@ struct Success {
     success: bool,
 }
 
-const ROOT_PEM_PATH: &'static str = "/home/minidsp/ssl/rootCA.pem";
 const VOLUME_INCREMENT: f32 = 0.5;
 
 async fn run_migrations(rocket: Rocket<Build>) -> fairing::Result {
@@ -72,6 +73,11 @@ fn rocket() -> _ {
     let domain = match env::var("DOMAIN") {
         Ok(v) => Domain { domain_name: v },
         Err(_e) => panic!("Env variable DOMAIN needs to be defined!"),
+    };
+
+    let ssl_path = match env::var("SSL_PATH") {
+        Ok(v) => SSLPath { path: v },
+        Err(_e) => panic!("Env variable SSL_PATH needs to be defined!"),
     };
 
     let mut base_routes = routes![
@@ -127,6 +133,7 @@ fn rocket() -> _ {
         .attach(MinidspDb::init())
         .attach(AdHoc::try_on_ignite("DB Migrations", run_migrations))
         .manage(domain)
+        .manage(ssl_path)
         .manage(gpio_pin)
         .mount("/", base_routes)
 }
@@ -137,8 +144,9 @@ fn index() -> &'static str {
 }
 
 #[get("/api/cert")]
-async fn root_pem() -> std::io::Result<ReaderStream![File]> {
-    let file = File::open(ROOT_PEM_PATH).await?;
+async fn root_pem(ssl_path: &State<SSLPath>) -> std::io::Result<ReaderStream![File]> {
+    let root_pem_path = format!("{}/rootCA.pem", ssl_path.path);
+    let file = File::open(root_pem_path).await?;
     Ok(ReaderStream::one(file))
 }
 
@@ -256,16 +264,20 @@ async fn update_user_user(
 async fn regenerate_cert_anon(
     _anon: anonymous::Anonymous,
     domain: &State<Domain>,
+    ssl_path: &State<SSLPath>,
 ) -> Result<Json<Success>, BadRequest<String>> {
-    sslcert::generate_ca_and_entity(&domain.domain_name).map_err(|e| BadRequest(e.to_string()))?;
+    sslcert::generate_ca_and_entity(&domain.domain_name, &ssl_path.path)
+        .map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(Success { success: true }))
 }
 #[post("/api/cert", rank = 2)]
 async fn regenerate_cert_user(
     _user: jwt::User,
     domain: &State<Domain>,
+    ssl_path: &State<SSLPath>,
 ) -> Result<Json<Success>, BadRequest<String>> {
-    sslcert::generate_ca_and_entity(&domain.domain_name).map_err(|e| BadRequest(e.to_string()))?;
+    sslcert::generate_ca_and_entity(&domain.domain_name, &ssl_path.path)
+        .map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(Success { success: true }))
 }
 #[cfg(feature = "gpio")]

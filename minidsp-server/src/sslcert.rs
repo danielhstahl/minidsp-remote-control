@@ -6,16 +6,28 @@ use std::error;
 use std::fs;
 use time::{Duration, OffsetDateTime};
 
-pub fn generate_ca_and_entity(domain_name: &str) -> Result<(), Box<dyn error::Error>> {
+pub fn generate_ca_and_entity(
+    domain_name: &str,
+    folder_path: &str,
+) -> Result<(), Box<dyn error::Error>> {
     let (ca, issuer) = new_ca()?;
     let (end_entity, key_pair) = new_end_entity(&issuer, domain_name)?;
     let end_entity_pem = end_entity.pem();
     let ca_cert_pem = ca.pem();
     //todo, actually return these and make this function not have IO
-    fs::create_dir_all("certs/")?;
-    fs::write("certs/rootCA.pem", ca_cert_pem.as_bytes())?;
-    fs::write("certs/device.crt", end_entity_pem.as_bytes())?;
-    fs::write("certs/device.key", key_pair.serialize_pem())?;
+    fs::create_dir_all(format!("{}/", folder_path))?;
+    fs::write(
+        format!("{}/rootCA.pem", folder_path),
+        ca_cert_pem.as_bytes(),
+    )?;
+    fs::write(
+        format!("{}/device.crt", folder_path),
+        end_entity_pem.as_bytes(),
+    )?;
+    fs::write(
+        format!("{}/device.key", folder_path),
+        key_pair.serialize_pem(),
+    )?;
     Ok(())
 }
 

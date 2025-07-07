@@ -148,6 +148,35 @@ mod tests {
     use base64::engine::Engine as _;
     use base64::engine::general_purpose::STANDARD as BASE64;
     #[test]
+    fn it_returns_err_if_header_does_not_start_with_basic() {
+        let public_key = BASE64
+            .decode(BASE64.encode(
+                r#"
+Goodbye
+        "#,
+            ))
+            .unwrap();
+        let result = jwt_auth("hello", &public_key, false, "someidentity");
+        assert!(result.is_err());
+    }
+    #[test]
+    fn it_returns_err_if_header_does_not_match() {
+        let public_key = BASE64
+            .decode(BASE64.encode(
+                r#"
+Goodbye
+        "#,
+            ))
+            .unwrap();
+        let result = jwt_auth(
+            "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9",
+            &public_key,
+            false,
+            "someidentity",
+        );
+        assert!(result.is_err());
+    }
+    #[test]
     fn authorizes_with_valid_jwt() {
         let public_key = BASE64
             .decode(BASE64.encode(

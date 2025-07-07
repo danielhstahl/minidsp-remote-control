@@ -1,6 +1,5 @@
 use rocket::serde::{Deserialize, Serialize, json};
 use std::error;
-use std::io;
 use std::process::Command;
 
 #[derive(Deserialize)]
