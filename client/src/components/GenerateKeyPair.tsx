@@ -7,7 +7,6 @@ import { SetUser, useUserParams } from "../state/userActions";
 import KeyIcon from "@mui/icons-material/Key";
 import { addAuthHeaders, createUser, updateUser, UserId } from "../services/api";
 import { generateKeyPair, generateJwt } from "../services/keyCreation";
-import { useAuthSettingsParams } from "../state/credActions";
 
 interface MessageHandle {
   isMessageOpen: boolean;

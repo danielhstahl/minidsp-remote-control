@@ -44,11 +44,6 @@ export async function base64ToBuffer(privateString: string) {
   return await response.arrayBuffer();
 }
 
-
-interface Claims {
-  id: string;
-  roles: string[]
-}
 /**
  * Creates and signs a JWT using an RSA private key with SubtleCrypto.
  */
