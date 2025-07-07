@@ -118,7 +118,7 @@ impl<'r> FromRequest<'r> for User {
         };
 
         let audience = match req.rocket().state::<Domain>() {
-            Some(domain) => &domain.domain_name,
+            Some(domain) => format!("https://{}", &domain.domain_name),
             None => {
                 return Outcome::Error((Status::Unauthorized, ()));
             }

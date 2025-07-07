@@ -64,6 +64,7 @@ jobs:
       contents: write # release changes require contents write
     env:
       NODE_OPTIONS: "--max_old_space_size=4096"
+      REACT_APP_AUDIENCE: https://raspberrypi.local
     steps:
       - uses: actions/checkout@v4
 
