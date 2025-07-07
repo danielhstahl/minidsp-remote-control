@@ -15,8 +15,7 @@ describe("NoUserNotification", () => {
           type: SetKeys.UPDATE,
           value: {
             key: 0,
-            requireAuth: true,
-            stringToSign: "",
+            requireAuth: true
           },
         });
       }, [authDispatch]);

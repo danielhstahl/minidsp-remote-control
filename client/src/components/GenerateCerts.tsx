@@ -13,7 +13,7 @@ interface MessageHandle {
 const GenerateCerts = () => {
   const [isLoading, setIsLoading] = useState(false);
   const {
-    state: { userId, signature },
+    state: { userId, jwt },
   } = useUserParams();
   const [message, setMessage] = useState<MessageHandle>({
     isMessageOpen: false,
@@ -27,7 +27,7 @@ const GenerateCerts = () => {
   };
   const handleCertHOF = () => {
     setIsLoading(true);
-    generateCert(addAuthHeaders(userId, signature))
+    generateCert(addAuthHeaders(userId, jwt))
       .then(() => {
         setMessage({
           isMessageOpen: true,

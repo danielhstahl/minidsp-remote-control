@@ -13,17 +13,17 @@ const AuthSwitch = ({ mode }: Props) => {
     state: { requireAuth, ...rest },
   } = useAuthSettingsParams();
   const {
-    state: { signature, userId },
+    state: { jwt, userId },
   } = useUserParams();
 
   return (
     <Switch
-      disabled={signature === ""}
+      disabled={jwt === ""}
       color={applyThemePrimaryType(mode)}
       checked={requireAuth}
       onChange={(e) => {
         const switchValue = e.target.checked;
-        setAuthSettings(addAuthHeaders(userId, signature), switchValue)
+        setAuthSettings(addAuthHeaders(userId, jwt), switchValue)
           .then((result) => {
             authDispatch({
               type: SetKeys.UPDATE,
