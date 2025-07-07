@@ -45,7 +45,7 @@ import { ColorTheme, DEFAULT_COLOR_THEME, themes } from "./styles/modes";
 import Settings from "./components/Settings";
 import SSLNotification from "./components/SSLNotification";
 import NoUserNotification from "./components/NoUserNotification";
-import { sign } from "./services/keyCreation";
+import { generateJwt } from "./services/keyCreation";
 // custom hook for parameter updates
 function useParameterUpdates(
   miniDspDispatch: (_: Action) => void,
@@ -112,14 +112,13 @@ function App() {
   /// Params state management
   const { dispatch: miniDspDispatch, state: miniDspParams } =
     useMiniDspParams();
-
   const {
-    state: { certInfo },
+    state: { certInfo, requireAuth },
     dispatch: authDispatch,
   } = useAuthSettingsParams();
 
   const {
-    state: { userId, signature },
+    state: { userId, jwt },
   } = useUserParams();
 
   const holdRefresh = useRef<undefined | ReturnType<typeof setTimeout>>(
@@ -128,10 +127,10 @@ function App() {
 
   const getParams = useCallback(
     () =>
-      getStatus(addAuthHeaders(userId, signature)).then((status) =>
+      getStatus(addAuthHeaders(userId, jwt)).then((status) =>
         miniDspDispatch({ type: MinidspAction.UPDATE, value: status }),
       ),
-    [miniDspDispatch, userId, signature],
+    [miniDspDispatch, userId, jwt],
   );
 
   const getParamsLater = useCallback(() => {
@@ -143,7 +142,7 @@ function App() {
   const updates = useParameterUpdates(
     miniDspDispatch,
     miniDspParams,
-    addAuthHeaders(userId, signature),
+    addAuthHeaders(userId, jwt),
     holdRefresh,
   );
 
@@ -180,23 +179,25 @@ function App() {
           type: SetKeys.UPDATE,
           value: result,
         });
-        return result.stringToSign;
       })
-      .then((stringToSign: string) => {
-        const privateKey = getPrivateKey() || "";
-        return sign(stringToSign, privateKey);
-      })
-      .then((signature) => {
-        const userId = getUserId();
+  }, [authDispatch]);
+
+  const TWENTY_FIVE_MINUTES = 1500000
+  setTimeout(() => {
+    if (requireAuth) {
+      const userId = getUserId();
+      const privateKey = getPrivateKey() || "";
+      return generateJwt(privateKey, userId, process.env.REACT_APP_AUDIENCE || "", "shouldnotmatter").then((jwt: string) => {
         userDispatch({
           type: SetUser.UPDATE,
           value: {
             userId,
-            signature,
+            jwt,
           },
         });
       });
-  }, [authDispatch, userDispatch]);
+    }
+  }, TWENTY_FIVE_MINUTES) //regenerate every 25 minutes since it has an expiration of 30 minutes
 
   return (
     <ThemeProvider theme={theme}>
@@ -242,7 +243,7 @@ function App() {
           {certInfo && (
             <SSLNotification sslInfo={certInfo} currentDate={new Date()} />
           )}
-          <NoUserNotification signature={signature} />
+          <NoUserNotification signature={jwt} />
         </Box>
       </Box>
     </ThemeProvider>

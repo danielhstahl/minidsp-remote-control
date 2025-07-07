@@ -15,6 +15,48 @@ jobs:
 
     #- name: test
     #  run: npm test
+  build_rust:
+    name: release ${{ matrix.target }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # release changes require contents write
+    defaults:
+      run:
+        working-directory: ./minidsp-server
+    strategy:
+      fail-fast: false
+      matrix:
+        target: 
+        - x86_64-unknown-linux-musl
+        - armv7-unknown-linux-gnueabihf
+        - aarch64-unknown-linux-gnu
+        feature_flag:
+        - --features gpio
+        - ""
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        run: |
+          curl -L https://github.com/cross-rs/cross/releases/download/v0.2.5/cross-x86_64-unknown-linux-gnu.tar.gz -o cross-x86_64-unknown-linux-gnu.tar.gz
+          tar -xvzf cross-x86_64-unknown-linux-gnu.tar.gz
+          rustup update stable
+
+      - name: Compile
+        run: |
+          ./cross build --release --target ${{ matrix.target }} ${{ matrix.feature_flag }} 
+        env:
+          SQLX_OFFLINE: true # needed to keep it from trying to connect to a database
+
+      - name: Release
+        run: |
+          cd target/${{ matrix.target }}/release  
+          tar czvf ../../../minidsp-server-${{ matrix.target }}${{ matrix.feature_flag != '' && '-gpio' || ''}}.tar.gz minidsp-server
+        
+      - name: upload artifact
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} minidsp-server-${{ matrix.target }}${{ matrix.feature_flag != '' && '-gpio' || ''}}.tar.gz
 
   build_ui:
     runs-on: ubuntu-latest
@@ -22,6 +64,7 @@ jobs:
       contents: write # release changes require contents write
     env:
       NODE_OPTIONS: "--max_old_space_size=4096"
+      REACT_APP_AUDIENCE: https://raspberrypi.local
     steps:
       - uses: actions/checkout@v4
 

@@ -1,0 +1,2 @@
+[default.databases.minidsp]
+url = "minidsp.sqlite"

@@ -43,20 +43,19 @@ export interface SSLCert {
 export interface AuthSettings {
   key: number;
   requireAuth: boolean;
-  stringToSign: string;
   certInfo?: SSLCert;
 }
 export interface UserId {
   userId: string;
 }
 export interface User extends UserId {
-  signature: string;
+  jwt: string;
 }
 
-export const addAuthHeaders = (userId: string, signature: string) => {
+export const addAuthHeaders = (userId: string, jwt: string) => {
   return {
     "x-user-id": userId,
-    authorization: `Bearer ${signature}`,
+    authorization: `Bearer ${jwt}`,
   };
 };
 export const addBasicAuthHeader = (code: string) => {
@@ -102,14 +101,13 @@ export const setSource = (headers: LocalHeaders, source: Source) => {
 export const getAuthSettings: (
   headers: LocalHeaders,
 ) => Promise<AuthSettings> = (headers: LocalHeaders) => {
-  return fetch(`/api/auth_settings`, { headers })
+  return fetch(`/api/auth/settings`, { headers })
     .then((v) => v.json())
     .then((fullResult) => {
-      const { requireAuth, key, stringToSign, ...rest } = fullResult;
+      const { requireAuth, key, ...rest } = fullResult;
       return {
         requireAuth,
         key,
-        stringToSign,
         certInfo: {
           ...rest,
           validFromDate: new Date(rest.validFromDate),
@@ -126,13 +124,13 @@ export const setAuthSettings: (
   localHeaders: LocalHeaders,
   requireAuth: boolean,
 ) => {
-  const headers = { ...localHeaders, ...jsonHeaders };
-  return fetch(`/api/auth_settings`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ requireAuth }),
-  }).then((v) => v.json());
-};
+    const headers = { ...localHeaders, ...jsonHeaders };
+    return fetch(`/api/auth_settings`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ requireAuth }),
+    }).then((v) => v.json());
+  };
 
 export const createUser: (
   headers: LocalHeaders,
@@ -155,20 +153,20 @@ export const updateUser: (
   publicKey: string,
   userId: string,
 ) => {
-  const headers = { ...localHeaders, ...jsonHeaders };
-  return fetch(`/api/user/${userId}`, {
-    method: "PATCH",
-    headers,
-    body: JSON.stringify({ publicKey }),
-  }).then((v) => v.json());
-};
+    const headers = { ...localHeaders, ...jsonHeaders };
+    return fetch(`/api/user/${userId}`, {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify({ publicKey }),
+    }).then((v) => v.json());
+  };
 
 export const generateCert = (headers: LocalHeaders) => {
-  return fetch(`/api/regenerate_cert`, { method: "POST", headers });
+  return fetch(`/api/cert`, { method: "POST", headers });
 };
 export const getCaPem = (headers: LocalHeaders) => {
   return (
-    fetch(`/api/root_pem`, {
+    fetch(`/api/cert`, {
       headers: {
         "Content-Disposition": "attachment; filename=ca.crt",
         ...headers,

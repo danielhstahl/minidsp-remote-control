@@ -16,8 +16,7 @@ type Action = {
 
 const initialState: AuthSettings = {
   key: 0,
-  requireAuth: false,
-  stringToSign: "",
+  requireAuth: false
 };
 
 export const authSettingsReducer = (state: AuthSettings, action: Action) => {
@@ -31,7 +30,7 @@ export const authSettingsReducer = (state: AuthSettings, action: Action) => {
 
 const AuthSettingsContext = createContext({
   state: initialState,
-  dispatch: (_: Action) => {},
+  dispatch: (_: Action) => { },
 });
 
 export const AuthSettingsProvider = ({ children }: PropsWithChildren) => {

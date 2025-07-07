@@ -11,9 +11,11 @@ StartLimitBurst=10
 Type=simple
 Environment="COMPARE_STRING=STRING_TO_USE_IF_PRIVATE_KEY_IS_LOST"
 Environment="USE_RELAY=1"
-Environment="RELAY_PIN=533"
+Environment="RELAY_PIN=21"
 Environment="DOMAIN=HOSTNAME"
 Environment="DB_PATH=/home/minidsp/db/minidsp"
+Environment="SSL_PATH=/home/minidsp/ssl"
+Environment=ROCKET_DATABASES='{minidsp={url="/home/minidsp/db/minidsp/minidsp.sqlite"}}'
 ExecStart=node /usr/bin/minidsp-ui/index.ts
 Restart=always
 RestartSec=1

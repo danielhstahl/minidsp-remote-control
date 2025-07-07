@@ -6,10 +6,10 @@ import { getCaPem } from "../services/api";
 
 const DownloadCaPem = () => {
   const {
-    state: { userId, signature },
+    state: { userId, jwt },
   } = useUserParams();
   const getCaPemHOF = () => {
-    return getCaPem(addAuthHeaders(userId, signature));
+    return getCaPem(addAuthHeaders(userId, jwt));
   };
   return (
     <Button
