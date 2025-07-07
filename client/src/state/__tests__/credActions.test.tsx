@@ -64,7 +64,6 @@ describe("AuthSettingsProvider and useAuthParams", () => {
     expect(JSON.parse(element.textContent!)).toEqual({
       key: 0,
       requireAuth: false,
-      stringToSign: "",
     });
   });
 });
