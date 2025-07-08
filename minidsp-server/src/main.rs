@@ -54,7 +54,7 @@ const VOLUME_INCREMENT: f32 = 0.5;
 
 async fn run_migrations(rocket: Rocket<Build>) -> fairing::Result {
     match MinidspDb::fetch(&rocket) {
-        Some(db) => match sqlx::migrate!("./migrations").run(&**db).await {
+        Some(db) => match sqlx::migrate!("db/migrations").run(&**db).await {
             Ok(_) => {
                 db::set_default_settings(&**db).await.unwrap();
                 Ok(rocket)
