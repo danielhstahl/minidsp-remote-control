@@ -290,7 +290,7 @@ pub struct FullStatus {
 }
 
 #[cfg(feature = "gpio")]
-#[post("/status")]
+#[get("/status")]
 async fn get_status_anon(
     _anon: anonymous::Anonymous,
     gpio: &State<GpioPin>,
@@ -328,7 +328,7 @@ async fn get_status_user(
 }
 
 #[cfg(not(feature = "gpio"))]
-#[post("/status")]
+#[get("/status")]
 async fn get_status_anon(
     _anon: anonymous::Anonymous,
 ) -> Result<Json<MinidspStatus>, BadRequest<String>> {
@@ -349,7 +349,7 @@ async fn set_volume_up_anon(
     minidsp::increment_minidsp_vol(VOLUME_INCREMENT).map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(Success { success: true }))
 }
-#[get("/volume/up", rank = 2)]
+#[post("/volume/up", rank = 2)]
 async fn set_volume_up_user(_user: jwt::User) -> Result<Json<Success>, BadRequest<String>> {
     minidsp::increment_minidsp_vol(VOLUME_INCREMENT).map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(Success { success: true }))
@@ -362,7 +362,7 @@ async fn set_volume_down_anon(
     minidsp::increment_minidsp_vol(-VOLUME_INCREMENT).map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(Success { success: true }))
 }
-#[get("/volume/down", rank = 2)]
+#[post("/volume/down", rank = 2)]
 async fn set_volume_down_user(_user: jwt::User) -> Result<Json<Success>, BadRequest<String>> {
     minidsp::increment_minidsp_vol(-VOLUME_INCREMENT).map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(Success { success: true }))
@@ -376,7 +376,7 @@ async fn set_preset_anon(
     minidsp::set_minidsp_preset(preset).map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(Success { success: true }))
 }
-#[get("/preset/<preset>", rank = 2)]
+#[post("/preset/<preset>", rank = 2)]
 async fn set_preset_user(
     _user: jwt::User,
     preset: u8,
@@ -393,7 +393,7 @@ async fn set_source_anon(
     minidsp::set_minidsp_source(source).map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(Success { success: true }))
 }
-#[get("/source/<source>", rank = 2)]
+#[post("/source/<source>", rank = 2)]
 async fn set_source_user(
     _user: jwt::User,
     source: &str,
@@ -420,7 +420,7 @@ async fn set_power_anon(
     Ok(Json(Success { success: true }))
 }
 #[cfg(feature = "gpio")]
-#[get("/power/<power>", rank = 2)]
+#[post("/power/<power>", rank = 2)]
 async fn set_power_user(
     _user: jwt::User,
     gpio: &State<GpioPin>,
