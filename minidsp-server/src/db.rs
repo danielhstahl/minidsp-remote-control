@@ -5,11 +5,12 @@ use rocket_db_pools::sqlx::SqlitePool;
 #[derive(Serialize, Deserialize, sqlx::FromRow)]
 #[serde(crate = "rocket::serde", rename_all = "camelCase")]
 pub struct DbUser {
+    #[serde(rename = "userId")]
     pub key: i64,
     pub public_key: String,
 }
 
-#[derive(Deserialize, sqlx::FromRow)]
+#[derive(Deserialize)]
 #[serde(crate = "rocket::serde", rename_all = "camelCase")]
 pub struct UserPublicKey {
     pub public_key: String,
@@ -19,6 +20,12 @@ pub struct UserPublicKey {
 #[serde(crate = "rocket::serde", rename_all = "camelCase")]
 pub struct Settings {
     pub key: i64,
+    pub require_auth: bool,
+}
+
+#[derive(Deserialize)]
+#[serde(crate = "rocket::serde", rename_all = "camelCase")]
+pub struct ClientSettings {
     pub require_auth: bool,
 }
 //public key should come in base64 encoded

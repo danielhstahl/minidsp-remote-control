@@ -11,7 +11,7 @@ export const getColorTheme = () =>
 export const savePrivateKey = (privateKey: string) =>
   localStorage.setItem(RSA_KEY, privateKey);
 
-export const getPrivateKey = () => localStorage.getItem(RSA_KEY) as string;
+export const getPrivateKey = () => localStorage.getItem(RSA_KEY) || "" as string;
 
 export const saveUserId = (userId: string) =>
   localStorage.setItem(USER_ID_KEY, userId);

@@ -32,7 +32,6 @@ impl<'r> FromRequest<'r> for Anonymous {
         if !settings.require_auth {
             return Outcome::Success(Anonymous {});
         }
-
-        Outcome::Error((Status::Unauthorized, ()))
+        Outcome::Forward(Status::Unauthorized)
     }
 }

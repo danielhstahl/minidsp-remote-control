@@ -125,7 +125,7 @@ export const setAuthSettings: (
   requireAuth: boolean,
 ) => {
     const headers = { ...localHeaders, ...jsonHeaders };
-    return fetch(`/api/auth_settings`, {
+    return fetch(`/api/auth/settings`, {
       method: "POST",
       headers,
       body: JSON.stringify({ requireAuth }),

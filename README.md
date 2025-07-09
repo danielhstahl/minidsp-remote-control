@@ -23,15 +23,7 @@ Server is a simple NodeJS server.  It makes call directly to the underlying bina
 ### Rust prep
 In `minidsp-server`:
 
-`DATABASE_URL="sqlite:$(pwd)/minidsp.sqlite" cargo sqlx prepare`
-
-//in vscode settings.json
-{
-    "rust-analyzer.cargo.target": "aarch64-unknown-linux-gnu",
-    "rust-analyzer.cargo.features": [
-        "gpio"
-    ]
-}
+`DATABASE_URL="sqlite:$(pwd)/db/minidsp.sqlite" cargo sqlx prepare`
 
 
 ## Installing/running
