@@ -162,7 +162,7 @@ async fn auth_settings(db: &MinidspDb) -> Result<Json<db::Settings>, BadRequest<
 #[post("/auth/settings", format = "application/json", data = "<settings>")]
 async fn update_settings_anon(
     db: &MinidspDb,
-    settings: Json<db::Settings>,
+    settings: Json<db::ClientSettings>,
     _anon: Anonymous,
 ) -> Result<Json<db::Settings>, BadRequest<String>> {
     let settings = db::update_settings(&**db, settings.require_auth)
@@ -178,7 +178,7 @@ async fn update_settings_anon(
 )]
 async fn update_settings_user(
     db: &MinidspDb,
-    settings: Json<db::Settings>,
+    settings: Json<db::ClientSettings>,
     _user: jwt::User,
 ) -> Result<Json<db::Settings>, BadRequest<String>> {
     let settings = db::update_settings(&**db, settings.require_auth)
@@ -194,7 +194,7 @@ async fn update_settings_user(
 )]
 async fn update_settings_basic(
     db: &MinidspDb,
-    settings: Json<db::Settings>,
+    settings: Json<db::ClientSettings>,
     _basic: basic::Basic,
 ) -> Result<Json<db::Settings>, BadRequest<String>> {
     let settings = db::update_settings(&**db, settings.require_auth)

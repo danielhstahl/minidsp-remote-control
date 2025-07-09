@@ -107,3 +107,8 @@ export async function generateJwt(privateKey: string, userId: string, audience: 
   // Combine into final JWT
   return `${dataToSign}.${encodedSignature}`;
 }
+
+export const convertToPemKeyAndBase64 = (publicKey: string) => {
+  const splitKey = publicKey.match(/.{1,64}/g) || []
+  return btoa(`-----BEGIN PUBLIC KEY-----\n${splitKey.join('\n')}\n-----END PUBLIC KEY-----`)
+}

@@ -183,22 +183,24 @@ function App() {
   }, [authDispatch]);
 
   const TWENTY_FIVE_MINUTES = 1500000
-  setTimeout(() => {
-    if (requireAuth) {
-      const userId = getUserId();
-      const privateKey = getPrivateKey() || "";
-      return generateJwt(privateKey, userId, process.env.REACT_APP_AUDIENCE || "", "shouldnotmatter").then((jwt: string) => {
-        userDispatch({
-          type: SetUser.UPDATE,
-          value: {
-            userId,
-            jwt,
-          },
+  useEffect(() => {
+    (function refreshToken() {
+      if (requireAuth) {
+        const userId = getUserId();
+        const privateKey = getPrivateKey();
+        return generateJwt(privateKey, userId, process.env.REACT_APP_AUDIENCE || "", "shouldnotmatter").then((jwt: string) => {
+          userDispatch({
+            type: SetUser.UPDATE,
+            value: {
+              userId,
+              jwt,
+            },
+          });
         });
-      });
-    }
-  }, TWENTY_FIVE_MINUTES) //regenerate every 25 minutes since it has an expiration of 30 minutes
-
+      }
+      setTimeout(refreshToken, TWENTY_FIVE_MINUTES); //regenerate every 25 minutes since it has an expiration of 30 minutes
+    })();
+  }, [requireAuth, userDispatch])
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ display: "flex" }}>

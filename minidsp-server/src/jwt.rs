@@ -105,7 +105,7 @@ impl<'r> FromRequest<'r> for User {
         let public_key = match extract_public_key(req).await {
             Ok(key) => key,
             Err(_e) => {
-                return Outcome::Error((Status::Unauthorized, ()));
+                return Outcome::Forward(Status::Unauthorized);
             }
         };
 
@@ -113,20 +113,22 @@ impl<'r> FromRequest<'r> for User {
             Some(header) => header,
             None => {
                 // No Authorization header, so no token provided.
-                return Outcome::Error((Status::Unauthorized, ()));
+                return Outcome::Forward(Status::Unauthorized);
             }
         };
 
         let audience = match req.rocket().state::<Domain>() {
             Some(domain) => format!("https://{}", &domain.domain_name),
             None => {
-                return Outcome::Error((Status::Unauthorized, ()));
+                return Outcome::Forward(Status::Unauthorized);
             }
         };
-
         match jwt_auth(auth_header, &public_key, true, &audience) {
             Ok(user) => Outcome::Success(user),
-            Err(_e) => Outcome::Error((Status::Unauthorized, ())),
+            Err(_e) => {
+                println!("Errr: {}", _e);
+                Outcome::Forward(Status::Unauthorized)
+            }
         }
     }
 }

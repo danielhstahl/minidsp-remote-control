@@ -6,7 +6,7 @@ import { savePrivateKey, saveUserId } from "../state/persistance";
 import { SetUser, useUserParams } from "../state/userActions";
 import KeyIcon from "@mui/icons-material/Key";
 import { addAuthHeaders, createUser, updateUser, UserId } from "../services/api";
-import { generateKeyPair, generateJwt } from "../services/keyCreation";
+import { generateKeyPair, generateJwt, convertToPemKeyAndBase64 } from "../services/keyCreation";
 
 interface MessageHandle {
   isMessageOpen: boolean;
@@ -33,10 +33,11 @@ const GenerateCerts = () => {
     const { publicKey, privateKey } = await generateKeyPair()
     savePrivateKey(privateKey); //local storage
 
+    const base64FormattedPublicKey = convertToPemKeyAndBase64(publicKey)
 
     const userPromise: Promise<UserId> = userId === "-1" ?
       //no user yet, so create one
-      createUser(addAuthHeaders(userId, originalJwt), publicKey).then(
+      createUser(addAuthHeaders(userId, originalJwt), base64FormattedPublicKey).then(
         (user) => {
           saveUserId(user.userId)
           return user
@@ -45,15 +46,15 @@ const GenerateCerts = () => {
       //user exists, so update
       updateUser(
         addAuthHeaders(userId, originalJwt),
-        publicKey,
+        base64FormattedPublicKey,
         userId,
       )
-    await userPromise.then((user) => {
-      return generateJwt(privateKey, user.userId, process.env.REACT_APP_AUDIENCE || "", "shouldnotmatter").then((jwt: string) => {
+    await userPromise.then(({ userId }) => {
+      return generateJwt(privateKey, userId, process.env.REACT_APP_AUDIENCE || "", "shouldnotmatter").then((jwt: string) => {
         return userDispatch({
           type: SetUser.UPDATE,
           value: {
-            ...user,
+            userId,
             jwt,
           },
         })
