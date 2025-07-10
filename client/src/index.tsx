@@ -6,25 +6,41 @@ import reportWebVitals from "./reportWebVitals";
 import { MiniDspProvider } from "./state/minidspActions";
 import { AuthSettingsProvider } from "./state/credActions";
 import { UserProvider } from "./state/userActions";
-import { BrowserRouter, Routes, Route } from "react-router";
+import { ThemeProvider } from "./state/themeActions";
+import {
+  createBrowserRouter,
+  RouterProvider,
+} from "react-router";
+import { getAuthSettings } from "./services/api";
+import Settings from "./components/Settings";
+import { refreshToken } from "./utils/refresh";
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
+
+let router = createBrowserRouter([
+  {
+    path: "/",
+    Component: App,
+    loader: () => getAuthSettings({}).then(({ requireAuth, key, certInfo }) => refreshToken(requireAuth).then(user => ({
+      user,
+      authSettings: { requireAuth, key, certInfo }
+    }))),
+    children: [
+      { path: "settings", Component: Settings },
+    ]
+  }
+]);
+
 
 root.render(
   <React.StrictMode>
     <AuthSettingsProvider>
       <UserProvider>
         <MiniDspProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" index element={<App />} />
-              {
-                //does this force rerender??  If so, consider an alternative approach
-              }
-              <Route path="/settings" element={<App />} />
-            </Routes>
-          </BrowserRouter>
+          <ThemeProvider>
+            <RouterProvider router={router} />
+          </ThemeProvider>
         </MiniDspProvider>
       </UserProvider>
     </AuthSettingsProvider>

@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef, useMemo, useState } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 import "./App.css";
 import { ThemeProvider } from "@mui/material/styles";
 
@@ -18,12 +18,14 @@ import {
   setSource,
   volumeUp,
   volumeDown,
-  getAuthSettings,
   HtxWrite,
   addAuthHeaders,
   LocalHeaders,
+  User,
   AuthSettings,
 } from "./services/api";
+import { Outlet, useLoaderData } from "react-router";
+
 import StatusCard from "./components/PowerCard";
 import VolumeCard from "./components/VolumeCard";
 import AppBar from "./components/AppBar";
@@ -33,25 +35,25 @@ import {
   Action,
 } from "./state/minidspActions";
 import { SetKeys, useAuthSettingsParams } from "./state/credActions";
-import { SetUser, useUserParams } from "./state/userActions";
+import { useUserParams, SetUser } from "./state/userActions";
 import {
   saveColorTheme,
-  getColorTheme,
-  getPrivateKey,
-  getUserId,
 } from "./state/persistance";
 
-import { ColorTheme, DEFAULT_COLOR_THEME, themes } from "./styles/modes";
-import Settings from "./components/Settings";
+import { ColorTheme, themes } from "./styles/modes";
 import SSLNotification from "./components/SSLNotification";
 import NoUserNotification from "./components/NoUserNotification";
-import { generateJwt } from "./services/keyCreation";
+import { refreshStatus, refreshToken, useInterval } from "./utils/refresh";
+import { SetTheme, useThemeParams } from "./state/themeActions";
+interface InitialLoad {
+  user: User,
+  authSettings: AuthSettings
+}
 // custom hook for parameter updates
 function useParameterUpdates(
   miniDspDispatch: (_: Action) => void,
   miniDspParams: HtxWrite,
   headers: LocalHeaders,
-  resetRefresh: React.MutableRefObject<NodeJS.Timeout | undefined>,
 ) {
   return useMemo(
     () => ({
@@ -61,7 +63,6 @@ function useParameterUpdates(
           value: { ...miniDspParams, preset },
         });
         setPreset(headers, preset);
-        clearInterval(resetRefresh.current);
       },
       updateVolume: (volume: number) => {
         miniDspDispatch({
@@ -69,7 +70,6 @@ function useParameterUpdates(
           value: { ...miniDspParams, volume },
         });
         setVolume(headers, volume);
-        clearInterval(resetRefresh.current);
       },
       volumeUp: (volume: number, increment: number) => {
         miniDspDispatch({
@@ -77,7 +77,6 @@ function useParameterUpdates(
           value: { ...miniDspParams, volume: volume + increment },
         });
         volumeUp(headers);
-        clearInterval(resetRefresh.current);
       },
       volumeDown: (volume: number, increment: number) => {
         miniDspDispatch({
@@ -85,7 +84,6 @@ function useParameterUpdates(
           value: { ...miniDspParams, volume: volume - increment },
         });
         volumeDown(headers);
-        clearInterval(resetRefresh.current);
       },
       updatePower: (power: Power) => {
         miniDspDispatch({
@@ -93,7 +91,6 @@ function useParameterUpdates(
           value: { ...miniDspParams, power },
         });
         setPower(headers, power);
-        clearInterval(resetRefresh.current);
       },
       updateSource: (source: Source) => {
         miniDspDispatch({
@@ -101,29 +98,54 @@ function useParameterUpdates(
           value: { ...miniDspParams, source },
         });
         setSource(headers, source);
-        clearInterval(resetRefresh.current);
       },
     }),
-    [miniDspDispatch, miniDspParams, resetRefresh, headers],
+    [miniDspDispatch, miniDspParams, headers],
   );
 }
 
+const THREE_SECONDS = 3000
+//const TWENTY_FIVE_MINUTES = 1500000
+
+//testing
+const TWENTY_FIVE_MINUTES = 150000
 function App() {
-  /// Params state management
-  const { dispatch: miniDspDispatch, state: miniDspParams } =
-    useMiniDspParams();
   const {
-    state: { certInfo, requireAuth },
+    authSettings,
+    user
+  } = useLoaderData<InitialLoad>()
+
+  const {
+    dispatch: miniDspDispatch,
+    state: miniDspParams } = useMiniDspParams();
+
+  const {
+    state: { requireAuth, certInfo },
     dispatch: authDispatch,
   } = useAuthSettingsParams();
-
   const {
     state: { userId, jwt },
+    dispatch: userDispatch
   } = useUserParams();
 
-  const holdRefresh = useRef<undefined | ReturnType<typeof setTimeout>>(
-    undefined,
-  );
+  useEffect(() => {
+    authDispatch({
+      type: SetKeys.UPDATE,
+      value: authSettings
+    })
+  }, [authDispatch, authSettings]);
+  useEffect(() => {
+    userDispatch({
+      type: SetUser.UPDATE,
+      value: user
+    })
+  }, [userDispatch, user]);
+  useEffect(() => {
+    getStatus(addAuthHeaders(user.userId, user.jwt)).then((status) =>
+      miniDspDispatch({ type: MinidspAction.UPDATE, value: status }),
+    )
+  }, [miniDspDispatch, user]);
+
 
   const getParams = useCallback(
     () =>
@@ -133,80 +155,37 @@ function App() {
     [miniDspDispatch, userId, jwt],
   );
 
-  const getParamsLater = useCallback(() => {
-    holdRefresh.current = setTimeout(() => {
-      getParams();
-    }, 3000);
-  }, [getParams]);
 
   const updates = useParameterUpdates(
     miniDspDispatch,
     miniDspParams,
     addAuthHeaders(userId, jwt),
-    holdRefresh,
   );
-
-  useEffect(() => {
-    //on initial load, get params immediately
-    getParams();
-    //get "ground truth" from Minidsp on a periodic basis
-    //if any UI action impacting state is made, then getParams is canceled
-    setInterval(() => {
-      if (holdRefresh.current !== undefined) {
-        clearTimeout(holdRefresh.current);
-      }
-      getParamsLater(); //gets Params in 3000 ms, unless timeout is cleared by UI action
-    }, 5000); //has to be longer than the getParamsLater timeout
-  }, [getParams, getParamsLater]);
-
-  /// Theme state management
-  const [selectedTheme, setSelectedTheme] = useState<ColorTheme>(
-    getColorTheme() || DEFAULT_COLOR_THEME,
-  );
+  useInterval(() => {
+    refreshStatus(jwt, requireAuth, getParams)
+  }, THREE_SECONDS)
+  useInterval(() => refreshToken(requireAuth).then((user: User) => {
+    jwt !== "" && userDispatch({
+      type: SetUser.UPDATE,
+      value: user,
+    });
+  }), TWENTY_FIVE_MINUTES)
+  const {
+    dispatch: themeDispatch,
+    state: selectedTheme
+  } = useThemeParams();
   const setThemeAndSave = (theme: ColorTheme) => {
-    setSelectedTheme(theme);
+    themeDispatch({ type: SetTheme.UPDATE, value: theme });
     saveColorTheme(theme);
   };
   const theme = themes[selectedTheme];
 
-  const { dispatch: userDispatch } = useUserParams();
-
-  useEffect(() => {
-    //no need for authentication on this endpoint
-    getAuthSettings({})
-      .then((result: AuthSettings) => {
-        authDispatch({
-          type: SetKeys.UPDATE,
-          value: result,
-        });
-      })
-  }, [authDispatch]);
-
-  const TWENTY_FIVE_MINUTES = 1500000
-  useEffect(() => {
-    (function refreshToken() {
-      if (requireAuth) {
-        const userId = getUserId();
-        const privateKey = getPrivateKey();
-        return generateJwt(privateKey, userId, process.env.REACT_APP_AUDIENCE || "", "shouldnotmatter").then((jwt: string) => {
-          userDispatch({
-            type: SetUser.UPDATE,
-            value: {
-              userId,
-              jwt,
-            },
-          });
-        });
-      }
-      setTimeout(refreshToken, TWENTY_FIVE_MINUTES); //regenerate every 25 minutes since it has an expiration of 30 minutes
-    })();
-  }, [requireAuth, userDispatch])
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ display: "flex" }}>
         <CssBaseline />
         <AppBar mode={selectedTheme} setMode={setThemeAndSave} />
-        <Settings mode={selectedTheme} />
+        <Outlet />
         <Box
           component="main"
           sx={{

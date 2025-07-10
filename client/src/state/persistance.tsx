@@ -1,4 +1,4 @@
-import { ColorTheme } from "../styles/modes";
+import { ColorTheme, DEFAULT_COLOR_THEME } from "../styles/modes";
 
 const KEY = "mode";
 const RSA_KEY = "rsa_key";
@@ -6,7 +6,7 @@ const USER_ID_KEY = "user_key";
 export const saveColorTheme = (mode: ColorTheme) =>
   localStorage.setItem(KEY, mode);
 export const getColorTheme = () =>
-  localStorage.getItem(KEY) as ColorTheme | null;
+  localStorage.getItem(KEY) as ColorTheme || DEFAULT_COLOR_THEME;
 
 export const savePrivateKey = (privateKey: string) =>
   localStorage.setItem(RSA_KEY, privateKey);
