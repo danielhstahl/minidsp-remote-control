@@ -4,7 +4,7 @@ use rppal::gpio::OutputPin;
 
 // Gpio uses BCM pin numbering.
 #[derive(Serialize, Deserialize)]
-#[serde(crate = "rocket::serde")]
+#[serde(crate = "rocket::serde", rename_all = "lowercase")]
 pub enum PowerStatus {
     OFF,
     ON,

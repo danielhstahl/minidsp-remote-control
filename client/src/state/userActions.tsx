@@ -14,7 +14,7 @@ type Action = {
   value: User;
 };
 
-const initialState = {
+export const initialUserState = {
   userId: "-1",
   jwt: "",
 };
@@ -29,12 +29,12 @@ export const userReducer = (state: User, action: Action) => {
 };
 
 const UserContext = createContext({
-  state: initialState,
+  state: initialUserState,
   dispatch: (_: Action) => { },
 });
 
 export const UserProvider = ({ children }: PropsWithChildren) => {
-  const [state, dispatch] = useReducer(userReducer, initialState);
+  const [state, dispatch] = useReducer(userReducer, initialUserState);
   return (
     <UserContext.Provider value={{ state, dispatch }}>
       {children}

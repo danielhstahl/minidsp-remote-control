@@ -23,6 +23,9 @@ Server is a simple NodeJS server.  It makes call directly to the underlying bina
 ### Rust prep
 In `minidsp-server`:
 
+`cargo sqlx migrate add users`
+`cargo sqlx migrate add settings`
+
 `DATABASE_URL="sqlite:$(pwd)/db/minidsp.sqlite" cargo sqlx prepare`
 
 

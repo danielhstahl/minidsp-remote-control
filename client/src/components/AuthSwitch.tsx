@@ -1,17 +1,18 @@
 import Switch from "@mui/material/Switch";
-import { ColorTheme, applyThemePrimaryType } from "../styles/modes";
+import { applyThemePrimaryType } from "../styles/modes";
 import { SetKeys, useAuthSettingsParams } from "../state/credActions";
 import { useUserParams } from "../state/userActions";
 import { setAuthSettings, addAuthHeaders } from "../services/api";
-interface Props {
-  mode: ColorTheme;
-}
+import { useThemeParams } from "../state/themeActions";
 
-const AuthSwitch = ({ mode }: Props) => {
+const AuthSwitch = () => {
   const {
     dispatch: authDispatch,
     state: { requireAuth, ...rest },
   } = useAuthSettingsParams();
+  const {
+    state: selectedTheme
+  } = useThemeParams();
   const {
     state: { jwt, userId },
   } = useUserParams();
@@ -19,7 +20,7 @@ const AuthSwitch = ({ mode }: Props) => {
   return (
     <Switch
       disabled={jwt === ""}
-      color={applyThemePrimaryType(mode)}
+      color={applyThemePrimaryType(selectedTheme)}
       checked={requireAuth}
       onChange={(e) => {
         const switchValue = e.target.checked;

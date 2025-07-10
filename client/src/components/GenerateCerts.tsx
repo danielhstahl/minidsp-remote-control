@@ -60,7 +60,7 @@ const GenerateCerts = () => {
           },
         }}
       >
-        Re-generate certs
+        Generate certs
       </Button>
       <Message
         open={message.isMessageOpen}

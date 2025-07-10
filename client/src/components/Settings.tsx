@@ -8,8 +8,7 @@ import FormGroup from "@mui/material/FormGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
-import { ColorTheme } from "../styles/modes";
-import { Link, useLocation } from "react-router";
+import { Link } from "react-router";
 import Divider from "@mui/material/Divider";
 import GenerateCerts from "./GenerateCerts";
 import GenerateKeyPair from "./GenerateKeyPair";
@@ -23,12 +22,13 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     padding: theme.spacing(1),
   },
 }));
-interface SettingInputs {
+/*interface SettingInputs {
   mode: ColorTheme;
-}
-const Settings = ({ mode }: SettingInputs) => {
-  const { pathname } = useLocation();
-  const open = pathname === "/settings";
+}*/
+const Settings = (/*{ mode }: SettingInputs*/) => {
+  //const { pathname } = useLocation();
+  const open = true//pathname === "/settings";
+  //const theme = useTheme()
   return (
     <>
       <BootstrapDialog
@@ -63,7 +63,7 @@ const Settings = ({ mode }: SettingInputs) => {
             <GenerateKeyPair />
             <br />
             <FormControlLabel
-              control={<AuthSwitch mode={mode} />}
+              control={<AuthSwitch />}
               label="Require Authentication"
             />
           </FormGroup>
