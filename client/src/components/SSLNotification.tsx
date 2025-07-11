@@ -5,7 +5,6 @@ import Paper from "@mui/material/Paper";
 import Fade from "@mui/material/Fade";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { SSLCert } from "../services/api";
 
 const MS_TO_DAYS = 1000 * 3600 * 24;
 //export for testing
@@ -20,14 +19,14 @@ export const calculateDays = (currentDate: Date, expiryDate: Date) => {
 };
 
 const SSLNotification = ({
-  sslInfo,
+  expiry,
   currentDate,
 }: {
-  sslInfo: SSLCert;
+  expiry: Date;
   currentDate: Date;
 }) => {
-  const show = showNotification(currentDate, sslInfo.validToDate);
-  const expiryDays = calculateDays(currentDate, sslInfo.validToDate);
+  const show = showNotification(currentDate, expiry);
+  const expiryDays = calculateDays(currentDate, expiry);
   return (
     <TrapFocus open disableAutoFocus disableEnforceFocus>
       <Fade appear={false} in={show}>

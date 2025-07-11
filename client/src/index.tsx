@@ -7,6 +7,7 @@ import { MiniDspProvider } from "./state/minidspActions";
 import { AuthSettingsProvider } from "./state/credActions";
 import { UserProvider } from "./state/userActions";
 import { ThemeProvider } from "./state/themeActions";
+import { ExpiryProvider } from "./state/expiryActions";
 import {
   createBrowserRouter,
   RouterProvider,
@@ -22,9 +23,9 @@ let router = createBrowserRouter([
   {
     path: "/",
     Component: App,
-    loader: () => getAuthSettings({}).then(({ requireAuth, key, certInfo }) => refreshToken(requireAuth).then(user => ({
+    loader: () => getAuthSettings({}).then(({ requireAuth, key }) => refreshToken(requireAuth).then(user => ({
       user,
-      authSettings: { requireAuth, key, certInfo }
+      authSettings: { requireAuth, key }
     }))),
     children: [
       { path: "settings", Component: Settings },
@@ -39,7 +40,9 @@ root.render(
       <UserProvider>
         <MiniDspProvider>
           <ThemeProvider>
-            <RouterProvider router={router} />
+            <ExpiryProvider>
+              <RouterProvider router={router} />
+            </ExpiryProvider>
           </ThemeProvider>
         </MiniDspProvider>
       </UserProvider>

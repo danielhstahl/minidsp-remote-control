@@ -103,6 +103,7 @@ fn rocket() -> _ {
         set_preset_user,
         set_source_anon,
         set_source_user,
+        expiry
     ];
     #[cfg(feature = "gpio")]
     let mut gpio_routes = routes![set_power_anon, set_power_user];
@@ -120,13 +121,13 @@ fn rocket() -> _ {
         Ok(v) => v,
         Err(_e) => panic!("RELAY_PIN needs to be parseable to u8!"),
     };
-    //hacky, but should work...use a dummy GpioPin when not using the Gpio feature
     #[cfg(feature = "gpio")]
     let gpio_pin = GpioPin {
         pin: Arc::new(Mutex::new(
             Gpio::new().unwrap().get(relay_pin).unwrap().into_output(),
         )),
     };
+    //hacky, but should work...use a dummy GpioPin when not using the Gpio feature
     #[cfg(not(feature = "gpio"))]
     let gpio_pin = GpioPin { pin: false };
     rocket::build()
@@ -145,14 +146,25 @@ fn index() -> &'static str {
 
 #[get("/cert")]
 async fn root_pem(ssl_path: &State<SSLPath>) -> std::io::Result<ReaderStream![File]> {
-    let root_pem_path = format!("{}/rootCA.pem", ssl_path.path);
+    let root_pem_path = format!("{}/{}", ssl_path.path, sslcert::ROOT_CA_NAME);
     let file = File::open(root_pem_path).await?;
     Ok(ReaderStream::one(file))
 }
 
+#[get("/cert/expiration")]
+async fn expiry(
+    ssl_path: &State<SSLPath>,
+) -> Result<Json<sslcert::CertExpiry>, BadRequest<String>> {
+    let expiry_date = sslcert::get_certificate_expiry_date_from_file(&ssl_path.path)
+        .map_err(|e| BadRequest(e.to_string()))?;
+    println!("{}", expiry_date);
+    Ok(Json(sslcert::CertExpiry {
+        expiry: expiry_date,
+    }))
+}
+
 #[get("/auth/settings")]
 async fn auth_settings(db: &MinidspDb) -> Result<Json<db::Settings>, BadRequest<String>> {
-    //need to get expiry as well somehow
     let settings = db::get_settings(&**db)
         .await
         .map_err(|e| BadRequest(e.to_string()))?;
@@ -268,6 +280,8 @@ async fn regenerate_cert_anon(
 ) -> Result<Json<Success>, BadRequest<String>> {
     sslcert::generate_ca_and_entity(&domain.domain_name, &ssl_path.path)
         .map_err(|e| BadRequest(e.to_string()))?;
+    #[cfg(target_os = "linux")]
+    sslcert::reload_nginx().map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(Success { success: true }))
 }
 #[post("/cert", rank = 2)]
@@ -278,6 +292,8 @@ async fn regenerate_cert_user(
 ) -> Result<Json<Success>, BadRequest<String>> {
     sslcert::generate_ca_and_entity(&domain.domain_name, &ssl_path.path)
         .map_err(|e| BadRequest(e.to_string()))?;
+    #[cfg(target_os = "linux")]
+    sslcert::reload_nginx().map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(Success { success: true }))
 }
 #[cfg(feature = "gpio")]

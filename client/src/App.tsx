@@ -23,6 +23,7 @@ import {
   LocalHeaders,
   User,
   AuthSettings,
+  getExpiry,
 } from "./services/api";
 import { Outlet, useLoaderData } from "react-router";
 
@@ -45,6 +46,7 @@ import SSLNotification from "./components/SSLNotification";
 import NoUserNotification from "./components/NoUserNotification";
 import { refreshStatus, refreshToken, useInterval } from "./utils/refresh";
 import { SetTheme, useThemeParams } from "./state/themeActions";
+import { SetExpiry, useExpiryParams } from "./state/expiryActions";
 interface InitialLoad {
   user: User,
   authSettings: AuthSettings
@@ -120,7 +122,11 @@ function App() {
     state: miniDspParams } = useMiniDspParams();
 
   const {
-    state: { requireAuth, certInfo },
+    dispatch: expiryDispatch,
+    state: expiry } = useExpiryParams();
+
+  const {
+    state: { requireAuth },
     dispatch: authDispatch,
   } = useAuthSettingsParams();
   const {
@@ -145,6 +151,13 @@ function App() {
       miniDspDispatch({ type: MinidspAction.UPDATE, value: status }),
     )
   }, [miniDspDispatch, user]);
+
+  useEffect(() => {
+    //no auth on this endpoint
+    getExpiry({}).then((expiry) =>
+      expiryDispatch({ type: SetExpiry.UPDATE, value: expiry }),
+    )
+  }, [expiryDispatch]);
 
 
   const getParams = useCallback(
@@ -221,9 +234,9 @@ function App() {
               </Grid>
             </Grid>
           </Container>
-          {certInfo && (
-            <SSLNotification sslInfo={certInfo} currentDate={new Date()} />
-          )}
+
+          <SSLNotification expiry={expiry.expiry} currentDate={new Date()} />
+
           <NoUserNotification signature={jwt} />
         </Box>
       </Box>

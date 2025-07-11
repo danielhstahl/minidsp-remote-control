@@ -5,30 +5,15 @@ describe("SSNNotification", () => {
   it("shows notification", () => {
     const currDate = new Date("2025-05-05");
     const expiryDate = new Date("2025-06-03");
-    const sslInfo = {
-      subject: "hello",
-      issuer: "world",
-      validFrom: "strdate",
-      validTo: "strenddate",
-      validFromDate: currDate,
-      validToDate: expiryDate,
-    };
-    render(<SSLNotification currentDate={currDate} sslInfo={sslInfo} />);
+    render(<SSLNotification currentDate={currDate} expiry={expiryDate} />);
     console.log(screen.getByLabelText("SSL Banner").style.visibility);
     expect(screen.getByLabelText("SSL Banner").style.visibility).toEqual("");
   });
   it("does not show notification", () => {
     const currDate = new Date("2025-05-05");
     const expiryDate = new Date("2025-08-05");
-    const sslInfo = {
-      subject: "hello",
-      issuer: "world",
-      validFrom: "strdate",
-      validTo: "strenddate",
-      validFromDate: currDate,
-      validToDate: expiryDate,
-    };
-    render(<SSLNotification currentDate={currDate} sslInfo={sslInfo} />);
+
+    render(<SSLNotification currentDate={currDate} expiry={expiryDate} />);
 
     expect(screen.getByLabelText("SSL Banner").style.visibility).toEqual(
       "hidden"
