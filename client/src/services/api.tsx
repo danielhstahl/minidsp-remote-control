@@ -31,19 +31,13 @@ export interface HtxWrite {
   preset: Preset;
 }
 
-export interface SSLCert {
-  subject: string;
-  issuer: string;
-  validFrom: string;
-  validTo: string;
-  validFromDate: Date;
-  validToDate: Date;
+export interface SSLCertExpiry {
+  expiry: Date
 }
 
 export interface AuthSettings {
   key: number;
   requireAuth: boolean;
-  certInfo?: SSLCert;
 }
 export interface UserId {
   userId: string;
@@ -163,6 +157,9 @@ export const updateUser: (
 
 export const generateCert = (headers: LocalHeaders) => {
   return fetch(`/api/cert`, { method: "POST", headers });
+};
+export const getExpiry = (headers: LocalHeaders) => {
+  return fetch(`/api/cert/expiration`, { headers }).then(v => v.json()).then(({ expiry }) => ({ expiry: new Date(expiry) }));
 };
 export const getCaPem = (headers: LocalHeaders) => {
   return (

@@ -2,10 +2,46 @@ use rcgen::{
     BasicConstraints, Certificate, CertificateParams, DnType, DnValue::PrintableString,
     ExtendedKeyUsagePurpose, IsCa, Issuer, KeyPair, KeyUsagePurpose,
 };
+use rocket::serde::Serialize;
 use std::error;
 use std::fs;
+use std::io::Read;
+use std::process::Command;
 use time::{Duration, OffsetDateTime};
+use x509_parser::parse_x509_certificate;
+use x509_parser::pem::parse_x509_pem;
 
+pub const ROOT_CA_NAME: &str = "rootCA.pem";
+
+#[derive(Serialize)]
+#[serde(crate = "rocket::serde")]
+pub struct CertExpiry {
+    #[serde(with = "time::serde::iso8601")]
+    pub expiry: OffsetDateTime,
+}
+
+// OS specific, only run on linux
+#[cfg(target_os = "linux")]
+pub fn reload_nginx() -> Result<(), Box<dyn error::Error>> {
+    Command::new("/usr/bin/systemctl")
+        .arg("reload")
+        .arg("nginx")
+        .output()?;
+    Ok(())
+}
+
+pub fn get_certificate_expiry_date_from_file(
+    folder_path: &str,
+) -> Result<OffsetDateTime, Box<dyn std::error::Error>> {
+    let mut file = fs::File::open(format!("{}/{}", folder_path, ROOT_CA_NAME))?;
+    let mut cert_pem_bytes = Vec::new();
+    file.read_to_end(&mut cert_pem_bytes)?;
+
+    let (_, pem) = parse_x509_pem(&cert_pem_bytes)?;
+    let (_, x509) = parse_x509_certificate(&pem.contents)?;
+
+    Ok(x509.validity().not_after.to_datetime())
+}
 pub fn generate_ca_and_entity(
     domain_name: &str,
     folder_path: &str,
@@ -17,7 +53,7 @@ pub fn generate_ca_and_entity(
     //todo, actually return these and make this function not have IO
     fs::create_dir_all(format!("{}/", folder_path))?;
     fs::write(
-        format!("{}/rootCA.pem", folder_path),
+        format!("{}/{}", folder_path, ROOT_CA_NAME),
         ca_cert_pem.as_bytes(),
     )?;
     fs::write(
@@ -76,8 +112,22 @@ fn new_end_entity(
 }
 
 fn validity_period() -> OffsetDateTime {
-    let ten_years = Duration::new(86400 * 3650, 0);
-    //let yesterday = OffsetDateTime::now_utc().checked_sub(day).unwrap();
+    let ten_years = Duration::new(315360000, 0);
     let expiration = OffsetDateTime::now_utc().checked_add(ten_years).unwrap();
     expiration
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn it_writes_and_returns_correct_expiration() {
+        let second = Duration::new(1, 0);
+        let expiry = validity_period().checked_sub(second).unwrap(); //needed since result truncates nano seconds
+        generate_ca_and_entity("hello", "test").unwrap();
+        let result = get_certificate_expiry_date_from_file("test").unwrap();
+        println!("{}, {}", expiry, result);
+        assert!(result > expiry);
+        fs::remove_dir_all("test").unwrap();
+    }
 }
