@@ -6,6 +6,8 @@ use rocket::serde::Serialize;
 use std::error;
 use std::fs;
 use std::io::Read;
+#[cfg(target_os = "linux")]
+use std::process::Command;
 use time::{Duration, OffsetDateTime};
 use x509_parser::parse_x509_certificate;
 use x509_parser::pem::parse_x509_pem;
@@ -101,7 +103,6 @@ fn new_end_entity(
     params
         .extended_key_usages
         .push(ExtendedKeyUsagePurpose::ServerAuth);
-    //params.not_before = yesterday;
     params.not_after = expiration;
 
     let key_pair = KeyPair::generate()?;
