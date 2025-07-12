@@ -15,7 +15,7 @@ Environment="USE_RELAY=1"
 Environment="RELAY_PIN=21"
 Environment="DOMAIN=HOSTNAME"
 Environment="SSL_PATH=/home/minidsp/ssl"
-Environment=ROCKET_DATABASES='{minidsp={url="/home/minidsp/db/minidsp/minidsp.sqlite"}}'
+Environment=ROCKET_DATABASES='{minidsp={url="/home/minidsp/db/minidsp.sqlite"}}'
 ExecStart=node /usr/bin/minidsp-ui/minidsp-server
 Restart=always
 RestartSec=1
