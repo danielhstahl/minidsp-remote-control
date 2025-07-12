@@ -157,7 +157,6 @@ async fn expiry(
 ) -> Result<Json<sslcert::CertExpiry>, BadRequest<String>> {
     let expiry_date = sslcert::get_certificate_expiry_date_from_file(&ssl_path.path)
         .map_err(|e| BadRequest(e.to_string()))?;
-    println!("{}", expiry_date);
     Ok(Json(sslcert::CertExpiry {
         expiry: expiry_date,
     }))

@@ -6,7 +6,6 @@ use rocket::serde::Serialize;
 use std::error;
 use std::fs;
 use std::io::Read;
-use std::process::Command;
 use time::{Duration, OffsetDateTime};
 use x509_parser::parse_x509_certificate;
 use x509_parser::pem::parse_x509_pem;
@@ -50,7 +49,6 @@ pub fn generate_ca_and_entity(
     let (end_entity, key_pair) = new_end_entity(&issuer, domain_name)?;
     let end_entity_pem = end_entity.pem();
     let ca_cert_pem = ca.pem();
-    //todo, actually return these and make this function not have IO
     fs::create_dir_all(format!("{}/", folder_path))?;
     fs::write(
         format!("{}/{}", folder_path, ROOT_CA_NAME),
@@ -126,7 +124,6 @@ mod tests {
         let expiry = validity_period().checked_sub(second).unwrap(); //needed since result truncates nano seconds
         generate_ca_and_entity("hello", "test").unwrap();
         let result = get_certificate_expiry_date_from_file("test").unwrap();
-        println!("{}, {}", expiry, result);
         assert!(result > expiry);
         fs::remove_dir_all("test").unwrap();
     }
