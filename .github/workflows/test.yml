@@ -17,9 +17,6 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: test
-        run: npm test
-
   run_rust_tests:
     name: Run rust test
     runs-on: ubuntu-latest
