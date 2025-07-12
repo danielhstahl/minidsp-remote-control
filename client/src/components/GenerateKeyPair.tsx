@@ -16,7 +16,7 @@ const GenerateCerts = () => {
   const [isLoading, setIsLoading] = useState(false);
   const {
     dispatch: userDispatch,
-    state: { userId, jwt: originalJwt },
+    state: { userId: originalUserId, jwt: originalJwt },
   } = useUserParams();
   const [message, setMessage] = useState<MessageHandle>({
     isMessageOpen: false,
@@ -35,9 +35,9 @@ const GenerateCerts = () => {
 
     const base64FormattedPublicKey = convertToPemKeyAndBase64(publicKey)
 
-    const userPromise: Promise<UserId> = userId === "-1" ?
+    const userPromise: Promise<UserId> = originalUserId === "-1" ?
       //no user yet, so create one
-      createUser(addAuthHeaders(userId, originalJwt), base64FormattedPublicKey).then(
+      createUser(addAuthHeaders(originalUserId, originalJwt), base64FormattedPublicKey).then(
         (user) => {
           saveUserId(user.userId)
           return user
@@ -45,9 +45,9 @@ const GenerateCerts = () => {
       ) :
       //user exists, so update
       updateUser(
-        addAuthHeaders(userId, originalJwt),
+        addAuthHeaders(originalUserId, originalJwt),
         base64FormattedPublicKey,
-        userId,
+        originalUserId,
       )
     await userPromise.then(({ userId }) => {
       return generateJwt(privateKey, userId, process.env.REACT_APP_AUDIENCE || "", "shouldnotmatter").then((jwt: string) => {
