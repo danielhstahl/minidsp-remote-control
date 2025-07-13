@@ -13,7 +13,7 @@ interface MessageHandle {
   messageType: AlertColor;
 }
 interface Params {
-  createUserLocal?: typeof createUser, //(object, string) => Promise<User>,
+  createUserLocal?: typeof createUser,
   updateUserLocal?: typeof updateUser
 }
 
@@ -26,6 +26,7 @@ const GenerateCerts = ({
     dispatch: userDispatch,
     state: { userId: originalUserId, jwt: originalJwt },
   } = useUserParams();
+
   const [message, setMessage] = useState<MessageHandle>({
     isMessageOpen: false,
     messageType: "success",

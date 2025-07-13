@@ -15,9 +15,6 @@ type Action = {
     value: ColorTheme;
 };
 
-const initialState = getColorTheme()
-
-
 export const themeReducer = (state: ColorTheme, action: Action) => {
     switch (action.type) {
         case SetTheme.UPDATE:
@@ -28,12 +25,12 @@ export const themeReducer = (state: ColorTheme, action: Action) => {
 };
 
 const ThemeContext = createContext({
-    state: initialState,
+    state: getColorTheme(),
     dispatch: (_: Action) => { },
 });
 
 export const ThemeProvider = ({ children }: PropsWithChildren) => {
-    const [state, dispatch] = useReducer(themeReducer, initialState);
+    const [state, dispatch] = useReducer(themeReducer, getColorTheme());
     return (
         <ThemeContext.Provider value={{ state, dispatch }}>
             {children}

@@ -15,10 +15,11 @@ type Action = {
   value: User;
 };
 
-export const initialUserState = {
+
+export const initiateUserState = () => ({
   userId: getUserId(),
   jwt: "",
-};
+})
 
 export const userReducer = (state: User, action: Action) => {
   switch (action.type) {
@@ -28,18 +29,17 @@ export const userReducer = (state: User, action: Action) => {
       return state;
   }
 };
-
 const UserContext = createContext({
-  state: initialUserState,
+  state: initiateUserState(),
   dispatch: (_: Action) => { },
 });
 
 export const UserProvider = ({ children }: PropsWithChildren) => {
-  const [state, dispatch] = useReducer(userReducer, initialUserState);
+  const [state, dispatch] = useReducer(userReducer, initiateUserState());
   return (
-    <UserContext.Provider value={{ state, dispatch }}>
+    <UserContext value={{ state, dispatch }}>
       {children}
-    </UserContext.Provider>
+    </UserContext>
   );
 };
 
