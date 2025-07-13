@@ -5,3 +5,6 @@ server/tmp
 target
 certs
 minidsp.sqlite
+.parcel-cache
+dist
+coverage

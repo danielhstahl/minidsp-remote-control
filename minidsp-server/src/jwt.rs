@@ -23,7 +23,9 @@ pub struct Claims {
 /// This represents the authenticated user's identity derived from the JWT
 #[derive(Debug)]
 pub struct User {
+    #[allow(dead_code)]
     pub id: String,
+    #[allow(dead_code)]
     pub roles: Vec<String>, //likely optional, I don't need rols
 }
 

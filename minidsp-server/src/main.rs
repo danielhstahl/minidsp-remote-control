@@ -33,6 +33,7 @@ struct MinidspDb(rocket_db_pools::sqlx::SqlitePool);
 struct GpioPin {
     #[cfg(feature = "gpio")]
     pin: Arc<Mutex<OutputPin>>,
+    #[allow(dead_code)]
     #[cfg(not(feature = "gpio"))]
     pin: bool,
 }
@@ -79,7 +80,7 @@ fn rocket() -> _ {
         Ok(v) => SSLPath { path: v },
         Err(_e) => panic!("Env variable SSL_PATH needs to be defined!"),
     };
-
+    #[allow(unused_mut)]
     let mut base_routes = routes![
         index,
         root_pem,
@@ -127,7 +128,7 @@ fn rocket() -> _ {
             Gpio::new().unwrap().get(relay_pin).unwrap().into_output(),
         )),
     };
-    //hacky, but should work...use a dummy GpioPin when not using the Gpio feature
+    //hacky, but works...use a dummy GpioPin when not using the Gpio feature
     #[cfg(not(feature = "gpio"))]
     let gpio_pin = GpioPin { pin: false };
     rocket::build()

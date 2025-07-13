@@ -1,4 +1,4 @@
-import { initialUserState } from "../state/userActions"
+import { initiateUserState } from "../state/userActions"
 import { generateJwt } from "../services/keyCreation";
 import { useEffect, useRef } from 'react';
 
@@ -34,7 +34,7 @@ export const refreshToken = async (requireAuth: boolean) => {
             jwt
         }
     }
-    return initialUserState
+    return initiateUserState()
 }
 
 export const refreshStatus = (jwt: string, requireAuth: boolean, getParams: () => Promise<void>) => {
