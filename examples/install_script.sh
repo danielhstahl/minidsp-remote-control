@@ -67,3 +67,7 @@ sudo systemctl enable minidsp-ui
 sudo systemctl enable minidsp-bt
 sudo systemctl enable nginx
 sudo chown -R  minidsp:minidspgroup /home/minidsp/
+
+## Firewall
+sudo ufw enable
+sudo ufw deny 8000 # deny direct access to Rocket
