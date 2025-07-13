@@ -19,8 +19,11 @@ const WrapperComponent = ({ children }: any) => {
 describe("GenerateKeyPair", () => {
 
     beforeEach(() => {
-        window.localStorage.clear();
+        localStorage.clear();
         jest.clearAllMocks();
+    });
+    afterEach(() => {
+        localStorage.clear();
     });
 
     it("Create RSA Key Pair if private key does not exist", () => {
