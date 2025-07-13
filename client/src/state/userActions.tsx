@@ -5,6 +5,7 @@ import {
   createContext,
   PropsWithChildren,
 } from "react";
+import { getUserId } from "./persistance";
 
 export enum SetUser {
   UPDATE,
@@ -15,7 +16,7 @@ type Action = {
 };
 
 export const initialUserState = {
-  userId: "-1",
+  userId: getUserId(),
   jwt: "",
 };
 
