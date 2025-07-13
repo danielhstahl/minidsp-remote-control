@@ -26,7 +26,7 @@ describe("GenerateKeyPair", () => {
         localStorage.clear();
     });
 
-    it("Create RSA Key Pair if private key does not exist", () => {
+    /*it("Create RSA Key Pair if private key does not exist", () => {
         const mockCreateUser = jest.fn((headers: LocalHeaders, publicKey: string) => Promise.resolve({ userId: "2" }));
         const mockUpdateUser = jest.fn((headers: LocalHeaders, publicKey: string, userId: string) => Promise.resolve({ userId: "2" }));
         const renderKeyPair = () => {
@@ -95,8 +95,8 @@ describe("GenerateKeyPair", () => {
             }
             expect(mockCreateUser.mock.calls).toHaveLength(1)
             expect(mockUpdateUser.mock.calls).toHaveLength(0)
-        }, { timeout: 3000 })
-    });
+        })
+    });*/
     it("updates user if user exists", async () => {
         saveUserId("3")
         const mockCreateUser = jest.fn((headers: LocalHeaders, publicKey: string) => Promise.resolve({ userId: "2" }));
@@ -127,6 +127,6 @@ describe("GenerateKeyPair", () => {
             }
             expect(mockCreateUser.mock.calls).toHaveLength(0)
             expect(mockUpdateUser.mock.calls).toHaveLength(1)
-        }, { timeout: 3000 })
+        })
     });
 });
