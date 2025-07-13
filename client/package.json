@@ -11,7 +11,10 @@
     "lint": "eslint src"
   },
   "devDependencies": {
+    "@parcel/packager-raw-url": "^2.15.4",
+    "@parcel/transformer-webmanifest": "^2.15.4",
     "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@types/jest": "^30.0.0",
     "@types/react": "^19.1.8",
