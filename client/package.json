@@ -7,7 +7,7 @@
   "scripts": {
     "start": "parcel",
     "build": "parcel build",
-    "test": "jest --runInBand",
+    "test": "jest",
     "lint": "eslint src"
   },
   "devDependencies": {
