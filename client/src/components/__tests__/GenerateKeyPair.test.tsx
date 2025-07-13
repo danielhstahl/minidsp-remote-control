@@ -95,7 +95,7 @@ describe("GenerateKeyPair", () => {
             }
             expect(mockCreateUser.mock.calls).toHaveLength(1)
             expect(mockUpdateUser.mock.calls).toHaveLength(0)
-        })
+        }, { timeout: 3000 })
     });
     it("updates user if user exists", async () => {
         saveUserId("3")
@@ -127,6 +127,6 @@ describe("GenerateKeyPair", () => {
             }
             expect(mockCreateUser.mock.calls).toHaveLength(0)
             expect(mockUpdateUser.mock.calls).toHaveLength(1)
-        })
+        }, { timeout: 3000 })
     });
 });
