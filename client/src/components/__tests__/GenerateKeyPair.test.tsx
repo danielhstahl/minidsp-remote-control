@@ -3,7 +3,7 @@ import { UserProvider } from "../../state/userActions";
 import GenerateKeyPair from "../GenerateKeyPair";
 import { useUserParams } from "../../state/userActions";
 import { LocalHeaders } from "../../services/api";
-import { savePrivateKey, saveUserId } from "../../state/persistance";
+import { getUserId, savePrivateKey, saveUserId } from "../../state/persistance";
 
 const WrapperComponent = ({ children }: any) => {
     const {
