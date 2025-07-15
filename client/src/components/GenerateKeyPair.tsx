@@ -7,6 +7,7 @@ import { SetUser, useUserParams } from "../state/userActions";
 import KeyIcon from "@mui/icons-material/Key";
 import { addAuthHeaders, createUser, updateUser } from "../services/api";
 import { generateKeyPair, generateJwt, convertToPemKeyAndBase64 } from "../services/keyCreation";
+import { refreshToken } from "../utils/refresh";
 
 interface MessageHandle {
   isMessageOpen: boolean;
@@ -58,8 +59,8 @@ const GenerateCerts = ({
         addAuthHeaders(originalUserId, originalJwt),
         base64FormattedPublicKey,
         originalUserId,
-      )).then(({ userId }) => {
-        return generateJwt(privateKey, userId, process.env.REACT_APP_AUDIENCE || "", "shouldnotmatter").then((jwt: string) => {
+      )).then((_user) => {
+        return refreshToken(true).then(({ userId, jwt }) => {
           return userDispatch({
             type: SetUser.UPDATE,
             value: {

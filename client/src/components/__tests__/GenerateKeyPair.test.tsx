@@ -3,7 +3,7 @@ import { UserProvider } from "../../state/userActions";
 import GenerateKeyPair from "../GenerateKeyPair";
 import { useUserParams } from "../../state/userActions";
 import { LocalHeaders } from "../../services/api";
-import { getUserId, savePrivateKey, saveUserId } from "../../state/persistance";
+import { savePrivateKey, saveUserId } from "../../state/persistance";
 
 const WrapperComponent = ({ children }: any) => {
     const {
@@ -100,7 +100,8 @@ describe("GenerateKeyPair", () => {
     it("updates user if user exists", async () => {
         saveUserId("3")
         const mockCreateUser = jest.fn((headers: LocalHeaders, publicKey: string) => Promise.resolve({ userId: "2" }));
-        const mockUpdateUser = jest.fn((headers: LocalHeaders, publicKey: string, userId: string) => Promise.resolve({ userId: "2" }));
+        //guaranteed to return the same userId as in localStorage
+        const mockUpdateUser = jest.fn((headers: LocalHeaders, publicKey: string, userId: string) => Promise.resolve({ userId: "3" }));
         const renderKeyPair = () => {
             return render(
                 <UserProvider>
@@ -120,7 +121,7 @@ describe("GenerateKeyPair", () => {
         })
         await waitFor(() => {
             const userIdElement = screen.getByTestId("userId")
-            expect(userIdElement.textContent).toEqual("2")
+            expect(userIdElement.textContent).toEqual("3")
             const jwtElement = screen.getByTestId("jwt")
             if (jwtElement.textContent !== null) {
                 expect(jwtElement.textContent.length).toBeGreaterThan(0)

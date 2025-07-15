@@ -9,6 +9,7 @@ import Grid from "@mui/material/Grid";
 import Select from "@mui/material/Select";
 import { ColorTheme, applyThemePrimaryType } from "../styles/modes";
 import { useTheme } from "@mui/material/styles";
+import { useThemeParams } from "../state/themeActions";
 interface PowerInputs {
   power: Power;
   preset: Preset;
@@ -16,7 +17,6 @@ interface PowerInputs {
   onPresetChange: (preset: Preset) => void;
   onSourceChange: (source: Source) => void;
   onPowerToggle: (power: Power) => void;
-  mode: ColorTheme;
 }
 const PRESET = "Preset";
 const SOURCE = "Source";
@@ -28,9 +28,11 @@ const PowerCard = ({
   onSourceChange,
   onPresetChange,
   onPowerToggle,
-  mode,
 }: PowerInputs) => {
   const theme = useTheme();
+  const {
+    state: selectedTheme
+  } = useThemeParams();
   return (
     <Paper
       sx={{
@@ -49,7 +51,7 @@ const PowerCard = ({
           <FormControlLabel
             control={
               <Switch
-                color={applyThemePrimaryType(mode)}
+                color={applyThemePrimaryType(selectedTheme)}
                 checked={power === Power.On}
                 onChange={(_, checked) =>
                   onPowerToggle(checked ? Power.On : Power.Off)
@@ -70,13 +72,13 @@ const PowerCard = ({
                   color: theme.palette.primary.main, // <------------------ arrow-svg-color
                 },
                 "&.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
-                  {
-                    borderColor: theme.palette.primary.main, // <------------------ utline-color on hover
-                  },
+                {
+                  borderColor: theme.palette.primary.main, // <------------------ utline-color on hover
+                },
                 "&.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-                  {
-                    borderColor: theme.palette.primary.main, // <------------------ outline-color on focus
-                  },
+                {
+                  borderColor: theme.palette.primary.main, // <------------------ outline-color on focus
+                },
               }}
               labelId="source-select-label"
               id="source-select"
@@ -103,13 +105,13 @@ const PowerCard = ({
                   color: theme.palette.primary.main, // <------------------ arrow-svg-color
                 },
                 "&.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
-                  {
-                    borderColor: theme.palette.primary.main, // <------------------ utline-color on hover
-                  },
+                {
+                  borderColor: theme.palette.primary.main, // <------------------ utline-color on hover
+                },
                 "&.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-                  {
-                    borderColor: theme.palette.primary.main, // <------------------ outline-color on focus
-                  },
+                {
+                  borderColor: theme.palette.primary.main, // <------------------ outline-color on focus
+                },
               }}
               labelId="source-select-label"
               id="source-select"

@@ -127,10 +127,7 @@ impl<'r> FromRequest<'r> for User {
         };
         match jwt_auth(auth_header, &public_key, true, &audience) {
             Ok(user) => Outcome::Success(user),
-            Err(_e) => {
-                println!("Errr: {}", _e);
-                Outcome::Forward(Status::Unauthorized)
-            }
+            Err(_e) => Outcome::Forward(Status::Unauthorized),
         }
     }
 }
