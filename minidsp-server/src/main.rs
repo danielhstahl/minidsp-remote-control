@@ -82,7 +82,6 @@ fn rocket() -> _ {
     };
     #[allow(unused_mut)]
     let mut base_routes = routes![
-        index,
         root_pem,
         auth_settings,
         update_settings_anon,
@@ -138,11 +137,6 @@ fn rocket() -> _ {
         .manage(ssl_path)
         .manage(gpio_pin)
         .mount("/api/", base_routes)
-}
-
-#[get("/")]
-fn index() -> &'static str {
-    "Hello, world!"
 }
 
 #[get("/cert")]

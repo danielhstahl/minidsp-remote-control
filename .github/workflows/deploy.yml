@@ -77,7 +77,7 @@ jobs:
         run: npm run build
 
       - name: package
-        run: tar czvf minidsp-ui.tar.gz -C client dist -C ../examples minidsp-bt.service minidsp-ui.service nginx.conf nginx.service -C ../server bt.ts minidsp.ts scripts/create_root_cert_and_key.sh package-lock.json package.json
+        run: tar czvf minidsp-ui.tar.gz -C client dist -C ../examples minidsp-bt.service minidsp-ui.service nginx.conf nginx.service -C ../server bt.ts minidsp.ts package-lock.json package.json
 
       - name: upload ui
         env:

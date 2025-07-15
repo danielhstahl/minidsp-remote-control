@@ -72,3 +72,4 @@ sudo chown -R  minidsp:minidspgroup /home/minidsp/
 sudo apt-get install -y ufw
 sudo ufw enable
 sudo ufw deny 8000 # deny direct access to Rocket
+sudo ufw deny 5380 # deny direct access to minidspd
