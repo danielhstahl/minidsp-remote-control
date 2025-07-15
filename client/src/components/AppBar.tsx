@@ -32,7 +32,6 @@ const AppBar = styled(MuiAppBar, {
     }),
   }),
 }));
-//export type Mode = "light" | "dark";
 interface AppBarMenuProps {
   setMode: (mode: ColorTheme) => void;
   mode: ColorTheme;

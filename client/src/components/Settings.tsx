@@ -22,13 +22,9 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     padding: theme.spacing(1),
   },
 }));
-/*interface SettingInputs {
-  mode: ColorTheme;
-}*/
-const Settings = (/*{ mode }: SettingInputs*/) => {
-  //const { pathname } = useLocation();
-  const open = true//pathname === "/settings";
-  //const theme = useTheme()
+
+const Settings = () => {
+  const open = true
   return (
     <>
       <BootstrapDialog

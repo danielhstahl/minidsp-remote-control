@@ -2,11 +2,10 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
-import { MiniDspProvider } from "./state/minidspActions";
+
 import { AuthSettingsProvider } from "./state/credActions";
 import { UserProvider } from "./state/userActions";
 import { ThemeProvider } from "./state/themeActions";
-import { ExpiryProvider } from "./state/expiryActions";
 import {
   createBrowserRouter,
   RouterProvider,
@@ -37,13 +36,9 @@ root.render(
   <React.StrictMode>
     <AuthSettingsProvider>
       <UserProvider>
-        <MiniDspProvider>
-          <ThemeProvider>
-            <ExpiryProvider>
-              <RouterProvider router={router} />
-            </ExpiryProvider>
-          </ThemeProvider>
-        </MiniDspProvider>
+        <ThemeProvider>
+          <RouterProvider router={router} />
+        </ThemeProvider>
       </UserProvider>
     </AuthSettingsProvider>
   </React.StrictMode>

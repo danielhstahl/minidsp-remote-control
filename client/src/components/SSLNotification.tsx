@@ -1,11 +1,15 @@
 //notify when SSL expiry
+import { useEffect } from "react";
 import Stack from "@mui/material/Stack";
 import TrapFocus from "@mui/material/Unstable_TrapFocus";
 import Paper from "@mui/material/Paper";
 import Fade from "@mui/material/Fade";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-
+import {
+  getExpiry,
+} from "../services/api";
+import { SetExpiry, useExpiryParams } from "../state/expiryActions";
 const MS_TO_DAYS = 1000 * 3600 * 24;
 //export for testing
 export const showNotification = (currentDate: Date, expiryDate: Date) => {
@@ -19,12 +23,20 @@ export const calculateDays = (currentDate: Date, expiryDate: Date) => {
 };
 
 const SSLNotification = ({
-  expiry,
   currentDate,
 }: {
-  expiry: Date;
   currentDate: Date;
 }) => {
+
+  const {
+    dispatch: expiryDispatch,
+    state: { expiry } } = useExpiryParams();
+  useEffect(() => {
+    //no auth on this endpoint
+    getExpiry({}).then((expiry) =>
+      expiryDispatch({ type: SetExpiry.UPDATE, value: expiry }),
+    )
+  }, [expiryDispatch]);
   const show = showNotification(currentDate, expiry);
   const expiryDays = calculateDays(currentDate, expiry);
   return (

@@ -9,7 +9,6 @@ import Box from "@mui/material/Box";
 import CircularProgress, {
   CircularProgressProps,
 } from "@mui/material/CircularProgress";
-import { ColorTheme } from "../styles/modes";
 import { MIN_VOLUME, MAX_VOLUME } from "../state/minidspActions";
 const VOLUME_INCREMENT = 0.5;
 interface VolumeInputs {
@@ -17,17 +16,15 @@ interface VolumeInputs {
   onVolumeUp: (v: number, increment: number) => void;
   onVolumeDown: (v: number, increment: number) => void;
   volume: number;
-  mode: ColorTheme;
 }
 
 const CircularProgressWithLabel = (
   props: CircularProgressProps & {
     value: number;
     rawValue: number;
-    mode: ColorTheme;
   },
 ) => {
-  const { rawValue, mode, ...rest } = props;
+  const { rawValue, ...rest } = props;
   return (
     <Box sx={{ position: "relative", display: "inline-flex" }}>
       <CircularProgress
@@ -74,7 +71,6 @@ const VolumeCard = ({
   onVolumeUp,
   onVolumeDown,
   volume,
-  mode,
 }: VolumeInputs) => {
   return (
     <Paper
@@ -120,7 +116,6 @@ const VolumeCard = ({
           size="9rem"
           rawValue={volume}
           value={convertTo100(volume)}
-          mode={mode}
         />
       </div>
     </Paper>

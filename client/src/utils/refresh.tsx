@@ -25,9 +25,9 @@ export const filterState = (jwt: string, requireAuth: boolean) => {
 
 
 export const refreshToken = async (requireAuth: boolean) => {
-    if (requireAuth) {
+    const privateKey = getPrivateKey();
+    if (requireAuth && privateKey !== "") {
         const userId = getUserId();
-        const privateKey = getPrivateKey();
         const jwt = await generateJwt(privateKey, userId, process.env.REACT_APP_AUDIENCE || "", "shouldnotmatter")
         return {
             userId,
@@ -47,7 +47,7 @@ export const refreshStatus = (jwt: string, requireAuth: boolean, getParams: () =
 }
 
 //https://overreacted.io/making-setinterval-declarative-with-react-hooks/
-export function useInterval(callback: () => void, refreshRate: number) {
+export function useInterval(callback: () => void, refreshRate: number, executeImmediate: boolean = false) {
     const savedCallback = useRef<() => void>(callback);
 
     // Remember the latest callback.
@@ -59,6 +59,9 @@ export function useInterval(callback: () => void, refreshRate: number) {
     useEffect(() => {
         function tick() {
             savedCallback.current();
+        }
+        if (executeImmediate) {
+            tick()
         }
         if (refreshRate !== null) {
             let id = setInterval(tick, refreshRate);
