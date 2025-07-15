@@ -7,7 +7,7 @@ import MenuItem from "@mui/material/MenuItem";
 import { Preset, Power, Source } from "../services/api";
 import Grid from "@mui/material/Grid";
 import Select from "@mui/material/Select";
-import { ColorTheme, applyThemePrimaryType } from "../styles/modes";
+import { applyThemePrimaryType } from "../styles/modes";
 import { useTheme } from "@mui/material/styles";
 import { useThemeParams } from "../state/themeActions";
 interface PowerInputs {

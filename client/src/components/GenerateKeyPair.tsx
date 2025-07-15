@@ -6,7 +6,7 @@ import { savePrivateKey, saveUserId, getPrivateKey } from "../state/persistance"
 import { SetUser, useUserParams } from "../state/userActions";
 import KeyIcon from "@mui/icons-material/Key";
 import { addAuthHeaders, createUser, updateUser } from "../services/api";
-import { generateKeyPair, generateJwt, convertToPemKeyAndBase64 } from "../services/keyCreation";
+import { generateKeyPair, convertToPemKeyAndBase64 } from "../services/keyCreation";
 import { refreshToken } from "../utils/refresh";
 
 interface MessageHandle {

@@ -94,7 +94,6 @@ function App() {
           component="main"
           sx={{
             backgroundColor: (theme) => theme.palette.background.default,
-
             flexGrow: 1,
             height: "100vh",
             overflow: "auto",
@@ -102,7 +101,7 @@ function App() {
         >
           <Toolbar />
           <MiniDspProvider>
-            <AppBody jwt={activeJwt} userId={activeUserId} requireAuth={requireAuth} selectedTheme={selectedTheme} />
+            <AppBody jwt={activeJwt} userId={activeUserId} requireAuth={requireAuth} />
           </MiniDspProvider>
           <ExpiryProvider>
             <SSLNotification currentDate={new Date()} />
