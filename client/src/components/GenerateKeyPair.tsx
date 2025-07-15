@@ -60,17 +60,15 @@ const GenerateCerts = ({
         base64FormattedPublicKey,
         originalUserId,
       )).then((_user) => {
-        return refreshToken(true)
-          //return generateJwt(privateKey, userId, process.env.REACT_APP_AUDIENCE || "", "shouldnotmatter")
-          .then(({ userId, jwt }) => {
-            return userDispatch({
-              type: SetUser.UPDATE,
-              value: {
-                userId,
-                jwt,
-              },
-            })
+        return refreshToken(true).then(({ userId, jwt }) => {
+          return userDispatch({
+            type: SetUser.UPDATE,
+            value: {
+              userId,
+              jwt,
+            },
           })
+        })
       }).then(() => {
         setMessage({
           isMessageOpen: true,
