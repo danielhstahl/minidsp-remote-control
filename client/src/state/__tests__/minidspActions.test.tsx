@@ -6,7 +6,6 @@ import {
   MiniDspProvider,
 } from "../minidspActions";
 import { Preset, Source, Power } from "../../services/api";
-import React from "react";
 
 describe("minidspReducer", () => {
   const initialState = {

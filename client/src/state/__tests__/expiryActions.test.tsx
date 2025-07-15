@@ -1,5 +1,4 @@
 import { render } from "@testing-library/react";
-import { SSLCertExpiry } from "../../services/api";
 import {
     SetExpiry,
     expiryReducer,

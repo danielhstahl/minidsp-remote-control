@@ -17,7 +17,6 @@ import {
     volumeDown,
     HtxWrite,
     addAuthHeaders,
-    LocalHeaders,
     User,
 } from "../services/api";
 import {
@@ -25,13 +24,13 @@ import {
     useMiniDspParams,
     Action,
 } from "../state/minidspActions";
-import { ColorTheme } from "../styles/modes";
 const THREE_SECONDS = 3000
 // custom hook for parameter updates
 function useParameterUpdates(
     miniDspDispatch: (_: Action) => void,
     miniDspParams: HtxWrite,
-    headers: LocalHeaders,
+    userId: string,
+    jwt: string
 ) {
     return useMemo(
         () => ({
@@ -40,60 +39,60 @@ function useParameterUpdates(
                     type: MinidspAction.UPDATE,
                     value: { ...miniDspParams, preset },
                 });
-                setPreset(headers, preset);
+                setPreset(addAuthHeaders(userId, jwt), preset);
             },
             updateVolume: (volume: number) => {
                 miniDspDispatch({
                     type: MinidspAction.UPDATE,
                     value: { ...miniDspParams, volume },
                 });
-                setVolume(headers, volume);
+                setVolume(addAuthHeaders(userId, jwt), volume);
             },
             volumeUp: (volume: number, increment: number) => {
                 miniDspDispatch({
                     type: MinidspAction.UPDATE,
                     value: { ...miniDspParams, volume: volume + increment },
                 });
-                volumeUp(headers);
+                volumeUp(addAuthHeaders(userId, jwt));
             },
             volumeDown: (volume: number, increment: number) => {
                 miniDspDispatch({
                     type: MinidspAction.UPDATE,
                     value: { ...miniDspParams, volume: volume - increment },
                 });
-                volumeDown(headers);
+                volumeDown(addAuthHeaders(userId, jwt));
             },
             updatePower: (power: Power) => {
                 miniDspDispatch({
                     type: MinidspAction.UPDATE,
                     value: { ...miniDspParams, power },
                 });
-                setPower(headers, power);
+                setPower(addAuthHeaders(userId, jwt), power);
             },
             updateSource: (source: Source) => {
                 miniDspDispatch({
                     type: MinidspAction.UPDATE,
                     value: { ...miniDspParams, source },
                 });
-                setSource(headers, source);
+                setSource(addAuthHeaders(userId, jwt), source);
             },
         }),
-        [miniDspDispatch, miniDspParams, headers],
+        [miniDspDispatch, miniDspParams, userId, jwt],
     );
 }
 
 interface Params extends User {
-    requireAuth: boolean,
-    selectedTheme: ColorTheme
+    requireAuth: boolean
 }
-const AppBody = ({ jwt, userId, requireAuth, selectedTheme }: Params) => {
+const AppBody = ({ jwt, userId, requireAuth }: Params) => {
     const {
         dispatch: miniDspDispatch,
         state: miniDspParams } = useMiniDspParams();
     const updates = useParameterUpdates(
         miniDspDispatch,
         miniDspParams,
-        addAuthHeaders(userId, jwt),
+        userId,
+        jwt
     );
     const getParams = useCallback(
         () =>
