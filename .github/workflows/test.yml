@@ -80,7 +80,9 @@ jobs:
         with:
           node-version: "24.1.0"
       - name: install deps
-        run: npm ci
+        run: |
+          npm ci
+          npx playwright install
       - name: run tests
         run: npm run test -- --coverage .
       - name: compile

@@ -13,8 +13,6 @@ jobs:
         run: npm ci
         working-directory: ./server
 
-    #- name: test
-    #  run: npm test
   build_rust:
     name: release ${{ matrix.target }}
     runs-on: ubuntu-latest
