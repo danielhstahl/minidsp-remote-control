@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\nINSERT INTO settings (require_auth) VALUES ($1);\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "192b0b9dd00dd5421d902f0d150ac14c49bcde26f8af192f5adc6da1ee308c88"
+}

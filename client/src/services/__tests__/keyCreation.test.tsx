@@ -1,5 +1,5 @@
 import { base64ToBuffer, bufferToBase64Raw, convertToPemKeyAndBase64 } from "../keyCreation";
-
+import { test, expect } from 'vitest'
 test("base64AndBack", async () => {
   const myString = "SGVsbG8sIHdvcmxkLg=="; //hello world in base64
   const initResult = await base64ToBuffer(myString);

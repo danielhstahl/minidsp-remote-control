@@ -16,7 +16,6 @@ const AuthSwitch = () => {
   const {
     state: { jwt, userId },
   } = useUserParams();
-
   return (
     <Switch
       disabled={jwt === ""}

@@ -16,7 +16,8 @@ type Action = {
 
 const initialState: AuthSettings = {
   key: 0,
-  requireAuth: false
+  requireAuth: false,
+  domainName: ""
 };
 
 export const authSettingsReducer = (state: AuthSettings, action: Action) => {

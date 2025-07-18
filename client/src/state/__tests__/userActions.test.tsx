@@ -1,4 +1,5 @@
-import { render } from "@testing-library/react";
+import { render } from 'vitest-browser-react'
+import { describe, expect, it } from 'vitest'
 import {
   SetUser,
   userReducer,
@@ -38,7 +39,7 @@ describe("userReducer", () => {
 });
 
 describe("UserProvider and useProvider", () => {
-  it("should provide initial state to children", () => {
+  it("should provide initial state to children", async () => {
     const TestComponent = () => {
       const { state } = useUserParams();
       return <div data-testid="test">{JSON.stringify(state)}</div>;
@@ -50,10 +51,10 @@ describe("UserProvider and useProvider", () => {
       </UserProvider>
     );
 
-    const element = getByTestId("test");
-    expect(JSON.parse(element.textContent!)).toEqual({
+    await expect.element(getByTestId("test")).toHaveTextContent(JSON.stringify({
       userId: "-1",
       jwt: "",
-    });
+    }))
+
   });
 });

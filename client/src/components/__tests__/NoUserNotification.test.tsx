@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { render } from 'vitest-browser-react'
+import { describe, expect, it } from 'vitest'
 import NoUserNotification, { showNotification } from "../NoUserNotification";
 import { useEffect } from "react";
 import {
@@ -15,32 +16,31 @@ describe("NoUserNotification", () => {
           type: SetKeys.UPDATE,
           value: {
             key: 0,
-            requireAuth: true
+            requireAuth: true,
+            domainName: "hello"
           },
         });
       }, [authDispatch]);
       return <></>;
     };
-    render(
+    const screen = render(
       <AuthSettingsProvider>
         <DummyComponent />
         <NoUserNotification signature="" />
       </AuthSettingsProvider>,
     );
-    expect(screen.getByLabelText("No User Banner").style.visibility).toEqual(
-      "",
-    );
+
+    expect(screen.getByLabelText("No User Banner")).toHaveStyle({ 'visibility': "" })
+
   });
   it("does not show notification", () => {
-    render(
+    const screen = render(
       <AuthSettingsProvider>
         <NoUserNotification signature="" />
       </AuthSettingsProvider>,
     );
 
-    expect(screen.getByLabelText("No User Banner").style.visibility).toEqual(
-      "hidden",
-    );
+    expect(screen.getByLabelText("No User Banner")).toHaveStyle({ 'visibility': "hidden" })
   });
 });
 

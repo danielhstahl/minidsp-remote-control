@@ -8,6 +8,10 @@ This is a remote control for the MiniDSP.  It is designed to be run on a Raspber
 
 Client is programmed using ReactJS.
 
+Client runs tests using a headless browser.
+
+`npx playwright install`
+
 ## Server
 
 ### MiniDSP version
@@ -26,7 +30,7 @@ In `minidsp-server`:
 `cargo sqlx migrate add users`
 `cargo sqlx migrate add settings`
 
-`DATABASE_URL="sqlite:$(pwd)/db/minidsp.sqlite" cargo sqlx prepare`
+`DATABASE_URL="sqlite:$(pwd)/minidsp.sqlite" cargo sqlx prepare`
 
 
 ## Installing/running

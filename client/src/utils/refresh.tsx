@@ -23,12 +23,11 @@ export const filterState = (jwt: string, requireAuth: boolean) => {
     return AuthCondition.noAuthRequiredNoJwt
 }
 
-
-export const refreshToken = async (requireAuth: boolean) => {
+export const refreshToken = async (requireAuth: boolean, domainName: string) => {
     const privateKey = getPrivateKey();
     if (requireAuth && privateKey !== "") {
         const userId = getUserId();
-        const jwt = await generateJwt(privateKey, userId, process.env.REACT_APP_AUDIENCE || "", "shouldnotmatter")
+        const jwt = await generateJwt(privateKey, userId, domainName, "shouldnotmatter")
         return {
             userId,
             jwt

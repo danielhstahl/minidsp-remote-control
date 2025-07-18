@@ -38,13 +38,6 @@ struct GpioPin {
     pin: bool,
 }
 
-struct Domain {
-    domain_name: String,
-}
-struct SSLPath {
-    path: String,
-}
-
 #[derive(Debug, Serialize)]
 #[serde(crate = "rocket::serde")]
 struct Success {
@@ -57,7 +50,10 @@ async fn run_migrations(rocket: Rocket<Build>) -> fairing::Result {
     match MinidspDb::fetch(&rocket) {
         Some(db) => match sqlx::migrate!("db/migrations").run(&**db).await {
             Ok(_) => {
-                db::set_default_settings(&**db).await.unwrap();
+                let domain = rocket.state::<db::Domain>().unwrap();
+                db::set_default_settings(&**db, &domain.domain_name)
+                    .await
+                    .unwrap();
                 Ok(rocket)
             }
             Err(e) => {
@@ -72,12 +68,12 @@ async fn run_migrations(rocket: Rocket<Build>) -> fairing::Result {
 #[launch]
 fn rocket() -> _ {
     let domain = match env::var("DOMAIN") {
-        Ok(v) => Domain { domain_name: v },
+        Ok(v) => db::Domain { domain_name: v },
         Err(_e) => panic!("Env variable DOMAIN needs to be defined!"),
     };
 
     let ssl_path = match env::var("SSL_PATH") {
-        Ok(v) => SSLPath { path: v },
+        Ok(v) => sslcert::SSLPath { path: v },
         Err(_e) => panic!("Env variable SSL_PATH needs to be defined!"),
     };
     #[allow(unused_mut)]
@@ -140,7 +136,7 @@ fn rocket() -> _ {
 }
 
 #[get("/cert")]
-async fn root_pem(ssl_path: &State<SSLPath>) -> std::io::Result<ReaderStream![File]> {
+async fn root_pem(ssl_path: &State<sslcert::SSLPath>) -> std::io::Result<ReaderStream![File]> {
     let root_pem_path = format!("{}/{}", ssl_path.path, sslcert::ROOT_CA_NAME);
     let file = File::open(root_pem_path).await?;
     Ok(ReaderStream::one(file))
@@ -148,7 +144,7 @@ async fn root_pem(ssl_path: &State<SSLPath>) -> std::io::Result<ReaderStream![Fi
 
 #[get("/cert/expiration")]
 async fn expiry(
-    ssl_path: &State<SSLPath>,
+    ssl_path: &State<sslcert::SSLPath>,
 ) -> Result<Json<sslcert::CertExpiry>, BadRequest<String>> {
     let expiry_date = sslcert::get_certificate_expiry_date_from_file(&ssl_path.path)
         .map_err(|e| BadRequest(e.to_string()))?;
@@ -158,8 +154,11 @@ async fn expiry(
 }
 
 #[get("/auth/settings")]
-async fn auth_settings(db: &MinidspDb) -> Result<Json<db::Settings>, BadRequest<String>> {
-    let settings = db::get_settings(&**db)
+async fn auth_settings(
+    db: &MinidspDb,
+    domain: &State<db::Domain>,
+) -> Result<Json<db::Settings>, BadRequest<String>> {
+    let settings = db::get_settings(&**db, &domain.domain_name)
         .await
         .map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(settings))
@@ -169,9 +168,10 @@ async fn auth_settings(db: &MinidspDb) -> Result<Json<db::Settings>, BadRequest<
 async fn update_settings_anon(
     db: &MinidspDb,
     settings: Json<db::ClientSettings>,
+    domain: &State<db::Domain>,
     _anon: Anonymous,
 ) -> Result<Json<db::Settings>, BadRequest<String>> {
-    let settings = db::update_settings(&**db, settings.require_auth)
+    let settings = db::update_settings(&**db, settings.require_auth, &domain.domain_name)
         .await
         .map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(settings))
@@ -185,9 +185,10 @@ async fn update_settings_anon(
 async fn update_settings_user(
     db: &MinidspDb,
     settings: Json<db::ClientSettings>,
+    domain: &State<db::Domain>,
     _user: jwt::User,
 ) -> Result<Json<db::Settings>, BadRequest<String>> {
-    let settings = db::update_settings(&**db, settings.require_auth)
+    let settings = db::update_settings(&**db, settings.require_auth, &domain.domain_name)
         .await
         .map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(settings))
@@ -201,9 +202,10 @@ async fn update_settings_user(
 async fn update_settings_basic(
     db: &MinidspDb,
     settings: Json<db::ClientSettings>,
+    domain: &State<db::Domain>,
     _basic: basic::Basic,
 ) -> Result<Json<db::Settings>, BadRequest<String>> {
-    let settings = db::update_settings(&**db, settings.require_auth)
+    let settings = db::update_settings(&**db, settings.require_auth, &domain.domain_name)
         .await
         .map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(settings))
@@ -269,8 +271,8 @@ async fn update_user_user(
 #[post("/cert")]
 async fn regenerate_cert_anon(
     _anon: anonymous::Anonymous,
-    domain: &State<Domain>,
-    ssl_path: &State<SSLPath>,
+    domain: &State<db::Domain>,
+    ssl_path: &State<sslcert::SSLPath>,
 ) -> Result<Json<Success>, BadRequest<String>> {
     sslcert::generate_ca_and_entity(&domain.domain_name, &ssl_path.path)
         .map_err(|e| BadRequest(e.to_string()))?;
@@ -281,8 +283,8 @@ async fn regenerate_cert_anon(
 #[post("/cert", rank = 2)]
 async fn regenerate_cert_user(
     _user: jwt::User,
-    domain: &State<Domain>,
-    ssl_path: &State<SSLPath>,
+    domain: &State<db::Domain>,
+    ssl_path: &State<sslcert::SSLPath>,
 ) -> Result<Json<Success>, BadRequest<String>> {
     sslcert::generate_ca_and_entity(&domain.domain_name, &ssl_path.path)
         .map_err(|e| BadRequest(e.to_string()))?;

@@ -1,5 +1,5 @@
-use crate::db::get_user;
-use crate::{Domain, MinidspDb};
+use crate::MinidspDb;
+use crate::db::{Domain, get_user};
 use base64::engine::Engine as _;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};

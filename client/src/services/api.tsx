@@ -38,6 +38,7 @@ export interface SSLCertExpiry {
 export interface AuthSettings {
   key: number;
   requireAuth: boolean;
+  domainName: string
 }
 export interface UserId {
   userId: string;
@@ -96,19 +97,11 @@ export const getAuthSettings: (
   headers: LocalHeaders,
 ) => Promise<AuthSettings> = (headers: LocalHeaders) => {
   return fetch(`/api/auth/settings`, { headers })
-    .then((v) => v.json())
-    .then((fullResult) => {
-      const { requireAuth, key, ...rest } = fullResult;
-      return {
-        requireAuth,
-        key,
-        certInfo: {
-          ...rest,
-          validFromDate: new Date(rest.validFromDate),
-          validToDate: new Date(rest.validToDate),
-        },
-      };
-    });
+    .then((v) => v.json()).then(({ requireAuth, key, domainName }) => ({
+      requireAuth,
+      key,
+      domainName: `https://${domainName}`
+    }))
 };
 
 export const setAuthSettings: (

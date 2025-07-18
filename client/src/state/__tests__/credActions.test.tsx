@@ -1,4 +1,5 @@
-import { render } from "@testing-library/react";
+import { render } from 'vitest-browser-react'
+import { describe, expect, it } from 'vitest'
 import {
   authSettingsReducer,
   AuthSettingsProvider,
@@ -10,7 +11,7 @@ describe("authSettingsReducer", () => {
   const initialState = {
     key: 1,
     requireAuth: true,
-    stringToSign: "",
+    domainName: "",
   };
 
   it("should return initial state when called with unknown action", () => {
@@ -27,15 +28,7 @@ describe("authSettingsReducer", () => {
     const newState = {
       key: 1,
       requireAuth: true,
-      stringToSign: "hello",
-      certInfo: {
-        subject: "hi",
-        issuer: "hello",
-        validFrom: "somedate1",
-        validTo: "somedate2",
-        validFromDate: new Date(),
-        validToDate: new Date(),
-      },
+      domainName: "hello",
     };
 
     const result = authSettingsReducer(initialState, {
@@ -48,7 +41,7 @@ describe("authSettingsReducer", () => {
 });
 
 describe("AuthSettingsProvider and useAuthParams", () => {
-  it("should provide initial state to children", () => {
+  it("should provide initial state to children", async () => {
     const TestComponent = () => {
       const { state } = useAuthSettingsParams();
       return <div data-testid="test">{JSON.stringify(state)}</div>;
@@ -59,11 +52,6 @@ describe("AuthSettingsProvider and useAuthParams", () => {
         <TestComponent />
       </AuthSettingsProvider>
     );
-
-    const element = getByTestId("test");
-    expect(JSON.parse(element.textContent!)).toEqual({
-      key: 0,
-      requireAuth: false,
-    });
+    await expect.element(getByTestId("test")).toHaveTextContent('{"key":0,"requireAuth":false,"domainName":""}')
   });
 });

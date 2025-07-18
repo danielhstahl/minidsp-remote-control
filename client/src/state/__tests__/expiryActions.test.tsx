@@ -1,4 +1,5 @@
-import { render } from "@testing-library/react";
+import { render } from 'vitest-browser-react'
+import { describe, expect, it } from 'vitest'
 import {
     SetExpiry,
     expiryReducer,
@@ -37,10 +38,11 @@ describe("expiryReducer", () => {
 });
 
 describe("ExpiryProvider and useProvider", () => {
-    it("should provide initial state to children", () => {
+    it("should provide initial state to children", async () => {
         const TestComponent = () => {
             const { state } = useExpiryParams();
-            return <div data-testid="test">{JSON.stringify(state)}</div>;
+            const keys = Object.keys(state).reduce((a, i) => a + i)
+            return <div data-testid="test">{keys}</div>;
         };
 
         const { getByTestId } = render(
@@ -49,7 +51,6 @@ describe("ExpiryProvider and useProvider", () => {
             </ExpiryProvider>
         );
 
-        const element = getByTestId("test");
-        expect(JSON.parse(element.textContent!)).toHaveProperty("expiry")
+        await expect.element(getByTestId("test")).toHaveTextContent('expiry')
     });
 });

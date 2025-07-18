@@ -1,5 +1,5 @@
 use crate::MinidspDb;
-use crate::db::get_settings;
+use crate::db::{Domain, get_settings};
 use rocket::http::Status;
 use rocket::request::{FromRequest, Outcome, Request};
 
@@ -21,7 +21,14 @@ impl<'r> FromRequest<'r> for Anonymous {
             }
         };
 
-        let settings = match get_settings(&db).await {
+        let domain = match req.rocket().state::<Domain>() {
+            Some(domain) => domain,
+            None => {
+                return Outcome::Error((Status::Unauthorized, ()));
+            }
+        };
+
+        let settings = match get_settings(&db, &domain.domain_name).await {
             Ok(settings) => settings,
             Err(_e) => {
                 return Outcome::Error((Status::Unauthorized, ()));

@@ -8,6 +8,7 @@ import KeyIcon from "@mui/icons-material/Key";
 import { addAuthHeaders, createUser, updateUser } from "../services/api";
 import { generateKeyPair, convertToPemKeyAndBase64 } from "../services/keyCreation";
 import { refreshToken } from "../utils/refresh";
+import { useAuthSettingsParams } from "../state/credActions";
 
 interface MessageHandle {
   isMessageOpen: boolean;
@@ -28,6 +29,10 @@ const GenerateCerts = ({
     state: { userId: originalUserId, jwt: originalJwt },
   } = useUserParams();
 
+  const {
+    state: { domainName },
+  } = useAuthSettingsParams();
+
   const [message, setMessage] = useState<MessageHandle>({
     isMessageOpen: false,
     messageType: "success",
@@ -45,7 +50,6 @@ const GenerateCerts = ({
     savePrivateKey(privateKey); //local storage
 
     const base64FormattedPublicKey = convertToPemKeyAndBase64(publicKey)
-
     return (originalUserId === "-1" ?
       //no user yet, so create one
       createUserLocal(addAuthHeaders(originalUserId, originalJwt), base64FormattedPublicKey).then(
@@ -60,7 +64,7 @@ const GenerateCerts = ({
         base64FormattedPublicKey,
         originalUserId,
       )).then((_user) => {
-        return refreshToken(true).then(({ userId, jwt }) => {
+        return refreshToken(true, domainName).then(({ userId, jwt }) => {
           return userDispatch({
             type: SetUser.UPDATE,
             value: {

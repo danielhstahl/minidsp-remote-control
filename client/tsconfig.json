@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -15,8 +19,16 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": ["node"], //  Include Babel and Node types
-    "typeRoots": ["node_modules/@types"]
+    "types": [
+      "node",
+      "@vitest/browser/providers/playwright"
+    ], //  Include Babel and Node types
+    "typeRoots": [
+      "node_modules/@types",
+      "node_modules"
+    ]
   },
-  "include": ["src"]
+  "include": [
+    "src"
+  ]
 }

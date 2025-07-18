@@ -1,11 +1,12 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render } from 'vitest-browser-react'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { ThemeProvider } from "@mui/material/styles";
 import { DEFAULT_COLOR_THEME, themes } from "../../styles/modes"; // You'll need to import your theme
 import AppBarMenu from "../AppBar";
 import { MemoryRouter } from "react-router";
 
 describe("AppBarMenu", () => {
-  const mockSetMode = jest.fn();
+  const mockSetMode = vi.fn();
   const theme = themes[DEFAULT_COLOR_THEME];
   const renderAppBar = (mode: "light" | "dark" | "dark_evil") => {
     return render(
@@ -22,38 +23,38 @@ describe("AppBarMenu", () => {
   });
 
   it("renders the title correctly", () => {
-    renderAppBar("light");
+    const screen = renderAppBar("light");
     expect(screen.getByText("MiniDSP")).toBeInTheDocument();
   });
 
   it("renders all three theme toggle buttons", () => {
-    renderAppBar("light");
+    const screen = renderAppBar("light");
     expect(screen.getByLabelText("Light Mode")).toBeInTheDocument();
-    expect(screen.getByLabelText("Dark Mode")).toBeInTheDocument();
+    expect(screen.getByLabelText("Dark Mode", { exact: true })).toBeInTheDocument();
     expect(screen.getByLabelText("Evil Dark Mode")).toBeInTheDocument();
   });
 
-  it("calls setMode with correct value when light mode is selected", () => {
-    renderAppBar("dark");
-    fireEvent.click(screen.getByLabelText("Light Mode"));
+  it("calls setMode with correct value when light mode is selected", async () => {
+    const screen = renderAppBar("dark");
+    await screen.getByLabelText("Light Mode").click()
     expect(mockSetMode).toHaveBeenCalledWith("light");
   });
 
-  it("calls setMode with correct value when dark mode is selected", () => {
-    renderAppBar("light");
-    fireEvent.click(screen.getByLabelText("Dark Mode"));
+  it("calls setMode with correct value when dark mode is selected", async () => {
+    const screen = renderAppBar("light");
+    await screen.getByLabelText("Dark Mode", { exact: true }).click()
     expect(mockSetMode).toHaveBeenCalledWith("dark");
   });
 
-  it("calls setMode with correct value when evil dark mode is selected", () => {
-    renderAppBar("light");
-    fireEvent.click(screen.getByLabelText("Evil Dark Mode"));
+  it("calls setMode with correct value when evil dark mode is selected", async () => {
+    const screen = renderAppBar("light");
+    await screen.getByLabelText("Evil Dark Mode").click()
     expect(mockSetMode).toHaveBeenCalledWith("dark_evil");
   });
 
-  it("highlights the current mode button", () => {
-    renderAppBar("dark_evil");
-    const evilButton = screen.getByLabelText("Evil Dark Mode");
-    expect(evilButton.getAttribute("aria-pressed")).toBe("true");
+  it("highlights the current mode button", async () => {
+    const screen = renderAppBar("dark_evil");
+    await expect.element(screen.getByLabelText("Evil Dark Mode")).toHaveAttribute("aria-pressed", "true")
+
   });
 });

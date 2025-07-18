@@ -42,7 +42,7 @@ function App() {
   } = useLoaderData<InitialLoad>()
 
   const {
-    state: { requireAuth },
+    state: { requireAuth, domainName },
     dispatch: authDispatch,
   } = useAuthSettingsParams();
   const {
@@ -64,7 +64,7 @@ function App() {
     })
   }, [userDispatch, user]);
 
-  useInterval(() => refreshToken(requireAuth).then((user: User) => {
+  useInterval(() => refreshToken(requireAuth, domainName).then((user: User) => {
     userDispatch({
       type: SetUser.UPDATE,
       value: user,
@@ -81,7 +81,6 @@ function App() {
     saveColorTheme(theme);
   };
   const theme = themes[selectedTheme];
-
   const activeJwt = jwt === "" ? user.jwt : jwt
   const activeUserId = jwt === "" ? user.userId : userId
   return (
