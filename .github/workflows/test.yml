@@ -74,6 +74,7 @@ jobs:
         working-directory: ./client
     env:
       NODE_OPTIONS: "--max_old_space_size=4096"
+      VITEST_SEGFAULT_RETRY: '5'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

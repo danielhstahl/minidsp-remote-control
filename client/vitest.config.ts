@@ -14,6 +14,5 @@ export default defineConfig({
         coverage: {
             include: ["src"]
         },
-        retry: 3,
     }
 })
