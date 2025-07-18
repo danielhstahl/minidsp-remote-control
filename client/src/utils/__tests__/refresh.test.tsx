@@ -1,5 +1,5 @@
 import { filterState, AuthCondition, refreshStatus } from "../refresh";
-
+import { describe, expect, it, vi } from 'vitest'
 describe("filterState", () => {
     it("returns authRequiredJwt if requireAuth and jwt", () => {
         expect(filterState("hello", true)).toEqual(AuthCondition.authRequiredJwt)
@@ -17,22 +17,22 @@ describe("filterState", () => {
 
 describe("refreshStatus", () => {
     it("runs func if has jwt and requireAuth", () => {
-        const mock = jest.fn()
+        const mock = vi.fn()
         refreshStatus("hello", true, mock)
         expect(mock.mock.calls).toHaveLength(1)
     })
     it("runs func if no jwt and no requireAuth", () => {
-        const mock = jest.fn()
+        const mock = vi.fn()
         refreshStatus("", false, mock)
         expect(mock.mock.calls).toHaveLength(1)
     })
     it("does not run func if no jwt and requireAuth", () => {
-        const mock = jest.fn()
+        const mock = vi.fn()
         refreshStatus("", true, mock)
         expect(mock.mock.calls).toHaveLength(0)
     })
     it("runs func if jwt and no requireAuth", () => {
-        const mock = jest.fn()
+        const mock = vi.fn()
         refreshStatus("hello", false, mock)
         expect(mock.mock.calls).toHaveLength(1)
     })

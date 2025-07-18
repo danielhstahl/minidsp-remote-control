@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\nSELECT key as \"key: i64\", public_key as \"public_key: String\" from users\nWHERE key = ?1\n        ",
+  "query": "\nSELECT key as \"key: i64\", public_key as \"public_key: String\" from users\nWHERE key = $1\n        ",
   "describe": {
     "columns": [
       {
@@ -22,5 +22,5 @@
       false
     ]
   },
-  "hash": "ff40e373e1d814c926ad26be75f0f0f814308a52f32004980f2ddea7edfff079"
+  "hash": "c41adc9b70f93531d96c915333fb7f9836099139341f5c1833764363f0a4892a"
 }

@@ -14,6 +14,10 @@ use x509_parser::pem::parse_x509_pem;
 
 pub const ROOT_CA_NAME: &str = "rootCA.pem";
 
+pub struct SSLPath {
+    pub path: String,
+}
+
 #[derive(Serialize)]
 #[serde(crate = "rocket::serde")]
 pub struct CertExpiry {

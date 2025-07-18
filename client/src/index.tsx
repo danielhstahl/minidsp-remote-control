@@ -21,7 +21,7 @@ let router = createBrowserRouter([
   {
     path: "/",
     Component: App,
-    loader: () => getAuthSettings({}).then(({ requireAuth, key }) => refreshToken(requireAuth).then(user => ({
+    loader: () => getAuthSettings({}).then(({ requireAuth, key, domainName }) => refreshToken(requireAuth, domainName).then(user => ({
       user,
       authSettings: { requireAuth, key }
     }))),

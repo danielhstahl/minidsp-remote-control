@@ -1,4 +1,5 @@
-import { render } from "@testing-library/react";
+import { render } from 'vitest-browser-react'
+import { describe, expect, it } from 'vitest'
 import {
   MinidspAction,
   useMiniDspParams,
@@ -39,7 +40,7 @@ describe("minidspReducer", () => {
 });
 
 describe("WriteProvider and useWriteParams", () => {
-  it("should provide initial state to children", () => {
+  it("should provide initial state to children", async () => {
     const TestComponent = () => {
       const { state } = useMiniDspParams();
       return <div data-testid="test">{JSON.stringify(state)}</div>;
@@ -51,12 +52,11 @@ describe("WriteProvider and useWriteParams", () => {
       </MiniDspProvider>
     );
 
-    const element = getByTestId("test");
-    expect(JSON.parse(element.textContent!)).toEqual({
+    await expect.element(getByTestId("test")).toHaveTextContent(JSON.stringify({
       preset: Preset.preset1,
       source: Source.USB,
       volume: -127,
       power: Power.On,
-    });
+    }))
   });
 });

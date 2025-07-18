@@ -1,6 +1,9 @@
 use rocket::serde::{Deserialize, Serialize};
 use rocket_db_pools::sqlx;
 use rocket_db_pools::sqlx::SqlitePool;
+pub struct Domain {
+    pub domain_name: String,
+}
 
 #[derive(Serialize, Deserialize, sqlx::FromRow)]
 #[serde(crate = "rocket::serde", rename_all = "camelCase")]
@@ -16,11 +19,12 @@ pub struct UserPublicKey {
     pub public_key: String,
 }
 
-#[derive(Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Serialize, sqlx::FromRow)]
 #[serde(crate = "rocket::serde", rename_all = "camelCase")]
 pub struct Settings {
     pub key: i64,
     pub require_auth: bool,
+    pub domain_name: String,
 }
 
 #[derive(Deserialize)]
@@ -37,7 +41,7 @@ pub async fn create_user(
     let id = sqlx::query!(
         r#"
 INSERT INTO users (public_key)
-VALUES (?1)
+VALUES ($1)
         "#,
         public_key_base64
     )
@@ -61,7 +65,7 @@ pub async fn update_user(
     sqlx::query!(
         r#"
 UPDATE users
-SET public_key = ?1 WHERE key = ?2
+SET public_key = $1 WHERE key = $2
         "#,
         public_key_base64,
         user_id
@@ -81,7 +85,7 @@ pub async fn get_user(pool: &SqlitePool, user_id: i64) -> Result<DbUser, sqlx::E
         DbUser,
         r#"
 SELECT key as "key: i64", public_key as "public_key: String" from users
-WHERE key = ?1
+WHERE key = $1
         "#,
         user_id
     )
@@ -90,26 +94,30 @@ WHERE key = ?1
     Ok(row)
 }
 
-pub async fn get_settings(pool: &SqlitePool) -> Result<Settings, sqlx::Error> {
-    let row = sqlx::query_as!(
-        Settings,
+pub async fn get_settings(pool: &SqlitePool, domain_name: &str) -> Result<Settings, sqlx::Error> {
+    let record = sqlx::query!(
         r#"
 SELECT key as "key: i64", require_auth as "require_auth: bool" from settings
         "#
     )
     .fetch_one(pool)
     .await?;
-    Ok(row)
+    Ok(Settings {
+        key: record.key,
+        require_auth: record.require_auth,
+        domain_name: domain_name.to_string(),
+    })
 }
 
 pub async fn update_settings(
     pool: &SqlitePool,
     require_auth: bool,
+    domain_name: &str,
 ) -> Result<Settings, sqlx::Error> {
     let id = sqlx::query_as!(
         Settings,
         r#"
-UPDATE settings SET require_auth=?1;
+UPDATE settings SET require_auth=$1;
         "#,
         require_auth
     )
@@ -119,14 +127,15 @@ UPDATE settings SET require_auth=?1;
     Ok(Settings {
         key: id,
         require_auth,
+        domain_name: domain_name.to_string(),
     })
 }
 
-pub async fn set_default_settings(pool: &SqlitePool) -> Result<(), sqlx::Error> {
-    if get_settings(pool).await.is_err() {
+pub async fn set_default_settings(pool: &SqlitePool, domain_name: &str) -> Result<(), sqlx::Error> {
+    if get_settings(pool, domain_name).await.is_err() {
         sqlx::query!(
             r#"
-INSERT INTO settings (require_auth) VALUES (?1);
+INSERT INTO settings (require_auth) VALUES ($1);
         "#,
             false
         )

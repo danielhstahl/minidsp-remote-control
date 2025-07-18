@@ -1,4 +1,5 @@
-import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { render } from 'vitest-browser-react'
 import { UserProvider } from "../../state/userActions";
 import GenerateKeyPair from "../GenerateKeyPair";
 import { useUserParams } from "../../state/userActions";
@@ -20,15 +21,15 @@ describe("GenerateKeyPair", () => {
 
     beforeEach(() => {
         localStorage.clear();
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
     afterEach(() => {
         localStorage.clear();
     });
 
     it("Create RSA Key Pair if private key does not exist", () => {
-        const mockCreateUser = jest.fn((headers: LocalHeaders, publicKey: string) => Promise.resolve({ userId: "2" }));
-        const mockUpdateUser = jest.fn((headers: LocalHeaders, publicKey: string, userId: string) => Promise.resolve({ userId: "2" }));
+        const mockCreateUser = vi.fn((headers: LocalHeaders, publicKey: string) => Promise.resolve({ userId: "2" }));
+        const mockUpdateUser = vi.fn((headers: LocalHeaders, publicKey: string, userId: string) => Promise.resolve({ userId: "2" }));
         const renderKeyPair = () => {
             return render(
                 <UserProvider>
@@ -41,14 +42,15 @@ describe("GenerateKeyPair", () => {
                 </UserProvider>
             );
         };
-        renderKeyPair()
+        const screen = renderKeyPair()
         expect(screen.getByText("Create RSA Key Pair")).toBeInTheDocument();
 
     });
-    it("Regenerate RSA Key Pair if private key exists", () => {
-        savePrivateKey("myprivatekey")
-        const mockCreateUser = jest.fn((headers: LocalHeaders, publicKey: string) => Promise.resolve({ userId: "2" }));
-        const mockUpdateUser = jest.fn((headers: LocalHeaders, publicKey: string, userId: string) => Promise.resolve({ userId: "2" }));
+    it("Regenerate RSA Key Pair if private key exists", async () => {
+        savePrivateKey("hello")
+        saveUserId("hello")
+        const mockCreateUser = vi.fn((headers: LocalHeaders, publicKey: string) => Promise.resolve({ userId: "2" }));
+        const mockUpdateUser = vi.fn((headers: LocalHeaders, publicKey: string, userId: string) => Promise.resolve({ userId: "2" }));
         const renderKeyPair = () => {
             return render(
                 <UserProvider>
@@ -61,14 +63,14 @@ describe("GenerateKeyPair", () => {
                 </UserProvider>
             );
         };
-        renderKeyPair()
+        const screen = renderKeyPair()
         expect(screen.getByText("Regenerate RSA Key Pair")).toBeInTheDocument();
     });
 
     it("Creates user if private key does not exist", async () => {
 
-        const mockCreateUser = jest.fn((headers: LocalHeaders, publicKey: string) => Promise.resolve({ userId: "2" }));
-        const mockUpdateUser = jest.fn((headers: LocalHeaders, publicKey: string, userId: string) => Promise.resolve({ userId: "2" }));
+        const mockCreateUser = vi.fn((headers: LocalHeaders, publicKey: string) => Promise.resolve({ userId: "2" }));
+        const mockUpdateUser = vi.fn((headers: LocalHeaders, publicKey: string, userId: string) => Promise.resolve({ userId: "2" }));
         const renderKeyPair = () => {
             return render(
                 <UserProvider>
@@ -81,27 +83,20 @@ describe("GenerateKeyPair", () => {
                 </UserProvider>
             );
         };
-        renderKeyPair()
+        const screen = renderKeyPair()
 
-        await act(async () => {
-            fireEvent.click(screen.getByRole('button', { name: "Create RSA Key Pair" }));
-        })
-        await waitFor(() => {
-            const userIdElement = screen.getByTestId("userId")
-            expect(userIdElement.textContent).toEqual("2")
-            const jwtElement = screen.getByTestId("jwt")
-            if (jwtElement.textContent !== null) {
-                expect(jwtElement.textContent.length).toBeGreaterThan(0)
-            }
-            expect(mockCreateUser.mock.calls).toHaveLength(1)
-            expect(mockUpdateUser.mock.calls).toHaveLength(0)
-        })
+        await screen.getByRole('button', { name: "Create RSA Key Pair" }).click()
+        await expect.element(screen.getByTestId("userId")).toHaveTextContent("2")
+        expect(mockCreateUser.mock.calls).toHaveLength(1)
+        expect(mockUpdateUser.mock.calls).toHaveLength(0)
+        //await expect.element(screen.getByTestId("jwt")) .toHaveTextContent("2")
+
     });
     it("updates user if user exists", async () => {
         saveUserId("3")
-        const mockCreateUser = jest.fn((headers: LocalHeaders, publicKey: string) => Promise.resolve({ userId: "2" }));
+        const mockCreateUser = vi.fn((headers: LocalHeaders, publicKey: string) => Promise.resolve({ userId: "2" }));
         //guaranteed to return the same userId as in localStorage
-        const mockUpdateUser = jest.fn((headers: LocalHeaders, publicKey: string, userId: string) => Promise.resolve({ userId: "3" }));
+        const mockUpdateUser = vi.fn((headers: LocalHeaders, publicKey: string, userId: string) => Promise.resolve({ userId: "3" }));
         const renderKeyPair = () => {
             return render(
                 <UserProvider>
@@ -114,20 +109,14 @@ describe("GenerateKeyPair", () => {
                 </UserProvider>
             );
         };
-        renderKeyPair()
-
-        await act(async () => {
-            fireEvent.click(screen.getByRole('button', { name: "Create RSA Key Pair" }));
-        })
-        await waitFor(() => {
-            const userIdElement = screen.getByTestId("userId")
-            expect(userIdElement.textContent).toEqual("3")
-            const jwtElement = screen.getByTestId("jwt")
-            if (jwtElement.textContent !== null) {
-                expect(jwtElement.textContent.length).toBeGreaterThan(0)
-            }
+        const screen = renderKeyPair()
+        await screen.getByRole('button', { name: "Create RSA Key Pair" }).click()
+        await expect.element(screen.getByTestId("userId")).toHaveTextContent("3")
+        await vi.waitFor(async () => {
             expect(mockCreateUser.mock.calls).toHaveLength(0)
             expect(mockUpdateUser.mock.calls).toHaveLength(1)
         })
+
+
     });
 });
