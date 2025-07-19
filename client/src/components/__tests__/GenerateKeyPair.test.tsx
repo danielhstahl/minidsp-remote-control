@@ -3,7 +3,7 @@ import { render } from 'vitest-browser-react'
 import { UserProvider } from "../../state/userActions";
 import GenerateKeyPair from "../GenerateKeyPair";
 import { useUserParams } from "../../state/userActions";
-import { LocalHeaders } from "../../services/api";
+import type { LocalHeaders } from "../../services/api";
 import { savePrivateKey, saveUserId } from "../../state/persistance";
 
 const WrapperComponent = ({ children }: any) => {
@@ -28,8 +28,8 @@ describe("GenerateKeyPair", () => {
     });
 
     it("Create RSA Key Pair if private key does not exist", () => {
-        const mockCreateUser = vi.fn((headers: LocalHeaders, publicKey: string) => Promise.resolve({ userId: "2" }));
-        const mockUpdateUser = vi.fn((headers: LocalHeaders, publicKey: string, userId: string) => Promise.resolve({ userId: "2" }));
+        const mockCreateUser = vi.fn((_headers: LocalHeaders, _publicKey: string) => Promise.resolve({ userId: "2" }));
+        const mockUpdateUser = vi.fn((_headers: LocalHeaders, _publicKey: string, _userId: string) => Promise.resolve({ userId: "2" }));
         const renderKeyPair = () => {
             return render(
                 <UserProvider>
@@ -49,8 +49,8 @@ describe("GenerateKeyPair", () => {
     it("Regenerate RSA Key Pair if private key exists", async () => {
         savePrivateKey("hello")
         saveUserId("hello")
-        const mockCreateUser = vi.fn((headers: LocalHeaders, publicKey: string) => Promise.resolve({ userId: "2" }));
-        const mockUpdateUser = vi.fn((headers: LocalHeaders, publicKey: string, userId: string) => Promise.resolve({ userId: "2" }));
+        const mockCreateUser = vi.fn((_headers: LocalHeaders, _publicKey: string) => Promise.resolve({ userId: "2" }));
+        const mockUpdateUser = vi.fn((_headers: LocalHeaders, _publicKey: string, _userId: string) => Promise.resolve({ userId: "2" }));
         const renderKeyPair = () => {
             return render(
                 <UserProvider>
@@ -69,8 +69,8 @@ describe("GenerateKeyPair", () => {
 
     it("Creates user if private key does not exist", async () => {
 
-        const mockCreateUser = vi.fn((headers: LocalHeaders, publicKey: string) => Promise.resolve({ userId: "2" }));
-        const mockUpdateUser = vi.fn((headers: LocalHeaders, publicKey: string, userId: string) => Promise.resolve({ userId: "2" }));
+        const mockCreateUser = vi.fn((_headers: LocalHeaders, _publicKey: string) => Promise.resolve({ userId: "2" }));
+        const mockUpdateUser = vi.fn((_headers: LocalHeaders, _publicKey: string, _userId: string) => Promise.resolve({ userId: "2" }));
         const renderKeyPair = () => {
             return render(
                 <UserProvider>
@@ -94,9 +94,9 @@ describe("GenerateKeyPair", () => {
     });
     it("updates user if user exists", async () => {
         saveUserId("3")
-        const mockCreateUser = vi.fn((headers: LocalHeaders, publicKey: string) => Promise.resolve({ userId: "2" }));
+        const mockCreateUser = vi.fn((_headers: LocalHeaders, _publicKey: string) => Promise.resolve({ userId: "2" }));
         //guaranteed to return the same userId as in localStorage
-        const mockUpdateUser = vi.fn((headers: LocalHeaders, publicKey: string, userId: string) => Promise.resolve({ userId: "3" }));
+        const mockUpdateUser = vi.fn((_headers: LocalHeaders, _publicKey: string, _userId: string) => Promise.resolve({ userId: "3" }));
         const renderKeyPair = () => {
             return render(
                 <UserProvider>

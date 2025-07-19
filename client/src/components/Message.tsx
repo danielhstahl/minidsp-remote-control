@@ -1,6 +1,8 @@
 import * as React from "react";
-import Snackbar, { SnackbarCloseReason } from "@mui/material/Snackbar";
-import Alert, { AlertColor } from "@mui/material/Alert";
+import Snackbar from "@mui/material/Snackbar";
+import type { SnackbarCloseReason } from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
+import type { AlertColor } from "@mui/material/Alert";
 
 interface Props {
   open: boolean;

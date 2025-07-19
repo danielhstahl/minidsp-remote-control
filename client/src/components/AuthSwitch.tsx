@@ -30,7 +30,7 @@ const AuthSwitch = () => {
               value: result,
             });
           })
-          .catch((e) => {
+          .catch((_e) => {
             authDispatch({
               type: SetKeys.UPDATE,
               value: { ...rest, requireAuth: !switchValue },

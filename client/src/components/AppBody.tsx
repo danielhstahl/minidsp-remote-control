@@ -4,6 +4,7 @@ import Grid from "@mui/material/Grid";
 import StatusCard from "./PowerCard";
 import VolumeCard from "./VolumeCard";
 import { refreshStatus, useInterval } from "../utils/refresh";
+import type { HtxWrite, User } from "../services/api";
 import {
     Power,
     setVolume,
@@ -15,15 +16,13 @@ import {
     setSource,
     volumeUp,
     volumeDown,
-    HtxWrite,
     addAuthHeaders,
-    User,
 } from "../services/api";
 import {
     MinidspAction,
     useMiniDspParams,
-    Action,
 } from "../state/minidspActions";
+import type { Action, } from "../state/minidspActions";
 const THREE_SECONDS = 3000
 // custom hook for parameter updates
 function useParameterUpdates(

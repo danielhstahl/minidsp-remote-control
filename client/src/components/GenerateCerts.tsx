@@ -2,7 +2,7 @@ import Button from "@mui/material/Button";
 import CachedIcon from "@mui/icons-material/Cached";
 import Message from "./Message";
 import { useState } from "react";
-import { AlertColor } from "@mui/material";
+import type { AlertColor } from "@mui/material";
 import { addAuthHeaders, generateCert, getExpiry } from "../services/api";
 import { useUserParams } from "../state/userActions";
 import { useExpiryParams, SetExpiry } from "../state/expiryActions";
@@ -40,7 +40,7 @@ const GenerateCerts = () => {
           messageType: "success",
         });
       })
-      .catch((e) => {
+      .catch((_e) => {
         setMessage({
           isMessageOpen: true,
           messageType: "error",

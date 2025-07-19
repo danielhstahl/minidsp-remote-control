@@ -1,9 +1,9 @@
-import { AuthSettings } from "../services/api";
+import type { AuthSettings } from "../services/api";
+import type { PropsWithChildren } from "react"
 import {
   useReducer,
   useContext,
   createContext,
-  PropsWithChildren,
 } from "react";
 
 export enum SetKeys {

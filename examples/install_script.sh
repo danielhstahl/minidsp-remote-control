@@ -70,6 +70,6 @@ sudo chown -R  minidsp:minidspgroup /home/minidsp/
 
 ## Firewall
 sudo apt-get install -y ufw
-sudo ufw enable
-sudo ufw deny 8000 # deny direct access to Rocket
-sudo ufw deny 5380 # deny direct access to minidspd
+sudo ufw allow "Nginx Full"
+sudo ufw allow OpenSSH
+sudo ufw --force enable

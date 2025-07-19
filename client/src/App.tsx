@@ -7,7 +7,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import Toolbar from "@mui/material/Toolbar";
 
 
-import {
+import type {
   User,
   AuthSettings
 } from "./services/api";
@@ -22,7 +22,8 @@ import {
 } from "./state/persistance";
 import { MiniDspProvider } from "./state/minidspActions";
 import { ExpiryProvider } from "./state/expiryActions";
-import { ColorTheme, themes } from "./styles/modes";
+import type { ColorTheme } from "./styles/modes";
+import { themes } from "./styles/modes";
 import SSLNotification from "./components/SSLNotification";
 import NoUserNotification from "./components/NoUserNotification";
 import { refreshToken, useInterval } from "./utils/refresh";
