@@ -1,5 +1,5 @@
-import { ColorTheme, DEFAULT_COLOR_THEME } from "../styles/modes";
-
+import { DEFAULT_COLOR_THEME } from "../styles/modes";
+import type { ColorTheme } from "../styles/modes";
 const KEY = "mode";
 const RSA_KEY = "rsa_key";
 const USER_ID_KEY = "user_key";

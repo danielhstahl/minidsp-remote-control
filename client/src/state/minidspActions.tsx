@@ -1,9 +1,10 @@
-import { HtxWrite, Source, Preset, Power } from "../services/api";
+import { Source, Preset, Power } from "../services/api";
+import type { HtxWrite } from "../services/api";
+import type { PropsWithChildren } from "react"
 import {
   useReducer,
   useContext,
   createContext,
-  PropsWithChildren,
 } from "react";
 
 export enum MinidspAction {
@@ -33,7 +34,7 @@ export const miniDspReducer = (state: HtxWrite, action: Action) => {
 
 const MiniDspContext = createContext({
   state: initialState,
-  dispatch: (_: Action) => {},
+  dispatch: (_: Action) => { },
 });
 
 export const MiniDspProvider = ({ children }: PropsWithChildren) => {

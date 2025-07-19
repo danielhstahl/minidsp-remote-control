@@ -1,9 +1,9 @@
-import { User } from "../services/api";
+import type { User } from "../services/api";
+import type { PropsWithChildren, } from "react"
 import {
   useReducer,
   useContext,
   createContext,
-  PropsWithChildren,
 } from "react";
 import { getUserId } from "./persistance";
 

@@ -1,10 +1,10 @@
+import type { PropsWithChildren, } from "react"
 import {
     useReducer,
     useContext,
-    createContext,
-    PropsWithChildren,
+    createContext
 } from "react";
-import { ColorTheme } from "../styles/modes";
+import type { ColorTheme } from "../styles/modes";
 import { getColorTheme } from "./persistance";
 
 export enum SetTheme {

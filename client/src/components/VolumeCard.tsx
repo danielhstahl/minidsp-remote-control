@@ -6,7 +6,8 @@ import IconButton from "@mui/material/IconButton";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import CircularProgress, {
+import CircularProgress from "@mui/material/CircularProgress";
+import type {
   CircularProgressProps,
 } from "@mui/material/CircularProgress";
 import { MIN_VOLUME, MAX_VOLUME } from "../state/minidspActions";

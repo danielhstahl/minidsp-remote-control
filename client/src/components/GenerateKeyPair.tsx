@@ -1,7 +1,7 @@
 import Button from "@mui/material/Button";
 import Message from "./Message";
 import { useState } from "react";
-import { AlertColor } from "@mui/material";
+import type { AlertColor } from "@mui/material";
 import { savePrivateKey, saveUserId, getPrivateKey } from "../state/persistance";
 import { SetUser, useUserParams } from "../state/userActions";
 import KeyIcon from "@mui/icons-material/Key";

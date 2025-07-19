@@ -1,9 +1,9 @@
-import { SSLCertExpiry } from "../services/api";
+import type { SSLCertExpiry } from "../services/api";
+import type { PropsWithChildren } from "react"
 import {
     useReducer,
     useContext,
     createContext,
-    PropsWithChildren,
 } from "react";
 
 export enum SetExpiry {
