@@ -91,6 +91,8 @@ fn rocket() -> _ {
         regenerate_cert_user,
         get_status_anon,
         get_status_user,
+        set_volume_anon,
+        set_volume_user,
         set_volume_up_anon,
         set_volume_up_user,
         set_volume_down_anon,
@@ -352,6 +354,23 @@ async fn get_status_anon(
 async fn get_status_user(_user: jwt::User) -> Result<Json<MinidspStatus>, BadRequest<String>> {
     let minidsp_status = minidsp::get_minidsp_status().map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(minidsp_status))
+}
+
+#[post("/volume/<volume>")]
+async fn set_volume_anon(
+    _anon: anonymous::Anonymous,
+    volume: f32,
+) -> Result<Json<Success>, BadRequest<String>> {
+    minidsp::set_minidsp_vol(volume).map_err(|e| BadRequest(e.to_string()))?;
+    Ok(Json(Success { success: true }))
+}
+#[post("/volume/<volume>", rank = 2)]
+async fn set_volume_user(
+    _user: jwt::User,
+    volume: f32,
+) -> Result<Json<Success>, BadRequest<String>> {
+    minidsp::set_minidsp_vol(volume).map_err(|e| BadRequest(e.to_string()))?;
+    Ok(Json(Success { success: true }))
 }
 
 #[post("/volume/up")]

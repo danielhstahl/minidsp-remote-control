@@ -32,6 +32,15 @@ pub fn increment_minidsp_vol(gain: f32) -> Result<(), Box<dyn error::Error>> {
     Ok(())
 }
 
+pub fn set_minidsp_vol(gain: f32) -> Result<(), Box<dyn error::Error>> {
+    Command::new("minidsp")
+        .arg("gain")
+        .arg("--")
+        .arg(gain.to_string())
+        .output()?;
+    Ok(())
+}
+
 pub fn set_minidsp_preset(preset: u8) -> Result<(), Box<dyn error::Error>> {
     Command::new("minidsp")
         .arg("config")
