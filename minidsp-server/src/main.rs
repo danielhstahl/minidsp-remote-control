@@ -356,23 +356,6 @@ async fn get_status_user(_user: jwt::User) -> Result<Json<MinidspStatus>, BadReq
     Ok(Json(minidsp_status))
 }
 
-#[post("/volume/<volume>")]
-async fn set_volume_anon(
-    _anon: anonymous::Anonymous,
-    volume: f32,
-) -> Result<Json<Success>, BadRequest<String>> {
-    minidsp::set_minidsp_vol(volume).map_err(|e| BadRequest(e.to_string()))?;
-    Ok(Json(Success { success: true }))
-}
-#[post("/volume/<volume>", rank = 2)]
-async fn set_volume_user(
-    _user: jwt::User,
-    volume: f32,
-) -> Result<Json<Success>, BadRequest<String>> {
-    minidsp::set_minidsp_vol(volume).map_err(|e| BadRequest(e.to_string()))?;
-    Ok(Json(Success { success: true }))
-}
-
 #[post("/volume/up")]
 async fn set_volume_up_anon(
     _anon: anonymous::Anonymous,
@@ -396,6 +379,23 @@ async fn set_volume_down_anon(
 #[post("/volume/down", rank = 2)]
 async fn set_volume_down_user(_user: jwt::User) -> Result<Json<Success>, BadRequest<String>> {
     minidsp::increment_minidsp_vol(-VOLUME_INCREMENT).map_err(|e| BadRequest(e.to_string()))?;
+    Ok(Json(Success { success: true }))
+}
+
+#[post("/volume/<volume>", rank = 3)]
+async fn set_volume_anon(
+    _anon: anonymous::Anonymous,
+    volume: f32,
+) -> Result<Json<Success>, BadRequest<String>> {
+    minidsp::set_minidsp_vol(volume).map_err(|e| BadRequest(e.to_string()))?;
+    Ok(Json(Success { success: true }))
+}
+#[post("/volume/<volume>", rank = 4)]
+async fn set_volume_user(
+    _user: jwt::User,
+    volume: f32,
+) -> Result<Json<Success>, BadRequest<String>> {
+    minidsp::set_minidsp_vol(volume).map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(Success { success: true }))
 }
 
