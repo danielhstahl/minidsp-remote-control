@@ -72,4 +72,5 @@ sudo chown -R  minidsp:minidspgroup /home/minidsp/
 sudo apt-get install -y ufw
 sudo ufw allow "Nginx Full"
 sudo ufw allow OpenSSH
+sudo ufw allow 5333 # minidsp
 sudo ufw --force enable
