@@ -60,8 +60,7 @@ const NoUserNotification = ({ signature }: { signature: string }) => {
           >
             <Box
               sx={{
-                flexShrink: 1,
-                alignSelf: { xs: "flex-start", sm: "center" },
+                width: "100%",
               }}
             >
               <Typography sx={{ fontWeight: "bold" }}>

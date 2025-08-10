@@ -6,9 +6,7 @@ import Paper from "@mui/material/Paper";
 import Fade from "@mui/material/Fade";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import {
-  getExpiry,
-} from "../services/api";
+import { getExpiry } from "../services/api";
 import { SetExpiry, useExpiryParams } from "../state/expiryActions";
 const MS_TO_DAYS = 1000 * 3600 * 24;
 //export for testing
@@ -18,24 +16,20 @@ export const showNotification = (currentDate: Date, expiryDate: Date) => {
 
 export const calculateDays = (currentDate: Date, expiryDate: Date) => {
   return Math.floor(
-    (expiryDate.getTime() - currentDate.getTime()) / MS_TO_DAYS
+    (expiryDate.getTime() - currentDate.getTime()) / MS_TO_DAYS,
   );
 };
 
-const SSLNotification = ({
-  currentDate,
-}: {
-  currentDate: Date;
-}) => {
-
+const SSLNotification = ({ currentDate }: { currentDate: Date }) => {
   const {
     dispatch: expiryDispatch,
-    state: { expiry } } = useExpiryParams();
+    state: { expiry },
+  } = useExpiryParams();
   useEffect(() => {
     //no auth on this endpoint
     getExpiry({}).then((expiry) =>
       expiryDispatch({ type: SetExpiry.UPDATE, value: expiry }),
-    )
+    );
   }, [expiryDispatch]);
   const show = showNotification(currentDate, expiry);
   const expiryDays = calculateDays(currentDate, expiry);
@@ -66,8 +60,7 @@ const SSLNotification = ({
           >
             <Box
               sx={{
-                flexShrink: 1,
-                alignSelf: { xs: "flex-start", sm: "center" },
+                width: "100%",
               }}
             >
               <Typography sx={{ fontWeight: "bold" }}>
