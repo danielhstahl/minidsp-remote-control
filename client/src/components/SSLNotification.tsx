@@ -7,7 +7,7 @@ import Fade from "@mui/material/Fade";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { getExpiry } from "../services/api";
-import { SetExpiry, useExpiryParams } from "../state/expiryActions";
+import { SetExpiryEnum, useExpiryParams } from "../state/expiryActions";
 const MS_TO_DAYS = 1000 * 3600 * 24;
 //export for testing
 export const showNotification = (currentDate: Date, expiryDate: Date) => {
@@ -27,8 +27,8 @@ const SSLNotification = ({ currentDate }: { currentDate: Date }) => {
   } = useExpiryParams();
   useEffect(() => {
     //no auth on this endpoint
-    getExpiry({}).then((expiry) =>
-      expiryDispatch({ type: SetExpiry.UPDATE, value: expiry }),
+    getExpiry().then((expiry) =>
+      expiryDispatch({ type: SetExpiryEnum.UPDATE, value: expiry }),
     );
   }, [expiryDispatch]);
   const show = showNotification(currentDate, expiry);

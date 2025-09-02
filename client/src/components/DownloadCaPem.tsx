@@ -1,15 +1,12 @@
 import DownloadForOfflineIcon from "@mui/icons-material/DownloadForOffline";
 import Button from "@mui/material/Button";
-import { useUserParams } from "../state/userActions";
-import { addAuthHeaders } from "../services/api";
+//import { useUserParams } from "../state/userActions";
+//import { addAuthHeaders } from "../services/api";
 import { getCaPem } from "../services/api";
 
 const DownloadCaPem = () => {
-  const {
-    state: { userId, jwt },
-  } = useUserParams();
   const getCaPemHOF = () => {
-    return getCaPem(addAuthHeaders(userId, jwt));
+    return getCaPem();
   };
   return (
     <Button

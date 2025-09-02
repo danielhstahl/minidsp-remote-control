@@ -5,7 +5,7 @@ use rocket::request::{FromRequest, Outcome, Request};
 use std::env;
 use std::fmt;
 #[derive(Debug)]
-pub struct Basic {}
+pub struct BasicAuth {}
 fn basic_auth(auth_header: &str, compare_string: &str) -> Result<(), BasicAuthError> {
     let token = if auth_header.starts_with("Basic ") {
         &auth_header[6..] // Skip "Basic " prefix
@@ -30,7 +30,7 @@ fn basic_auth(auth_header: &str, compare_string: &str) -> Result<(), BasicAuthEr
     })
 }
 #[rocket::async_trait]
-impl<'r> FromRequest<'r> for Basic {
+impl<'r> FromRequest<'r> for BasicAuth {
     type Error = (); // We'll handle specific errors internally or return a generic unit type.
 
     async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
@@ -48,7 +48,7 @@ impl<'r> FromRequest<'r> for Basic {
             }
         };
         match basic_auth(auth_header, &compare_string) {
-            Ok(()) => Outcome::Success(Basic {}),
+            Ok(()) => Outcome::Success(BasicAuth {}),
             Err(_e) => Outcome::Error((Status::Unauthorized, ())),
         }
     }

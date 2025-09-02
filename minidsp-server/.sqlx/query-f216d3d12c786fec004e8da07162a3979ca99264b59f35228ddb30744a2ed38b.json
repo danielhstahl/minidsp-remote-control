@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "\nSELECT device_ip as \"device_ip: String\",\nis_allowed as \"is_allowed: bool\" from devices\nWHERE device_ip = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "device_ip: String",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "is_allowed: bool",
+        "ordinal": 1,
+        "type_info": "Int64"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "f216d3d12c786fec004e8da07162a3979ca99264b59f35228ddb30744a2ed38b"
+}

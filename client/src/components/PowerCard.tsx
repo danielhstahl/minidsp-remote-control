@@ -4,35 +4,160 @@ import Paper from "@mui/material/Paper";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
-import { Preset, Power, Source } from "../services/api";
+import {
+  type Preset,
+  type Power,
+  type Source,
+  SourceEnum,
+  PowerEnum,
+  PresetEnum,
+} from "../services/api";
 import Grid from "@mui/material/Grid";
-import Select from "@mui/material/Select";
+import Select, { type SelectChangeEvent } from "@mui/material/Select";
 import { applyThemePrimaryType } from "../styles/modes";
-import { useTheme } from "@mui/material/styles";
+import { useTheme, type Theme } from "@mui/material/styles";
 import { useThemeParams } from "../state/themeActions";
+import { useFetcher } from "react-router";
+import type { ColorTheme } from "../styles/modes";
 interface PowerInputs {
   power: Power;
   preset: Preset;
   source: Source;
-  onPresetChange: (preset: Preset) => void;
-  onSourceChange: (source: Source) => void;
-  onPowerToggle: (power: Power) => void;
+  //onPresetChange: (preset: Preset) => void;
+  //onSourceChange: (source: Source) => void;
+  //onPowerToggle: (power: Power) => void;
 }
 const PRESET = "Preset";
 const SOURCE = "Source";
 
-const PowerCard = ({
+const SelectPreset = ({ preset, theme }: { preset: Preset; theme: Theme }) => {
+  const presetChangeFetcher = useFetcher();
+  //const latestSource = sourceChangeFetcher.data;
+  const formData = presetChangeFetcher.formData?.get("preset");
+
+  const displayPreset = formData || preset;
+  return (
+    <FormControl size="small" fullWidth>
+      <InputLabel id="source-select-label">{PRESET}</InputLabel>
+      <Select
+        sx={{
+          "& .MuiSvgIcon-root": {
+            color: theme.palette.primary.main, // <------------------ arrow-svg-color
+          },
+          "&.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline": {
+            borderColor: theme.palette.primary.main, // <------------------ utline-color on hover
+          },
+          "&.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+            {
+              borderColor: theme.palette.primary.main, // <------------------ outline-color on focus
+            },
+        }}
+        labelId="source-select-label"
+        id="source-select"
+        value={displayPreset}
+        label={PRESET}
+        onChange={(e: SelectChangeEvent) => {
+          const form = new FormData();
+          form.append("preset", e.target.value);
+          presetChangeFetcher.submit(form, {
+            action: `/app/preset`,
+            method: "post",
+          });
+        }}
+      >
+        {Object.values(PresetEnum).map((v, i) => (
+          <MenuItem key={v} value={v.toString()}>
+            Preset {i + 1}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+};
+
+const SelectSource = ({ theme, source }: { theme: Theme; source: Source }) => {
+  const sourceChangeFetcher = useFetcher();
+  //const latestSource = sourceChangeFetcher.data;
+  const formData = sourceChangeFetcher.formData?.get("miniDspSource");
+
+  const displaySource = formData || source;
+  return (
+    <FormControl size="small" fullWidth>
+      <InputLabel id="source-select-label">{SOURCE}</InputLabel>
+      <Select
+        sx={{
+          "& .MuiSvgIcon-root": {
+            color: theme.palette.primary.main, // <------------------ arrow-svg-color
+          },
+          "&.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline": {
+            borderColor: theme.palette.primary.main, // <------------------ utline-color on hover
+          },
+          "&.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+            {
+              borderColor: theme.palette.primary.main, // <------------------ outline-color on focus
+            },
+        }}
+        labelId="source-select-label"
+        id="source-select"
+        value={displaySource}
+        label={SOURCE}
+        onChange={(e: SelectChangeEvent) => {
+          const form = new FormData();
+          form.append("miniDspSource", e.target.value);
+          sourceChangeFetcher.submit(form, {
+            action: `/app/source`,
+            method: "post",
+          });
+        }}
+      >
+        {Object.entries(SourceEnum).map(([k, v]) => (
+          <MenuItem key={v} value={v}>
+            {k}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+};
+
+const PowerToggle = ({
   power,
-  preset,
-  source,
-  onSourceChange,
-  onPresetChange,
-  onPowerToggle,
-}: PowerInputs) => {
+  selectedTheme,
+}: {
+  power: Power;
+  selectedTheme: ColorTheme;
+}) => {
+  const powerChangeFetcher = useFetcher();
+  //const latestSource = sourceChangeFetcher.data;
+  const formData = powerChangeFetcher.formData?.get("power");
+
+  const displayPower = formData || power;
+  return (
+    <FormControlLabel
+      control={
+        <Switch
+          color={applyThemePrimaryType(selectedTheme)}
+          checked={displayPower === PowerEnum.On}
+          onChange={(_, checked: boolean) => {
+            const form = new FormData();
+            form.append("power", checked ? PowerEnum.On : PowerEnum.Off);
+            powerChangeFetcher.submit(form, {
+              action: `/app/power`,
+              method: "post",
+            });
+            //onPowerToggle(checked ? PowerEnum.On : PowerEnum.Off)
+          }}
+        />
+      }
+      label="Power"
+    />
+  );
+};
+
+const PowerCard = ({ power, preset, source }: PowerInputs) => {
   const theme = useTheme();
-  const {
-    state: selectedTheme
-  } = useThemeParams();
+  const { state: selectedTheme } = useThemeParams();
+
   return (
     <Paper
       sx={{
@@ -48,84 +173,15 @@ const PowerCard = ({
             display: "flex",
           }}
         >
-          <FormControlLabel
-            control={
-              <Switch
-                color={applyThemePrimaryType(selectedTheme)}
-                checked={power === Power.On}
-                onChange={(_, checked) =>
-                  onPowerToggle(checked ? Power.On : Power.Off)
-                }
-              />
-            }
-            label="Power"
-          />
+          <PowerToggle power={power} selectedTheme={selectedTheme} />
         </Grid>
 
         <Grid size={6}></Grid>
         <Grid size={6}>
-          <FormControl size="small" fullWidth>
-            <InputLabel id="source-select-label">{PRESET}</InputLabel>
-            <Select
-              sx={{
-                "& .MuiSvgIcon-root": {
-                  color: theme.palette.primary.main, // <------------------ arrow-svg-color
-                },
-                "&.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
-                {
-                  borderColor: theme.palette.primary.main, // <------------------ utline-color on hover
-                },
-                "&.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-                {
-                  borderColor: theme.palette.primary.main, // <------------------ outline-color on focus
-                },
-              }}
-              labelId="source-select-label"
-              id="source-select"
-              value={preset}
-              label={PRESET}
-              onChange={(e) => onPresetChange(e.target.value as Preset)}
-            >
-              {Object.values(Preset)
-                .filter((v) => typeof v === "number")
-                .map((v, i) => (
-                  <MenuItem key={v} value={v}>
-                    Preset {i + 1}
-                  </MenuItem>
-                ))}
-            </Select>
-          </FormControl>
+          <SelectPreset preset={preset} theme={theme} />
         </Grid>
         <Grid size={6}>
-          <FormControl size="small" fullWidth>
-            <InputLabel id="source-select-label">{SOURCE}</InputLabel>
-            <Select
-              sx={{
-                "& .MuiSvgIcon-root": {
-                  color: theme.palette.primary.main, // <------------------ arrow-svg-color
-                },
-                "&.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
-                {
-                  borderColor: theme.palette.primary.main, // <------------------ utline-color on hover
-                },
-                "&.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-                {
-                  borderColor: theme.palette.primary.main, // <------------------ outline-color on focus
-                },
-              }}
-              labelId="source-select-label"
-              id="source-select"
-              value={source}
-              label={SOURCE}
-              onChange={(e) => onSourceChange(e.target.value as Source)}
-            >
-              {Object.entries(Source).map(([k, v]) => (
-                <MenuItem key={v} value={v}>
-                  {k}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <SelectSource source={source} theme={theme} />
         </Grid>
       </Grid>
     </Paper>

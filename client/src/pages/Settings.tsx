@@ -1,5 +1,5 @@
 import Button from "@mui/material/Button";
-import { styled } from "@mui/material/styles";
+import { styled, type Theme } from "@mui/material/styles";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
@@ -10,11 +10,9 @@ import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import { Link } from "react-router";
 import Divider from "@mui/material/Divider";
-import GenerateCerts from "./GenerateCerts";
-import GenerateKeyPair from "./GenerateKeyPair";
-import AuthSwitch from "./AuthSwitch";
-import DownloadCaPem from "./DownloadCaPem";
-const BootstrapDialog = styled(Dialog)(({ theme }) => ({
+import GenerateCerts from "../components/GenerateCerts";
+import DownloadCaPem from "../components/DownloadCaPem";
+const BootstrapDialog = styled(Dialog)(({ theme }: { theme: Theme }) => ({
   "& .MuiDialogContent-root": {
     padding: theme.spacing(2),
   },
@@ -24,7 +22,7 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
 }));
 
 const Settings = () => {
-  const open = true
+  const open = true;
   return (
     <>
       <BootstrapDialog
@@ -39,7 +37,7 @@ const Settings = () => {
           aria-label="close"
           component={Link}
           to="/"
-          sx={(theme) => ({
+          sx={(theme: Theme) => ({
             position: "absolute",
             right: 8,
             top: 8,
@@ -56,12 +54,7 @@ const Settings = () => {
             <GenerateCerts />
             <br />
             <Divider />
-            <GenerateKeyPair />
-            <br />
-            <FormControlLabel
-              control={<AuthSwitch />}
-              label="Require Authentication"
-            />
+            {/*put more stuff here*/}
           </FormGroup>
         </DialogContent>
         <DialogActions>
