@@ -49,13 +49,7 @@ const VOLUME_INCREMENT: f32 = 0.5;
 async fn run_migrations(rocket: Rocket<Build>) -> fairing::Result {
     match MinidspDb::fetch(&rocket) {
         Some(db) => match sqlx::migrate!("db/migrations").run(&**db).await {
-            Ok(_) => {
-                /*let domain = rocket.state::<db::Domain>().unwrap();
-                db::set_default_settings(&**db, &domain.domain_name)
-                    .await
-                    .unwrap();*/
-                Ok(rocket)
-            }
+            Ok(_) => Ok(rocket),
             Err(e) => {
                 error!("Failed to initialize SQLx database: {}", e);
                 Err(rocket)
@@ -144,7 +138,7 @@ async fn expiry(
 }
 
 // this is robust enough for local environments
-// with mostly trusted users.
+// with (mostly) trusted users.
 // IP spoofing isn't hard but it would require
 // some effort to script.
 #[post("/device", format = "application/json")]
