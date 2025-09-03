@@ -64,17 +64,15 @@ const CircularProgressWithLabel = (
   );
 };
 
-//onVolumeDown(volume, VOLUME_INCREMENT)}>
-//
 // eslint-disable-next-line react-refresh/only-export-components
 export const convertTo100 = (volume: number) =>
   100 * ((volume - MIN_VOLUME) / (MAX_VOLUME - MIN_VOLUME));
 const VolumeCard = ({ volume }: VolumeInputs) => {
   const volumeChangeFetcher = useFetcher();
-  const formData = volumeChangeFetcher.formData
-    ? parseFloat(volumeChangeFetcher.formData?.get("volumeValue"))
-    : null;
-  const displayVolume = formData || volume;
+  const { volumeValue } = volumeChangeFetcher.formData
+    ? JSON.parse(volumeChangeFetcher.formData.get("volume") as string)
+    : { volumeValue: null };
+  const displayVolume = volumeValue || volume;
   return (
     <Paper
       sx={{
@@ -88,10 +86,12 @@ const VolumeCard = ({ volume }: VolumeInputs) => {
         <IconButton
           onClick={() => {
             const form = new FormData();
-            form.append("volume", "down");
             form.append(
-              "volumeValue",
-              (displayVolume - VOLUME_INCREMENT).toString(),
+              "volume",
+              JSON.stringify({
+                volume: "down",
+                volumeValue: displayVolume - VOLUME_INCREMENT,
+              }),
             );
             volumeChangeFetcher.submit(form, {
               action: `/app/volume`,
@@ -111,7 +111,12 @@ const VolumeCard = ({ volume }: VolumeInputs) => {
           value={volume}
           onChange={(_e: Event, n: number | number[]) => {
             const form = new FormData();
-            form.append("volumeValue", n.toString());
+            form.append(
+              "volume",
+              JSON.stringify({
+                volumeValue: n,
+              }),
+            );
             volumeChangeFetcher.submit(form, {
               action: `/app/volume`,
               method: "post",
@@ -121,10 +126,12 @@ const VolumeCard = ({ volume }: VolumeInputs) => {
         <IconButton
           onClick={() => {
             const form = new FormData();
-            form.append("volume", "up");
             form.append(
-              "volumeValue",
-              (displayVolume + VOLUME_INCREMENT).toString(),
+              "volume",
+              JSON.stringify({
+                volume: "up",
+                volumeValue: displayVolume + VOLUME_INCREMENT,
+              }),
             );
             volumeChangeFetcher.submit(form, {
               action: `/app/volume`,
@@ -147,8 +154,8 @@ const VolumeCard = ({ volume }: VolumeInputs) => {
       >
         <CircularProgressWithLabel
           size="9rem"
-          rawValue={volume}
-          value={convertTo100(volume)}
+          rawValue={displayVolume}
+          value={convertTo100(displayVolume)}
         />
       </div>
     </Paper>

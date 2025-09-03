@@ -1,5 +1,12 @@
-import { getStatus, loadDevice, getDevices, addBasicAuthHeader } from "./api";
+import {
+  getStatus,
+  loadDevice,
+  getDevices,
+  addBasicAuthHeader,
+  getExpiry,
+} from "./api";
 import { redirect } from "react-router";
+
 export const deviceLoader = async () => {
   //no auth needed on this endpoint
   const device = await loadDevice();
@@ -15,6 +22,7 @@ export const statusLoader = async () => {
   return status;
 };
 
+//does this automatically retrigger after an action is called?
 export const devicesLoader = async () => {
   const adminPassword = sessionStorage.getItem("admin_password");
   try {
@@ -26,4 +34,9 @@ export const devicesLoader = async () => {
     console.log(error);
     return redirect("/login");
   }
+};
+
+export const expiryLoader = async () => {
+  const expiry = await getExpiry();
+  return expiry;
 };

@@ -5,15 +5,24 @@ import App from "./App";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
-import { deviceLoader, statusLoader, devicesLoader } from "./services/loaders";
+import { ThemeProvider } from "./state/themeActions";
+import {
+  deviceLoader,
+  statusLoader,
+  devicesLoader,
+  expiryLoader,
+} from "./services/loaders";
 import {
   setVolumeAction,
   setPresetAction,
   setPowerAction,
   setSourceAction,
   loginAction,
+  deviceAction,
+  certAction,
 } from "./services/actions";
-import AppBody from "./components/AppBody";
+import AppBody from "./pages/AppBody";
+import AppAndBar from "./pages/AppAndBar";
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement,
 );
@@ -25,25 +34,43 @@ const router = createBrowserRouter([
     Component: App,
     children: [
       {
-        path: "/app",
-        Component: AppBody, //doesn't have an outlet
-        loader: statusLoader,
+        path: "/",
+        Component: AppAndBar,
+        loader: expiryLoader,
         children: [
-          { path: "volume", action: setVolumeAction }, //how will this work with outlets?  or will it?
-          { path: "preset", action: setPresetAction },
-          { path: "power", action: setPowerAction },
-          //{ path: "power/:powerToTurnOn", action: setPowerAction },
-          { path: "source", action: setSourceAction },
+          {
+            path: "/app",
+            Component: AppBody, //doesn't have an outlet
+            loader: statusLoader,
+            children: [
+              { path: "volume", action: setVolumeAction }, //how will this work with outlets?  or will it?
+              { path: "preset", action: setPresetAction },
+              { path: "power", action: setPowerAction },
+              //{ path: "power/:powerToTurnOn", action: setPowerAction },
+              { path: "source", action: setSourceAction },
+            ],
+          },
         ],
       },
     ],
   },
-  { path: "/settings", Component: Settings, loader: devicesLoader },
+  {
+    path: "/settings/cert",
+    action: certAction,
+  },
+  {
+    path: "/settings",
+    Component: Settings,
+    loader: devicesLoader,
+    action: deviceAction,
+  },
   { path: "/login", Component: Login, action: loginAction },
 ]);
 
 root.render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <ThemeProvider>
+      <RouterProvider router={router} />
+    </ThemeProvider>
   </React.StrictMode>,
 );

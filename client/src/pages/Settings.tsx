@@ -5,13 +5,16 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import FormGroup from "@mui/material/FormGroup";
-import FormControlLabel from "@mui/material/FormControlLabel";
+//import FormControlLabel from "@mui/material/FormControlLabel";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import { Link } from "react-router";
 import Divider from "@mui/material/Divider";
 import GenerateCerts from "../components/GenerateCerts";
 import DownloadCaPem from "../components/DownloadCaPem";
+import { useLoaderData } from "react-router";
+import { type Device } from "../services/api";
+import DeviceList from "../components/DeviceList";
 const BootstrapDialog = styled(Dialog)(({ theme }: { theme: Theme }) => ({
   "& .MuiDialogContent-root": {
     padding: theme.spacing(2),
@@ -22,7 +25,9 @@ const BootstrapDialog = styled(Dialog)(({ theme }: { theme: Theme }) => ({
 }));
 
 const Settings = () => {
+  const devices = useLoaderData<Device[]>();
   const open = true;
+  console.log(devices);
   return (
     <>
       <BootstrapDialog
@@ -54,7 +59,7 @@ const Settings = () => {
             <GenerateCerts />
             <br />
             <Divider />
-            {/*put more stuff here*/}
+            <DeviceList devices={devices} />
           </FormGroup>
         </DialogContent>
         <DialogActions>

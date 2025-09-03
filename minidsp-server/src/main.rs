@@ -249,7 +249,7 @@ async fn set_volume(_ip_filter: IpAuth, volume: f32) -> Result<Json<Success>, Ba
 }
 
 #[post("/preset/<preset>")]
-async fn set_preset(_ip_filter: IpAuth, preset: u8) -> Result<Json<Success>, BadRequest<String>> {
+async fn set_preset(_ip_filter: IpAuth, preset: &str) -> Result<Json<Success>, BadRequest<String>> {
     minidsp::set_minidsp_preset(preset).map_err(|e| BadRequest(e.to_string()))?;
     Ok(Json(Success { success: true }))
 }

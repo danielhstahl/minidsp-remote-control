@@ -25,6 +25,7 @@ export const themeReducer = (state: ColorTheme, action: Action) => {
 
 const ThemeContext = createContext({
   state: getColorTheme(),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   dispatch: (_a: Action) => {},
 });
 

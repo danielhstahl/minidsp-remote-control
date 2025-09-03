@@ -16,10 +16,10 @@ export const SourceEnum = {
 export type Source = (typeof SourceEnum)[keyof typeof SourceEnum];
 
 export const PresetEnum = {
-  preset1: 0,
-  preset2: 1,
-  preset3: 2,
-  preset4: 3,
+  preset1: "0",
+  preset2: "1",
+  preset3: "2",
+  preset4: "3",
 } as const;
 
 export type Preset = (typeof PresetEnum)[keyof typeof PresetEnum];
@@ -71,7 +71,7 @@ export const volumeDown = () => {
   return fetch(`/api/volume/down`, { method: "POST" });
 };
 // eslint-disable-next-line react-refresh/only-export-components
-export const setPreset = (preset: number) => {
+export const setPreset = (preset: Preset) => {
   return fetch(`/api/preset/${preset}`, { method: "POST" });
 };
 // eslint-disable-next-line react-refresh/only-export-components
@@ -102,7 +102,7 @@ export const updateDevice: (
   }).then((v) => v.json());
 };
 // eslint-disable-next-line react-refresh/only-export-components
-export const getDevices: (localHeaders: LocalHeaders) => Promise<Device> = (
+export const getDevices: (localHeaders: LocalHeaders) => Promise<Device[]> = (
   localHeaders: LocalHeaders,
 ) => {
   const headers = { ...localHeaders, ...jsonHeaders };

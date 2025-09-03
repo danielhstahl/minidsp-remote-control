@@ -23,17 +23,13 @@ interface PowerInputs {
   power: Power;
   preset: Preset;
   source: Source;
-  //onPresetChange: (preset: Preset) => void;
-  //onSourceChange: (source: Source) => void;
-  //onPowerToggle: (power: Power) => void;
 }
 const PRESET = "Preset";
 const SOURCE = "Source";
 
 const SelectPreset = ({ preset, theme }: { preset: Preset; theme: Theme }) => {
   const presetChangeFetcher = useFetcher();
-  //const latestSource = sourceChangeFetcher.data;
-  const formData = presetChangeFetcher.formData?.get("preset");
+  const formData = presetChangeFetcher.formData?.get("preset") as string;
 
   const displayPreset = formData || preset;
   return (
@@ -66,7 +62,7 @@ const SelectPreset = ({ preset, theme }: { preset: Preset; theme: Theme }) => {
         }}
       >
         {Object.values(PresetEnum).map((v, i) => (
-          <MenuItem key={v} value={v.toString()}>
+          <MenuItem key={v} value={v}>
             Preset {i + 1}
           </MenuItem>
         ))}
@@ -77,9 +73,7 @@ const SelectPreset = ({ preset, theme }: { preset: Preset; theme: Theme }) => {
 
 const SelectSource = ({ theme, source }: { theme: Theme; source: Source }) => {
   const sourceChangeFetcher = useFetcher();
-  //const latestSource = sourceChangeFetcher.data;
-  const formData = sourceChangeFetcher.formData?.get("miniDspSource");
-
+  const formData = sourceChangeFetcher.formData?.get("miniDspSource") as string;
   const displaySource = formData || source;
   return (
     <FormControl size="small" fullWidth>
@@ -128,7 +122,6 @@ const PowerToggle = ({
   selectedTheme: ColorTheme;
 }) => {
   const powerChangeFetcher = useFetcher();
-  //const latestSource = sourceChangeFetcher.data;
   const formData = powerChangeFetcher.formData?.get("power");
 
   const displayPower = formData || power;
