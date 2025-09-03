@@ -92,7 +92,7 @@ fn rocket() -> _ {
         expiry
     ];
     #[cfg(feature = "gpio")]
-    let mut gpio_routes = routes![set_power_anon, set_power_user];
+    let mut gpio_routes = routes![set_power];
     #[cfg(feature = "gpio")]
     base_routes.append(&mut gpio_routes);
 
