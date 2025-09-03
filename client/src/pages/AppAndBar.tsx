@@ -17,9 +17,14 @@ interface Props {
 const AppAndBar = () => {
   const { selectedTheme, setThemeAndSave } = useOutletContext<Props>();
   const expiryDate = useLoaderData<Date>();
+  const hasAuthSet = sessionStorage.getItem("admin_password") ? true : false;
   return (
     <>
-      <AppBar mode={selectedTheme} setMode={setThemeAndSave} />
+      <AppBar
+        mode={selectedTheme}
+        setMode={setThemeAndSave}
+        isAdmin={hasAuthSet}
+      />
       <Box
         component="main"
         sx={{

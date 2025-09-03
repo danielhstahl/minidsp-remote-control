@@ -23,6 +23,7 @@ const SwitchWithFetcher = ({ isAllowed, deviceIp }: Device) => {
   ) : (
     <Switch
       edge="end"
+      data-testid={deviceIp}
       onChange={(_e, checked: boolean) => {
         const form = new FormData();
         form.append("device", JSON.stringify({ isAllowed: checked, deviceIp }));

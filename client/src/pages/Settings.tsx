@@ -27,7 +27,6 @@ const BootstrapDialog = styled(Dialog)(({ theme }: { theme: Theme }) => ({
 const Settings = () => {
   const devices = useLoaderData<Device[]>();
   const open = true;
-  console.log(devices);
   return (
     <>
       <BootstrapDialog

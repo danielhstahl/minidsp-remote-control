@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
-import { createBrowserRouter, RouterProvider } from "react-router";
+import { createBrowserRouter, RouterProvider, redirect } from "react-router";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import { ThemeProvider } from "./state/themeActions";
@@ -30,18 +30,22 @@ const root = ReactDOM.createRoot(
 const router = createBrowserRouter([
   {
     path: "/",
-    loader: deviceLoader,
+    loader: deviceLoader, //api/device (POST)
     Component: App,
     children: [
       {
-        path: "/",
+        index: true,
+        loader: () => redirect("/app"),
+      },
+      {
+        path: "/app",
         Component: AppAndBar,
-        loader: expiryLoader,
+        loader: expiryLoader, //api/cert/expiration (GET)
         children: [
           {
-            path: "/app",
+            path: "",
             Component: AppBody, //doesn't have an outlet
-            loader: statusLoader,
+            loader: statusLoader, //api/status (GET)
             children: [
               { path: "volume", action: setVolumeAction }, //how will this work with outlets?  or will it?
               { path: "preset", action: setPresetAction },
@@ -61,7 +65,7 @@ const router = createBrowserRouter([
   {
     path: "/settings",
     Component: Settings,
-    loader: devicesLoader,
+    loader: devicesLoader, //api/device (GET), auth required
     action: deviceAction,
   },
   { path: "/login", Component: Login, action: loginAction },

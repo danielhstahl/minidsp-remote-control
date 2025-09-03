@@ -34,7 +34,6 @@ export const setVolumeAction = async ({ request }: ActionFunctionArgs) => {
 };
 
 export const setPresetAction = async ({ request }: ActionFunctionArgs) => {
-  //const { preset } = params;
   const formData = await request.formData();
   const preset = formData.get("preset") as Preset;
   await setPreset(preset);
@@ -51,15 +50,18 @@ export const setPowerAction = async ({ request }: ActionFunctionArgs) => {
 
 export const setSourceAction = async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData();
-  const source = formData.get("miniDspSource") as Source;
+  const source = formData.get("source") as Source;
   await setSource(source);
   return source;
 };
 
 export const loginAction = async ({ request }: ActionFunctionArgs) => {
-  const formData = await request.formData();
-  sessionStorage.setItem("admin_password", formData.get("password") as string);
   try {
+    const formData = await request.formData();
+    sessionStorage.setItem(
+      "admin_password",
+      formData.get("password") as string,
+    );
     return redirect("/settings");
   } catch (error) {
     console.log(error);

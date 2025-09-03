@@ -36,9 +36,10 @@ const AppBar = styled(MuiAppBar, {
 interface AppBarMenuProps {
   setMode: (mode: ColorTheme) => void;
   mode: ColorTheme;
+  isAdmin: boolean;
 }
 
-const AppBarMenu = ({ setMode, mode }: AppBarMenuProps) => {
+const AppBarMenu = ({ setMode, mode, isAdmin }: AppBarMenuProps) => {
   return (
     <AppBar position="absolute" open={false}>
       <Toolbar
@@ -55,9 +56,11 @@ const AppBarMenu = ({ setMode, mode }: AppBarMenuProps) => {
         >
           MiniDSP
         </Typography>
-        <IconButton component={Link} to="/settings" aria-label="settings">
-          <SettingsIcon />
-        </IconButton>
+        {isAdmin && (
+          <IconButton component={Link} to="/settings" aria-label="settings">
+            <SettingsIcon />
+          </IconButton>
+        )}
         <ToggleButtonGroup
           value={mode}
           exclusive

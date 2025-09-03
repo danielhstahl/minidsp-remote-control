@@ -23,7 +23,9 @@ describe("DeviceList", () => {
     await expect.element(screen.getByText("Allowed IPs")).toBeInTheDocument();
   });
   it("submits on check", async () => {
-    const action = vi.fn();
+    const action = vi.fn(() => ({
+      isAllowed: true,
+    }));
     const Stub = createRoutesStub([
       {
         path: "/settings",
@@ -41,10 +43,15 @@ describe("DeviceList", () => {
       },
     ]);
     const screen = render(<Stub initialEntries={["/settings"]} />);
+    screen.debug();
+    await expect
+      .element(screen.getByTestId("127.0.0.1"))
+      .not.toHaveClass("Mui-checked");
     await screen.getByRole("switch").first().click();
     expect(action.mock.calls).toHaveLength(1);
+    screen.debug();
     await expect
-      .element(screen.getByRole("switch").first())
-      .toHaveAttribute("checked", "");
+      .element(screen.getByTestId("127.0.0.1"))
+      .toHaveClass("Mui-checked");
   });
 });

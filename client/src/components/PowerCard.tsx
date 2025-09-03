@@ -73,7 +73,7 @@ const SelectPreset = ({ preset, theme }: { preset: Preset; theme: Theme }) => {
 
 const SelectSource = ({ theme, source }: { theme: Theme; source: Source }) => {
   const sourceChangeFetcher = useFetcher();
-  const formData = sourceChangeFetcher.formData?.get("miniDspSource") as string;
+  const formData = sourceChangeFetcher.formData?.get("source") as string;
   const displaySource = formData || source;
   return (
     <FormControl size="small" fullWidth>
@@ -97,7 +97,7 @@ const SelectSource = ({ theme, source }: { theme: Theme; source: Source }) => {
         label={SOURCE}
         onChange={(e: SelectChangeEvent) => {
           const form = new FormData();
-          form.append("miniDspSource", e.target.value);
+          form.append("source", e.target.value);
           sourceChangeFetcher.submit(form, {
             action: `/app/source`,
             method: "post",
@@ -138,7 +138,6 @@ const PowerToggle = ({
               action: `/app/power`,
               method: "post",
             });
-            //onPowerToggle(checked ? PowerEnum.On : PowerEnum.Off)
           }}
         />
       }

@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import AppAndBar from "../AppAndBar";
 import { createRoutesStub } from "react-router";
 import { DEFAULT_COLOR_THEME } from "../../styles/modes";
+import { Outlet } from "react-router";
 describe("AppAndBar", () => {
   it("renders", async () => {
     const setSelectedTheme = vi.fn();
@@ -12,16 +13,25 @@ describe("AppAndBar", () => {
         loader: () => new Date(),
         Component: () => {
           return (
-            <AppAndBar
-              selectedTheme={DEFAULT_COLOR_THEME}
-              setThemeAndSave={setSelectedTheme}
+            <Outlet
+              context={{
+                setThemeAndSave: setSelectedTheme,
+                selectedTheme: { DEFAULT_COLOR_THEME },
+              }}
             />
           );
         },
         children: [
           {
             path: "/",
-            Component: () => <p>hello world</p>,
+            loader: () => new Date(),
+            Component: AppAndBar,
+            children: [
+              {
+                path: "/",
+                Component: () => <p>hello world</p>,
+              },
+            ],
           },
         ],
       },
@@ -34,19 +44,28 @@ describe("AppAndBar", () => {
     const Stub = createRoutesStub([
       {
         path: "/",
-        loader: () => new Date(),
+
         Component: () => {
           return (
-            <AppAndBar
-              selectedTheme={DEFAULT_COLOR_THEME}
-              setThemeAndSave={setSelectedTheme}
+            <Outlet
+              context={{
+                setThemeAndSave: setSelectedTheme,
+                selectedTheme: { DEFAULT_COLOR_THEME },
+              }}
             />
           );
         },
         children: [
           {
             path: "/",
-            Component: () => <p>hello world</p>,
+            loader: () => new Date(),
+            Component: AppAndBar,
+            children: [
+              {
+                path: "/",
+                Component: () => <p>hello world</p>,
+              },
+            ],
           },
         ],
       },

@@ -93,26 +93,44 @@ export const loadDevice: () => Promise<Device> = () => {
 export const updateDevice: (
   localHeaders: LocalHeaders,
   device: Device,
-) => Promise<Device> = (localHeaders: LocalHeaders, device: Device) => {
+) => Promise<Device> = async (localHeaders: LocalHeaders, device: Device) => {
   const headers = { ...localHeaders, ...jsonHeaders };
-  return fetch(`/api/device`, {
+  const response = await fetch(`/api/device`, {
     method: "PATCH",
     headers,
     body: JSON.stringify(device),
-  }).then((v) => v.json());
+  });
+  const result = await response.json();
+  if (response.ok) {
+    return result;
+  } else {
+    throw new Error(result);
+  }
 };
 // eslint-disable-next-line react-refresh/only-export-components
-export const getDevices: (localHeaders: LocalHeaders) => Promise<Device[]> = (
+export const getDevices: (
   localHeaders: LocalHeaders,
-) => {
+) => Promise<Device[]> = async (localHeaders: LocalHeaders) => {
   const headers = { ...localHeaders, ...jsonHeaders };
-  return fetch(`/api/device`, {
+  const response = await fetch(`/api/device`, {
     headers,
-  }).then((v) => v.json());
+  });
+  const result = await response.json();
+  if (response.ok) {
+    return result;
+  } else {
+    throw new Error(result);
+  }
 };
 // eslint-disable-next-line react-refresh/only-export-components
-export const generateCert = (headers: LocalHeaders) => {
-  return fetch(`/api/cert`, { method: "POST", headers });
+export const generateCert = async (headers: LocalHeaders) => {
+  const response = await fetch(`/api/cert`, { method: "POST", headers });
+  const result = await response.json(); //.then((v) => v.json());
+  if (response.ok) {
+    return result;
+  } else {
+    throw new Error(result);
+  }
 };
 // eslint-disable-next-line react-refresh/only-export-components
 export const getExpiry = () => {

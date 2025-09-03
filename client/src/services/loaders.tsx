@@ -12,8 +12,6 @@ export const deviceLoader = async () => {
   const device = await loadDevice();
   if (!device.isAllowed) {
     return redirect("/login");
-  } else {
-    return redirect("/app");
   }
 };
 
@@ -32,11 +30,12 @@ export const devicesLoader = async () => {
     return devices;
   } catch (error) {
     console.log(error);
+    sessionStorage.clear();
     return redirect("/login");
   }
 };
 
 export const expiryLoader = async () => {
-  const expiry = await getExpiry();
+  const { expiry } = await getExpiry();
   return expiry;
 };

@@ -8,9 +8,13 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import type { CircularProgressProps } from "@mui/material/CircularProgress";
-
-const VOLUME_INCREMENT = 0.5;
 import { useFetcher } from "react-router";
+import {
+  extractValueFromFormData,
+  createFormDataFromValue,
+} from "../utils/fetcherUtils";
+const VOLUME_INCREMENT = 0.5;
+
 interface VolumeInputs {
   volume: number;
 }
@@ -67,11 +71,14 @@ const CircularProgressWithLabel = (
 // eslint-disable-next-line react-refresh/only-export-components
 export const convertTo100 = (volume: number) =>
   100 * ((volume - MIN_VOLUME) / (MAX_VOLUME - MIN_VOLUME));
+
 const VolumeCard = ({ volume }: VolumeInputs) => {
   const volumeChangeFetcher = useFetcher();
-  const { volumeValue } = volumeChangeFetcher.formData
-    ? JSON.parse(volumeChangeFetcher.formData.get("volume") as string)
-    : { volumeValue: null };
+  const { volumeValue } = extractValueFromFormData(
+    volumeChangeFetcher.formData,
+    "volume",
+    { volumeValue: null },
+  );
   const displayVolume = volumeValue || volume;
   return (
     <Paper
@@ -85,14 +92,10 @@ const VolumeCard = ({ volume }: VolumeInputs) => {
       <Stack spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
         <IconButton
           onClick={() => {
-            const form = new FormData();
-            form.append(
-              "volume",
-              JSON.stringify({
-                volume: "down",
-                volumeValue: displayVolume - VOLUME_INCREMENT,
-              }),
-            );
+            const form = createFormDataFromValue("volume", {
+              volume: "down",
+              volumeValue: displayVolume - VOLUME_INCREMENT,
+            });
             volumeChangeFetcher.submit(form, {
               action: `/app/volume`,
               method: "post",
@@ -110,13 +113,9 @@ const VolumeCard = ({ volume }: VolumeInputs) => {
           aria-label="Volume"
           value={volume}
           onChange={(_e: Event, n: number | number[]) => {
-            const form = new FormData();
-            form.append(
-              "volume",
-              JSON.stringify({
-                volumeValue: n,
-              }),
-            );
+            const form = createFormDataFromValue("volume", {
+              volumeValue: n,
+            });
             volumeChangeFetcher.submit(form, {
               action: `/app/volume`,
               method: "post",
@@ -125,14 +124,10 @@ const VolumeCard = ({ volume }: VolumeInputs) => {
         />
         <IconButton
           onClick={() => {
-            const form = new FormData();
-            form.append(
-              "volume",
-              JSON.stringify({
-                volume: "up",
-                volumeValue: displayVolume + VOLUME_INCREMENT,
-              }),
-            );
+            const form = createFormDataFromValue("volume", {
+              volume: "up",
+              volumeValue: displayVolume + VOLUME_INCREMENT,
+            });
             volumeChangeFetcher.submit(form, {
               action: `/app/volume`,
               method: "post",
