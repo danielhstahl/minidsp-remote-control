@@ -22,9 +22,14 @@ describe("authAndExpiryLoader", () => {
     server.stop();
   });
   it("redirects to login on not allowed", async () => {
+    const date = new Date();
+    date.setDate(date.getDate() + 60);
     const server = setupWorker(
       http.post("/api/device", () => {
         return HttpResponse.json({ isAllowed: false });
+      }),
+      http.get("/api/cert/expiration", () => {
+        return HttpResponse.json({ expiry: date });
       }),
     );
     await server.start({ quiet: true });
