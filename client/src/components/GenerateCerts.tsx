@@ -14,8 +14,6 @@ interface MessageHandle {
 const GenerateCerts = () => {
   const fetcher = useFetcher();
   const busy = fetcher.state !== "idle";
-  //const [isLoading, setIsLoading] = useState(false);
-  //const { dispatch: expiryDispatch } = useExpiryParams();
   const [message, setMessage] = useState<MessageHandle>({
     isMessageOpen: false,
     messageType: "success",
@@ -41,27 +39,6 @@ const GenerateCerts = () => {
       }
     }
   }, [fetcher.data]);
-  /*const handleCertHOF = () => {
-    setIsLoading(true);
-    generateCert(addBasicAuthHeader(adminPassword))
-      .then(() => getExpiry())
-      .then((expiry) =>
-        expiryDispatch({ type: SetExpiryEnum.UPDATE, value: expiry }),
-      )
-      .then(() => {
-        setMessage({
-          isMessageOpen: true,
-          messageType: "success",
-        });
-      })
-      .catch(() => {
-        setMessage({
-          isMessageOpen: true,
-          messageType: "error",
-        });
-      })
-      .finally(() => setIsLoading(false));
-      };*/
   return (
     <>
       <fetcher.Form method="post" action="/settings/cert">

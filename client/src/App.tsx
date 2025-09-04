@@ -1,5 +1,5 @@
 import "./App.css";
-import { ThemeProvider } from "@mui/material/styles";
+import { ThemeProvider, type Theme } from "@mui/material/styles";
 
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -9,6 +9,7 @@ import { themes } from "./styles/modes";
 import AppBar from "./components/AppBar";
 import { SetThemeEnum, useThemeParams } from "./state/themeActions";
 import { Outlet } from "react-router";
+import Toolbar from "@mui/material/Toolbar";
 
 function App() {
   const { dispatch: themeDispatch, state: selectedTheme } = useThemeParams();
@@ -27,7 +28,18 @@ function App() {
           setMode={setThemeAndSave}
           isAdmin={hasAuthSet}
         />
-        <Outlet />
+        <Box
+          component="main"
+          sx={{
+            backgroundColor: (theme: Theme) => theme.palette.background.default,
+            flexGrow: 1,
+            height: "100vh",
+            overflow: "auto",
+          }}
+        >
+          <Toolbar />
+          <Outlet />
+        </Box>
       </Box>
     </ThemeProvider>
   );
