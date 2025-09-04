@@ -8,7 +8,7 @@ import {
 import { redirect } from "react-router";
 
 export const authAndExpiryLoader = async () => {
-  //no auth needed on this endpoint
+  //no auth needed on these endpoints
   const [device, { expiry }] = await Promise.all([loadDevice(), getExpiry()]);
   if (!device.isAllowed) {
     return redirect("/login");
