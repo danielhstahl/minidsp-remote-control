@@ -7,13 +7,20 @@ import {
 } from "./api";
 import { redirect } from "react-router";
 
-export const deviceLoader = async () => {
+export const authAndExpiryLoader = async () => {
   //no auth needed on this endpoint
-  const device = await loadDevice();
+  const [device, { expiry }] = await Promise.all([loadDevice(), getExpiry()]);
   if (!device.isAllowed) {
     return redirect("/login");
+  } else {
+    return expiry;
   }
 };
+/*
+export const expiryLoader = async () => {
+  const { expiry } = await getExpiry();
+  return expiry;
+};*/
 
 export const statusLoader = async () => {
   const status = await getStatus();
@@ -33,9 +40,4 @@ export const devicesLoader = async () => {
     sessionStorage.clear();
     return redirect("/login");
   }
-};
-
-export const expiryLoader = async () => {
-  const { expiry } = await getExpiry();
-  return expiry;
 };

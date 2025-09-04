@@ -1,75 +1,17 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
-import App from "./App";
-import { createBrowserRouter, RouterProvider, redirect } from "react-router";
-import Settings from "./pages/Settings";
-import Login from "./pages/Login";
+
+import { createBrowserRouter, RouterProvider } from "react-router";
+
 import { ThemeProvider } from "./state/themeActions";
-import {
-  deviceLoader,
-  statusLoader,
-  devicesLoader,
-  expiryLoader,
-} from "./services/loaders";
-import {
-  setVolumeAction,
-  setPresetAction,
-  setPowerAction,
-  setSourceAction,
-  loginAction,
-  deviceAction,
-  certAction,
-} from "./services/actions";
-import AppBody from "./pages/AppBody";
-import AppAndBar from "./pages/AppAndBar";
+
+import { routes } from "./utils/routes";
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement,
 );
 
-const router = createBrowserRouter([
-  {
-    path: "/",
-    loader: deviceLoader, //api/device (POST)
-    Component: App,
-    children: [
-      {
-        index: true,
-        loader: () => redirect("/app"),
-      },
-      {
-        path: "/app",
-        Component: AppAndBar,
-        loader: expiryLoader, //api/cert/expiration (GET)
-        children: [
-          {
-            path: "",
-            Component: AppBody, //doesn't have an outlet
-            loader: statusLoader, //api/status (GET)
-            children: [
-              { path: "volume", action: setVolumeAction }, //how will this work with outlets?  or will it?
-              { path: "preset", action: setPresetAction },
-              { path: "power", action: setPowerAction },
-              //{ path: "power/:powerToTurnOn", action: setPowerAction },
-              { path: "source", action: setSourceAction },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    path: "/settings/cert",
-    action: certAction,
-  },
-  {
-    path: "/settings",
-    Component: Settings,
-    loader: devicesLoader, //api/device (GET), auth required
-    action: deviceAction,
-  },
-  { path: "/login", Component: Login, action: loginAction },
-]);
+const router = createBrowserRouter(routes);
 
 root.render(
   <React.StrictMode>

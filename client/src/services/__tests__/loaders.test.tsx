@@ -2,23 +2,23 @@ import { describe, expect, it } from "vitest";
 import { http, HttpResponse } from "msw";
 import { setupWorker } from "msw/browser";
 import { PowerEnum, SourceEnum, PresetEnum } from "../../services/api";
-import {
-  deviceLoader,
-  statusLoader,
-  devicesLoader,
-  expiryLoader,
-} from "../loaders";
+import { authAndExpiryLoader, statusLoader, devicesLoader } from "../loaders";
 
-describe("deviceLoader", () => {
-  it("redirects to app on allowed", async () => {
+describe("authAndExpiryLoader", () => {
+  it("provides expiry on allowed", async () => {
+    const date = new Date();
+    date.setDate(date.getDate() + 60);
     const server = setupWorker(
       http.post("/api/device", () => {
         return HttpResponse.json({ isAllowed: true });
       }),
+      http.get("/api/cert/expiration", () => {
+        return HttpResponse.json({ expiry: date });
+      }),
     );
     await server.start({ quiet: true });
-    const result = await deviceLoader();
-    expect(result).toBeUndefined();
+    const result = await authAndExpiryLoader();
+    expect(result instanceof Date).toBeTruthy();
     server.stop();
   });
   it("redirects to login on not allowed", async () => {
@@ -28,7 +28,7 @@ describe("deviceLoader", () => {
       }),
     );
     await server.start({ quiet: true });
-    const result = await deviceLoader();
+    const result = await authAndExpiryLoader();
     expect(result instanceof Response).toBeTruthy();
     if (result instanceof Response) {
       expect(result.headers.get("Location")).toEqual("/login");
@@ -63,6 +63,7 @@ describe("statusLoader", () => {
 
 describe("devicesLoader", () => {
   it("get devices on auth", async () => {
+    sessionStorage.setItem("admin_password", "helloworld");
     const server = setupWorker(
       http.get("/api/device", () => {
         return HttpResponse.json([
@@ -78,6 +79,7 @@ describe("devicesLoader", () => {
       { isAllowed: true, deviceIp: "192.168.0.1" },
     ]);
     server.stop();
+    sessionStorage.clear();
   });
   it("redirects on failure", async () => {
     const server = setupWorker(
@@ -94,7 +96,7 @@ describe("devicesLoader", () => {
     server.stop();
   });
 });
-
+/*
 describe("expiryLoader", () => {
   it("gets expiry", async () => {
     const date = new Date();
@@ -109,4 +111,4 @@ describe("expiryLoader", () => {
     expect(result).toEqual(date);
     server.stop();
   });
-});
+});*/

@@ -8,27 +8,8 @@ import {
   PresetEnum,
   type SSLCertExpiry,
 } from "./services/api";
-import App from "./App";
-import { createRoutesStub, redirect } from "react-router";
-import Settings from "./pages/Settings";
-import Login from "./pages/Login";
-import AppBody from "./pages/AppBody";
-import AppAndBar from "./pages/AppAndBar";
-import {
-  deviceLoader,
-  statusLoader,
-  devicesLoader,
-  expiryLoader,
-} from "./services/loaders";
-import {
-  setVolumeAction,
-  setPresetAction,
-  setPowerAction,
-  setSourceAction,
-  loginAction,
-  deviceAction,
-  certAction,
-} from "./services/actions";
+import { createRoutesStub } from "react-router";
+import { routes } from "./utils/routes";
 
 const get60DaysFuture = () => {
   const date = new Date();
@@ -41,48 +22,7 @@ const initialExpiryState: SSLCertExpiry = {
 };
 
 const createRouter = () => {
-  return createRoutesStub([
-    {
-      path: "/settings/cert",
-      action: certAction,
-    },
-    {
-      path: "/settings",
-      Component: Settings,
-      loader: devicesLoader,
-      action: deviceAction,
-    },
-    { path: "/login", Component: Login, action: loginAction },
-    {
-      path: "/",
-      loader: deviceLoader,
-      Component: App,
-      children: [
-        {
-          index: true,
-          loader: () => redirect("/app"),
-        },
-        {
-          path: "/app",
-          Component: AppAndBar,
-          loader: expiryLoader,
-          children: [
-            {
-              path: "",
-              Component: AppBody, //doesn't have an outlet
-              loader: statusLoader,
-              children: [
-                { path: "volume", action: setVolumeAction }, //how will this work with outlets?  or will it?
-                { path: "preset", action: setPresetAction },
-                { path: "power", action: setPowerAction },
-                { path: "source", action: setSourceAction },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-  ]);
+  return createRoutesStub(routes);
 };
 
 describe("access scenarios", () => {
