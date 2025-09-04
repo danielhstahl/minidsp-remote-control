@@ -7,11 +7,13 @@ import SSLNotification from "../components/SSLNotification";
 import { Outlet, useLoaderData } from "react-router";
 
 const AppAndBar = () => {
-  const expiryDate = useLoaderData<Date>();
+  const expiryDate = useLoaderData<Date | undefined>();
   return (
     <>
       <Outlet />
-      <SSLNotification currentDate={new Date()} expiryDate={expiryDate} />
+      {expiryDate && (
+        <SSLNotification currentDate={new Date()} expiryDate={expiryDate} />
+      )}
     </>
   );
 };

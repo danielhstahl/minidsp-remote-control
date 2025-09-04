@@ -125,7 +125,7 @@ export const getDevices: (
 // eslint-disable-next-line react-refresh/only-export-components
 export const generateCert = async (headers: LocalHeaders) => {
   const response = await fetch(`/api/cert`, { method: "POST", headers });
-  const result = await response.json(); //.then((v) => v.json());
+  const result = await response.json();
   if (response.ok) {
     return result;
   } else {
@@ -133,10 +133,14 @@ export const generateCert = async (headers: LocalHeaders) => {
   }
 };
 // eslint-disable-next-line react-refresh/only-export-components
-export const getExpiry = () => {
-  return fetch(`/api/cert/expiration`)
-    .then((v) => v.json())
-    .then(({ expiry }) => ({ expiry: new Date(expiry) }));
+export const getExpiry = async () => {
+  const response = await fetch(`/api/cert/expiration`);
+  const result = await response.json();
+  if (response.ok) {
+    return new Date(result.expiry);
+  } else {
+    return;
+  }
 };
 // eslint-disable-next-line react-refresh/only-export-components
 export const getCaPem = () => {
