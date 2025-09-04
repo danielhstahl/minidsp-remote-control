@@ -10,7 +10,7 @@ import ToggleButton from "@mui/material/ToggleButton";
 import IconButton from "@mui/material/IconButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import type { ColorTheme } from "../styles/modes";
-import { Link } from "react-router";
+import { NavLink } from "react-router";
 
 const drawerWidth: number = 240;
 interface AppBarProps extends MuiAppBarProps {
@@ -36,9 +36,10 @@ const AppBar = styled(MuiAppBar, {
 interface AppBarMenuProps {
   setMode: (mode: ColorTheme) => void;
   mode: ColorTheme;
+  isAdmin: boolean;
 }
 
-const AppBarMenu = ({ setMode, mode }: AppBarMenuProps) => {
+const AppBarMenu = ({ setMode, mode, isAdmin }: AppBarMenuProps) => {
   return (
     <AppBar position="absolute" open={false}>
       <Toolbar
@@ -47,17 +48,21 @@ const AppBarMenu = ({ setMode, mode }: AppBarMenuProps) => {
         }}
       >
         <Typography
-          component="h1"
+          component={NavLink}
+          to="/"
           variant="h6"
           color="inherit"
           noWrap
           sx={{ flexGrow: 1 }}
+          style={{ textDecoration: "none", color: "inherit" }}
         >
           MiniDSP
         </Typography>
-        <IconButton component={Link} to="/settings" aria-label="settings">
-          <SettingsIcon />
-        </IconButton>
+        {isAdmin && (
+          <IconButton component={NavLink} to="/settings" aria-label="settings">
+            <SettingsIcon />
+          </IconButton>
+        )}
         <ToggleButtonGroup
           value={mode}
           exclusive

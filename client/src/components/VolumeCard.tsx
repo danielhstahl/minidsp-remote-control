@@ -7,17 +7,20 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
-import type {
-  CircularProgressProps,
-} from "@mui/material/CircularProgress";
-import { MIN_VOLUME, MAX_VOLUME } from "../state/minidspActions";
+import type { CircularProgressProps } from "@mui/material/CircularProgress";
+import { useFetcher } from "react-router";
+import {
+  extractValueFromFormData,
+  createFormDataFromValue,
+} from "../utils/fetcherUtils";
 const VOLUME_INCREMENT = 0.5;
+
 interface VolumeInputs {
-  onVolumeSet: (v: number) => void;
-  onVolumeUp: (v: number, increment: number) => void;
-  onVolumeDown: (v: number, increment: number) => void;
   volume: number;
 }
+
+const MIN_VOLUME = -127;
+const MAX_VOLUME = 0;
 
 const CircularProgressWithLabel = (
   props: CircularProgressProps & {
@@ -65,14 +68,18 @@ const CircularProgressWithLabel = (
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const convertTo100 = (volume: number) =>
   100 * ((volume - MIN_VOLUME) / (MAX_VOLUME - MIN_VOLUME));
-const VolumeCard = ({
-  onVolumeSet,
-  onVolumeUp,
-  onVolumeDown,
-  volume,
-}: VolumeInputs) => {
+
+const VolumeCard = ({ volume }: VolumeInputs) => {
+  const volumeChangeFetcher = useFetcher();
+  const { volumeValue } = extractValueFromFormData(
+    volumeChangeFetcher.formData,
+    "volume",
+    { volumeValue: null },
+  );
+  const displayVolume = volumeValue || volume;
   return (
     <Paper
       sx={{
@@ -83,7 +90,18 @@ const VolumeCard = ({
       }}
     >
       <Stack spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
-        <IconButton onClick={() => onVolumeDown(volume, VOLUME_INCREMENT)}>
+        <IconButton
+          onClick={() => {
+            const form = createFormDataFromValue("volume", {
+              volume: "down",
+              volumeValue: displayVolume - VOLUME_INCREMENT,
+            });
+            volumeChangeFetcher.submit(form, {
+              action: `/app/volume`,
+              method: "post",
+            });
+          }}
+        >
           <VolumeDown />
         </IconButton>
         <Slider
@@ -95,11 +113,27 @@ const VolumeCard = ({
           aria-label="Volume"
           value={volume}
           onChange={(_e: Event, n: number | number[]) => {
-            const volume = n as number;
-            onVolumeSet(volume);
+            const form = createFormDataFromValue("volume", {
+              volumeValue: n,
+            });
+            volumeChangeFetcher.submit(form, {
+              action: `/app/volume`,
+              method: "post",
+            });
           }}
         />
-        <IconButton onClick={() => onVolumeUp(volume, VOLUME_INCREMENT)}>
+        <IconButton
+          onClick={() => {
+            const form = createFormDataFromValue("volume", {
+              volume: "up",
+              volumeValue: displayVolume + VOLUME_INCREMENT,
+            });
+            volumeChangeFetcher.submit(form, {
+              action: `/app/volume`,
+              method: "post",
+            });
+          }}
+        >
           {" "}
           <VolumeUp />
         </IconButton>
@@ -115,8 +149,8 @@ const VolumeCard = ({
       >
         <CircularProgressWithLabel
           size="9rem"
-          rawValue={volume}
-          value={convertTo100(volume)}
+          rawValue={displayVolume}
+          value={convertTo100(displayVolume)}
         />
       </div>
     </Paper>

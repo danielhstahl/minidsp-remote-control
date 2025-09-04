@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        INSERT INTO devices (device_ip, is_allowed)\n        VALUES ($1, $2)\n                ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "08d521523b3e5f154e750258bb9ac385d00ab33f71c327175045a66430756f6b"
+}

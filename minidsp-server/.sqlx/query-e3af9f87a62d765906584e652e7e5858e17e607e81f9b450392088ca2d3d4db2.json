@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\nUPDATE devices\nSET is_allowed = $1 WHERE device_ip = $2\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "e3af9f87a62d765906584e652e7e5858e17e607e81f9b450392088ca2d3d4db2"
+}

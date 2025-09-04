@@ -22,20 +22,29 @@ Versions lower than 1.0 support `minidsp-rs` 1.9.  Only volume control is suppor
 
 ### How the server works
 
-Server is a simple NodeJS server.  It makes call directly to the underlying binaries required for MiniDSP.  See https://minidsp-rs.pages.dev/cli/.
+Server is a simple Rust server.  It makes call directly to the underlying binaries required for MiniDSP.  See https://minidsp-rs.pages.dev/cli/.
 
 ### Rust prep
 In `minidsp-server`:
 
-`cargo sqlx migrate add users`
-`cargo sqlx migrate add settings`
+`cargo sqlx migrate add users --source db/migrations`
+`cargo sqlx migrate add settings --source db/migrations`
+
+This creates the scripts in db/migrations.  Edit these as neeeded.  Then run
+
+`cargo sqlx database create --database-url sqlite:$(pwd)/minidsp.sqlite`
+
+`DATABASE_URL="sqlite:$(pwd)/minidsp.sqlite" cargo sqlx migrate run --source db/migrations`
 
 `DATABASE_URL="sqlite:$(pwd)/minidsp.sqlite" cargo sqlx prepare`
 
 
+
+
+
 ## Installing/running
 
-Download the packaged static UI and server code `minidsp-ui.tar.gz` from `releases`.  Extract the tar.gz, and run `npm ci` to install the dependencies.  Run the server with `sudo node index` or `sudo npm start`.  The server has to run as root to access the `gpio` pins.  If you do not want or need to access these pins, don't run as root.  It is recommended to run the server as a service.  See [examples/install_script.sh](./examples/install_script.sh) for an example of how to install server.  See [examples/minidsp-ui.service](./examples/minidsp-ui.service) for an example of how to run the server as a service.
+Download the packaged static UI and server code `minidsp-ui.tar.gz` from `releases`.  Extract the tar.gz.  It is recommended to run the server as a service.  See [examples/install_script.sh](./examples/install_script.sh) for an example of how to install server.  See [examples/minidsp-ui.service](./examples/minidsp-ui.service) for an example of how to run the server as a service.
 
 There is a "power/on" and "power/off" endpoint as well as the ability to query the RPBI pin that controls this.  This is to power an external amp using a 12v trigger (in reality, 5v from the RPBI USB port).  To enable this, set the environment variable "USE_RELAY" to anything, and set the "RELAY_PIN" to the value of the GPIO pin controlling the relay.  To get a mapping of the GPIO pins, run `cat /sys/kernel/debug/gpio`.
 

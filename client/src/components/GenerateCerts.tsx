@@ -1,24 +1,19 @@
 import Button from "@mui/material/Button";
 import CachedIcon from "@mui/icons-material/Cached";
 import Message from "./Message";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { AlertColor } from "@mui/material";
-import { addAuthHeaders, generateCert, getExpiry } from "../services/api";
-import { useUserParams } from "../state/userActions";
-import { useExpiryParams, SetExpiry } from "../state/expiryActions";
+//import { addBasicAuthHeader, generateCert, getExpiry } from "../services/api";
+import { useFetcher } from "react-router";
+//import { useExpiryParams, SetExpiryEnum } from "../state/expiryActions";
 
 interface MessageHandle {
   isMessageOpen: boolean;
   messageType: AlertColor;
 }
 const GenerateCerts = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const {
-    state: { userId, jwt },
-  } = useUserParams();
-  const {
-    dispatch: expiryDispatch,
-  } = useExpiryParams();
+  const fetcher = useFetcher();
+  const busy = fetcher.state !== "idle";
   const [message, setMessage] = useState<MessageHandle>({
     isMessageOpen: false,
     messageType: "success",
@@ -29,45 +24,45 @@ const GenerateCerts = () => {
       messageType: "success",
     });
   };
-  const handleCertHOF = () => {
-    setIsLoading(true);
-    generateCert(addAuthHeaders(userId, jwt)).then(() => getExpiry({})).then((expiry) =>
-      expiryDispatch({ type: SetExpiry.UPDATE, value: expiry })
-    )
-      .then(() => {
+  useEffect(() => {
+    if (fetcher.data) {
+      if (fetcher.data.error) {
         setMessage({
           isMessageOpen: true,
           messageType: "success",
         });
-      })
-      .catch((_e) => {
+      } else {
         setMessage({
           isMessageOpen: true,
           messageType: "error",
         });
-      })
-      .finally(() => setIsLoading(false));
-  };
+      }
+    }
+  }, [fetcher.data]);
   return (
     <>
-      <Button
-        loading={isLoading}
-        variant="contained"
-        onClick={handleCertHOF}
-        startIcon={<CachedIcon />}
-        sx={{
-          "& .MuiButton-endIcon": {
-            position: "absolute",
-            right: "1rem",
-          },
-          "& .MuiButton-startIcon": {
-            position: "absolute",
-            left: "1rem",
-          },
-        }}
-      >
-        Generate certs
-      </Button>
+      <fetcher.Form method="post" action="/settings/cert">
+        <Button
+          fullWidth
+          loading={busy}
+          variant="contained"
+          type="submit"
+          startIcon={<CachedIcon />}
+          sx={{
+            "& .MuiButton-endIcon": {
+              position: "absolute",
+              right: "1rem",
+            },
+            "& .MuiButton-startIcon": {
+              position: "absolute",
+              left: "1rem",
+            },
+          }}
+        >
+          Generate certs
+        </Button>
+      </fetcher.Form>
+
       <Message
         open={message.isMessageOpen}
         type={message.messageType}

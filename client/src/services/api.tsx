@@ -1,28 +1,28 @@
-export enum Power {
-  On = "on",
-  Off = "off",
-}
+export const PowerEnum = {
+  On: "on",
+  Off: "off",
+} as const;
 
-export enum Source {
-  USB = "Usb",
-  HDMI = "Hdmi",
-  Toslink = "Toslink",
-  Spdif = "Spdif",
-  Analog = "Analog",
-}
+export type Power = (typeof PowerEnum)[keyof typeof PowerEnum];
 
-export enum Preset {
-  preset1 = 0,
-  preset2 = 1,
-  preset3 = 2,
-  preset4 = 3,
-}
+export const SourceEnum = {
+  USB: "Usb",
+  HDMI: "Hdmi",
+  Toslink: "Toslink",
+  Spdif: "Spdif",
+  Analog: "Analog",
+} as const;
 
-export interface HtxReadOnly {
-  audioBits: string;
-  audioSamplingRate: string;
-  audioChannels: string;
-}
+export type Source = (typeof SourceEnum)[keyof typeof SourceEnum];
+
+export const PresetEnum = {
+  preset1: "0",
+  preset2: "1",
+  preset3: "2",
+  preset4: "3",
+} as const;
+
+export type Preset = (typeof PresetEnum)[keyof typeof PresetEnum];
 
 export interface HtxWrite {
   power: Power;
@@ -32,27 +32,15 @@ export interface HtxWrite {
 }
 
 export interface SSLCertExpiry {
-  expiry: Date
+  expiry: Date;
 }
 
-export interface AuthSettings {
-  key: number;
-  requireAuth: boolean;
-  domainName: string
-}
-export interface UserId {
-  userId: string;
-}
-export interface User extends UserId {
-  jwt: string;
+export interface Device {
+  deviceIp: string;
+  isAllowed: boolean;
 }
 
-export const addAuthHeaders = (userId: string, jwt: string) => {
-  return {
-    "x-user-id": userId,
-    authorization: `Bearer ${jwt}`,
-  };
-};
+// eslint-disable-next-line react-refresh/only-export-components
 export const addBasicAuthHeader = (code: string) => {
   return {
     authorization: `Basic ${btoa(`:${code}`)}`,
@@ -65,101 +53,97 @@ export type LocalHeaders = {
 const jsonHeaders = {
   "Content-Type": "application/json",
 };
-export const getStatus: (headers: LocalHeaders) => Promise<HtxWrite> = (
-  headers: LocalHeaders,
-) => {
-  return fetch("/api/status", { headers }).then((v) => v.json());
+// eslint-disable-next-line react-refresh/only-export-components
+export const getStatus: () => Promise<HtxWrite> = () => {
+  return fetch("/api/status").then((v) => v.json());
 };
 
-export const setVolume = (headers: LocalHeaders, volume: number) => {
-  return fetch(`/api/volume/${volume}`, { method: "POST", headers });
+// eslint-disable-next-line react-refresh/only-export-components
+export const setVolume = (volume: number) => {
+  return fetch(`/api/volume/${volume}`, { method: "POST" });
 };
-
-export const volumeUp = (headers: LocalHeaders) => {
-  return fetch(`/api/volume/up`, { method: "POST", headers });
+// eslint-disable-next-line react-refresh/only-export-components
+export const volumeUp = () => {
+  return fetch(`/api/volume/up`, { method: "POST" });
 };
-
-export const volumeDown = (headers: LocalHeaders) => {
-  return fetch(`/api/volume/down`, { method: "POST", headers });
+// eslint-disable-next-line react-refresh/only-export-components
+export const volumeDown = () => {
+  return fetch(`/api/volume/down`, { method: "POST" });
 };
-
-export const setPreset = (headers: LocalHeaders, preset: number) => {
-  return fetch(`/api/preset/${preset}`, { method: "POST", headers });
+// eslint-disable-next-line react-refresh/only-export-components
+export const setPreset = (preset: Preset) => {
+  return fetch(`/api/preset/${preset}`, { method: "POST" });
 };
-export const setPower = (headers: LocalHeaders, powerToTurnTo: Power) => {
-  return fetch(`/api/power/${powerToTurnTo}`, { method: "POST", headers });
+// eslint-disable-next-line react-refresh/only-export-components
+export const setPower = (powerToTurnTo: Power) => {
+  return fetch(`/api/power/${powerToTurnTo}`, { method: "POST" });
 };
-export const setSource = (headers: LocalHeaders, source: Source) => {
-  return fetch(`/api/source/${source}`, { method: "POST", headers });
+// eslint-disable-next-line react-refresh/only-export-components
+export const setSource = (source: Source) => {
+  return fetch(`/api/source/${source}`, { method: "POST" });
 };
-
-export const getAuthSettings: (
-  headers: LocalHeaders,
-) => Promise<AuthSettings> = (headers: LocalHeaders) => {
-  return fetch(`/api/auth/settings`, { headers })
-    .then((v) => v.json()).then(({ requireAuth, key, domainName }) => ({
-      requireAuth,
-      key,
-      domainName: `https://${domainName}`
-    }))
-};
-
-export const setAuthSettings: (
-  headers: LocalHeaders,
-  requireAuth: boolean,
-) => Promise<AuthSettings> = (
-  localHeaders: LocalHeaders,
-  requireAuth: boolean,
-) => {
-    const headers = { ...localHeaders, ...jsonHeaders };
-    return fetch(`/api/auth/settings`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ requireAuth }),
-    }).then((v) => v.json());
-  };
-
-export const createUser: (
-  headers: LocalHeaders,
-  publicKey: string,
-) => Promise<UserId> = (localHeaders: LocalHeaders, publicKey: string) => {
-  const headers = { ...localHeaders, ...jsonHeaders };
-  return fetch(`/api/user`, {
+// eslint-disable-next-line react-refresh/only-export-components
+export const loadDevice: () => Promise<Device> = () => {
+  return fetch(`/api/device`, {
     method: "POST",
-    headers,
-    body: JSON.stringify({ publicKey }),
+    headers: jsonHeaders,
   }).then((v) => v.json());
 };
-
-export const updateUser: (
+// eslint-disable-next-line react-refresh/only-export-components
+export const updateDevice: (
   localHeaders: LocalHeaders,
-  publicKey: string,
-  userId: string,
-) => Promise<UserId> = (
+  device: Device,
+) => Promise<Device> = async (localHeaders: LocalHeaders, device: Device) => {
+  const headers = { ...localHeaders, ...jsonHeaders };
+  const response = await fetch(`/api/device`, {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify(device),
+  });
+  const result = await response.json();
+  if (response.ok) {
+    return result;
+  } else {
+    throw new Error(result);
+  }
+};
+// eslint-disable-next-line react-refresh/only-export-components
+export const getDevices: (
   localHeaders: LocalHeaders,
-  publicKey: string,
-  userId: string,
-) => {
-    const headers = { ...localHeaders, ...jsonHeaders };
-    return fetch(`/api/user/${userId}`, {
-      method: "PATCH",
-      headers,
-      body: JSON.stringify({ publicKey }),
-    }).then((v) => v.json());
-  };
-
-export const generateCert = (headers: LocalHeaders) => {
-  return fetch(`/api/cert`, { method: "POST", headers });
+) => Promise<Device[]> = async (localHeaders: LocalHeaders) => {
+  const headers = { ...localHeaders, ...jsonHeaders };
+  const response = await fetch(`/api/device`, {
+    headers,
+  });
+  const result = await response.json();
+  if (response.ok) {
+    return result;
+  } else {
+    throw new Error(result);
+  }
 };
-export const getExpiry = (headers: LocalHeaders) => {
-  return fetch(`/api/cert/expiration`, { headers }).then(v => v.json()).then(({ expiry }) => ({ expiry: new Date(expiry) }));
+// eslint-disable-next-line react-refresh/only-export-components
+export const generateCert = async (headers: LocalHeaders) => {
+  const response = await fetch(`/api/cert`, { method: "POST", headers });
+  const result = await response.json(); //.then((v) => v.json());
+  if (response.ok) {
+    return result;
+  } else {
+    throw new Error(result);
+  }
 };
-export const getCaPem = (headers: LocalHeaders) => {
+// eslint-disable-next-line react-refresh/only-export-components
+export const getExpiry = () => {
+  return fetch(`/api/cert/expiration`)
+    .then((v) => v.json())
+    .then(({ expiry }) => ({ expiry: new Date(expiry) }));
+};
+// eslint-disable-next-line react-refresh/only-export-components
+export const getCaPem = () => {
   return (
     fetch(`/api/cert`, {
       headers: {
         "Content-Disposition": "attachment; filename=ca.crt",
-        ...headers,
       },
     })
       .then((response) => {
