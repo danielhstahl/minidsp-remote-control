@@ -1,6 +1,7 @@
 import "./App.css";
 import { ThemeProvider, type Theme } from "@mui/material/styles";
-
+import Container from "@mui/material/Container";
+import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import { saveColorTheme } from "./state/persistance";
@@ -38,7 +39,11 @@ function App() {
           }}
         >
           <Toolbar />
-          <Outlet />
+          <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+            <Grid container spacing={3}>
+              <Outlet />
+            </Grid>
+          </Container>
         </Box>
       </Box>
     </ThemeProvider>

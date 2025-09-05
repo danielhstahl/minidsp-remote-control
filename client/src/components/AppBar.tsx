@@ -11,6 +11,7 @@ import IconButton from "@mui/material/IconButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import type { ColorTheme } from "../styles/modes";
 import { NavLink } from "react-router";
+import Login from "@mui/icons-material/Login";
 
 const drawerWidth: number = 240;
 interface AppBarProps extends MuiAppBarProps {
@@ -78,6 +79,11 @@ const AppBarMenu = ({ setMode, mode, isAdmin }: AppBarMenuProps) => {
             <DarkModeIcon color="error" />
           </ToggleButton>
         </ToggleButtonGroup>
+        {!isAdmin && (
+          <IconButton component={NavLink} to="/login" aria-label="login">
+            <Login />
+          </IconButton>
+        )}
       </Toolbar>
     </AppBar>
   );

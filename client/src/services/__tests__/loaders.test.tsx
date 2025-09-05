@@ -36,7 +36,7 @@ describe("authAndExpiryLoader", () => {
     const result = await authAndExpiryLoader();
     expect(result instanceof Response).toBeTruthy();
     if (result instanceof Response) {
-      expect(result.headers.get("Location")).toEqual("/login");
+      expect(result.headers.get("Location")).toEqual("/login/noip");
     }
     server.stop();
   });

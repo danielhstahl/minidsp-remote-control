@@ -6,7 +6,7 @@ import SSLNotification from "../components/SSLNotification";
 
 import { Outlet, useLoaderData } from "react-router";
 
-const AppAndBar = () => {
+const ExpiryWrapper = () => {
   const expiryDate = useLoaderData<Date | undefined>();
   return (
     <>
@@ -17,4 +17,4 @@ const AppAndBar = () => {
     </>
   );
 };
-export default AppAndBar;
+export default ExpiryWrapper;
