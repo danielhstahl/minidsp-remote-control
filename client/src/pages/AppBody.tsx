@@ -1,4 +1,3 @@
-import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import StatusCard from "../components/PowerCard";
 import VolumeCard from "../components/VolumeCard";
@@ -18,16 +17,14 @@ const AppBody = () => {
   }, [revalidate]);
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Grid container spacing={3}>
-        <Grid size={{ xs: 12, md: 12, lg: 12 }}>
-          <StatusCard power={power} preset={preset} source={source} />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6, lg: 6 }}>
-          <VolumeCard volume={volume} />
-        </Grid>
+    <>
+      <Grid size={{ xs: 12, md: 12, lg: 12 }}>
+        <StatusCard power={power} preset={preset} source={source} />
       </Grid>
-    </Container>
+      <Grid size={{ xs: 12, md: 6, lg: 6 }}>
+        <VolumeCard volume={volume} />
+      </Grid>
+    </>
   );
 };
 export default AppBody;

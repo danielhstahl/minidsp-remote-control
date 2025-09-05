@@ -17,12 +17,12 @@ import {
   certAction,
 } from "../services/actions";
 import AppBody from "../pages/AppBody";
-import AppAndBar from "../pages/AppAndBar";
+import ExpiryWrapper from "../pages/ExpiryWrapper";
 
 export const routes = [
   {
     path: "/",
-    Component: App,
+    Component: App, //includes appbar
     children: [
       {
         index: true,
@@ -30,7 +30,7 @@ export const routes = [
       },
       {
         path: "/app",
-        Component: AppAndBar,
+        Component: ExpiryWrapper,
         loader: authAndExpiryLoader, //api/cert/expiration (GET), and //api/device (POST)
         children: [
           {
@@ -56,7 +56,7 @@ export const routes = [
         loader: devicesLoader, //api/device (GET), auth required
         action: deviceAction,
       },
+      { path: "/login/:ip?", Component: Login, action: loginAction },
     ],
   },
-  { path: "/login", Component: Login, action: loginAction },
 ];

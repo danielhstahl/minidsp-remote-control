@@ -1,10 +1,10 @@
 import { render } from "vitest-browser-react";
 import { describe, expect, it, vi } from "vitest";
-import AppAndBar from "../AppAndBar";
+import ExpiryWrapper from "../ExpiryWrapper";
 import { createRoutesStub } from "react-router";
 import { DEFAULT_COLOR_THEME } from "../../styles/modes";
 import { Outlet } from "react-router";
-describe("AppAndBar", () => {
+describe("ExpiryWrapper", () => {
   it("renders", async () => {
     const setSelectedTheme = vi.fn();
     const Stub = createRoutesStub([
@@ -25,7 +25,7 @@ describe("AppAndBar", () => {
           {
             path: "/",
             loader: () => new Date(),
-            Component: AppAndBar,
+            Component: ExpiryWrapper,
             children: [
               {
                 path: "/",
@@ -59,7 +59,7 @@ describe("AppAndBar", () => {
           {
             path: "/",
             loader: () => new Date(),
-            Component: AppAndBar,
+            Component: ExpiryWrapper,
             children: [
               {
                 path: "/",
