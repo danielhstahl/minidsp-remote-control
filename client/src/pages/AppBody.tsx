@@ -11,10 +11,10 @@ const AppBody = () => {
   const { power, source, volume, preset } = useLoaderData<HtxWrite>();
   const { revalidate } = useRevalidator();
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const timer = setInterval(() => {
       revalidate();
     }, THREE_SECONDS);
-    return () => clearTimeout(timer); //remove when component dismounts
+    return () => clearInterval(timer); //remove when component dismounts
   }, [revalidate]);
 
   return (
