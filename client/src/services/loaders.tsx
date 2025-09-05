@@ -9,16 +9,11 @@ import { redirect } from "react-router";
 
 export const authAndExpiryLoader = async () => {
   //no auth needed on these endpoints
-  try {
-    const [device, expiry] = await Promise.all([loadDevice(), getExpiry()]);
-    if (!device.isAllowed) {
-      return redirect("/login");
-    } else {
-      return expiry;
-    }
-  } catch (error) {
-    console.log(error);
+  const [device, expiry] = await Promise.all([loadDevice(), getExpiry()]);
+  if (!device.isAllowed) {
     return redirect("/login");
+  } else {
+    return expiry;
   }
 };
 
