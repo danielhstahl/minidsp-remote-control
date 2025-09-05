@@ -1,11 +1,20 @@
-use rocket::serde::{Deserialize, Serialize, json};
+use rocket::serde::{Deserialize, Deserializer, Serialize, json};
 use std::error;
 use std::process::Command;
-
 #[derive(Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct MinidspStatusWrapper {
     pub master: MinidspStatus,
+}
+
+// This function attempts to deserialize a value as an i32, then
+// converts that i32 to a String.
+fn deserialize_int_as_string<'a, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'a>,
+{
+    let number = i32::deserialize(deserializer)?;
+    Ok(number.to_string())
 }
 
 #[derive(Serialize, Deserialize)]
@@ -13,6 +22,7 @@ pub struct MinidspStatusWrapper {
 pub struct MinidspStatus {
     source: String,
     volume: f32,
+    #[serde(deserialize_with = "deserialize_int_as_string")]
     preset: String,
 }
 pub fn get_minidsp_status() -> Result<MinidspStatus, Box<dyn error::Error>> {
@@ -55,4 +65,20 @@ pub fn set_minidsp_source(source: &str) -> Result<(), Box<dyn error::Error>> {
         .arg(source.to_lowercase())
         .output()?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::MinidspStatus;
+    use rocket::serde::json;
+    #[test]
+    fn it_deserializes_to_string() {
+        let str_to_deser = r#"{
+            "source": "Example",
+            "volume": 12345,
+            "preset": 1
+        }"#;
+        let wrapper: MinidspStatus = json::from_str(str_to_deser).unwrap();
+        assert_eq!(wrapper.preset, "1".to_string());
+    }
 }
