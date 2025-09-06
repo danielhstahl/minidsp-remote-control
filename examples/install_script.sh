@@ -42,7 +42,7 @@ sudo usermod -aG input minidsp #HID
 sudo usermod -aG minidspgroup minidsp
 echo "completed user and group setup"
 echo "install dependent software"
-sudo apt install nginx
+sudo apt install -y nginx
 sudo mkdir -p /home/minidsp/nginx
 sudo mkdir -p /home/minidsp/ssl
 sudo mkdir -p /home/minidsp/db
