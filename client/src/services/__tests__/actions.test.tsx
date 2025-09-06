@@ -13,20 +13,13 @@ import {
 import { createFormDataFromValue } from "../../utils/fetcherUtils";
 
 describe("volumeAction", async () => {
-  const server = setupWorker(
-    http.post("/api/volume/up", () => {
-      return HttpResponse.json({});
-    }),
-    http.post("/api/volume/down", () => {
-      return HttpResponse.json({});
-    }),
-    http.post("/api/volume/:volume", () => {
-      return HttpResponse.json({});
-    }),
-  );
-  await server.start({ quiet: true });
-  //})
   it("succeeds when hitting volume/up", async () => {
+    const server = setupWorker(
+      http.post("/api/volume/up", () => {
+        return HttpResponse.json({ success: true });
+      }),
+    );
+    await server.start({ quiet: true });
     const body = createFormDataFromValue("volume", {
       volume: "up",
       volumeValue: 2,
@@ -37,8 +30,15 @@ describe("volumeAction", async () => {
       context: {},
     });
     expect(result).toEqual(2);
+    server.stop();
   });
   it("succeeds when hitting volume/down", async () => {
+    const server = setupWorker(
+      http.post("/api/volume/down", () => {
+        return HttpResponse.json({ success: true });
+      }),
+    );
+    await server.start({ quiet: true });
     const body = createFormDataFromValue("volume", {
       volume: "down",
       volumeValue: 2,
@@ -49,8 +49,15 @@ describe("volumeAction", async () => {
       context: {},
     });
     expect(result).toEqual(2);
+    server.stop();
   });
   it("succeeds when hitting volume/vol", async () => {
+    const server = setupWorker(
+      http.post("/api/volume/:volume", () => {
+        return HttpResponse.json({ success: true });
+      }),
+    );
+    await server.start({ quiet: true });
     const body = createFormDataFromValue("volume", { volumeValue: -40 });
     const result = await setVolumeAction({
       request: new Request("/app/volume", { method: "POST", body }),
@@ -58,8 +65,8 @@ describe("volumeAction", async () => {
       context: {},
     });
     expect(result).toEqual(-40);
+    server.stop();
   });
-  server.stop();
 });
 
 describe("presetAction", async () => {

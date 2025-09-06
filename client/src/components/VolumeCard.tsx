@@ -22,13 +22,16 @@ interface VolumeInputs {
 const MIN_VOLUME = -127;
 const MAX_VOLUME = 0;
 
-const CircularProgressWithLabel = (
-  props: CircularProgressProps & {
-    value: number;
-    rawValue: number;
-  },
-) => {
-  const { rawValue, ...rest } = props;
+type CircularProgressWithLabelProps = CircularProgressProps & {
+  value: number;
+  rawValue: number;
+};
+
+const CircularProgressWithLabel = ({
+  value,
+  rawValue,
+  ...rest
+}: CircularProgressWithLabelProps) => {
   return (
     <Box sx={{ position: "relative", display: "inline-flex" }}>
       <CircularProgress
@@ -46,6 +49,7 @@ const CircularProgressWithLabel = (
           left: 0,
         }}
         variant="determinate"
+        value={value}
         {...rest}
       />
       <Box

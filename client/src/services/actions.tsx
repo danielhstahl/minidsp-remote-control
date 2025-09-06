@@ -12,10 +12,15 @@ import {
   addBasicAuthHeader,
   generateCert,
 } from "./api";
+import { extractValueFromFormData } from "../utils/fetcherUtils";
 import { redirect, type ActionFunctionArgs } from "react-router";
 export const setVolumeAction = async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData();
-  const { volume, volumeValue } = JSON.parse(formData.get("volume") as string);
+  const { volume, volumeValue } = extractValueFromFormData(
+    formData,
+    "volume",
+    {},
+  );
   switch (volume) {
     case "up": {
       await volumeUp();
