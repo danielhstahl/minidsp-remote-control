@@ -115,7 +115,7 @@ const VolumeCard = ({ volume }: VolumeInputs) => {
           min={MIN_VOLUME}
           max={MAX_VOLUME}
           aria-label="Volume"
-          value={volume}
+          value={displayVolume}
           onChange={(_e: Event, n: number | number[]) => {
             const form = createFormDataFromValue("volume", {
               volumeValue: n,
