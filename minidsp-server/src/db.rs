@@ -1,7 +1,6 @@
 use rocket::serde::{Deserialize, Serialize};
 use rocket_db_pools::sqlx;
 use rocket_db_pools::sqlx::SqlitePool;
-//use std::net::IpAddr;
 pub struct Domain {
     pub domain_name: String,
 }
@@ -13,18 +12,10 @@ pub struct Device {
     pub is_allowed: bool,
 }
 
-/*
-#[derive(Deserialize)]
-#[serde(crate = "rocket::serde", rename_all = "camelCase")]
-pub struct DeviceAllowed {
-    pub is_allowed: bool,
-}*/
-
 pub async fn upsert_device(pool: &SqlitePool, device_ip: String) -> Result<Device, sqlx::Error> {
     match get_device(pool, &device_ip).await? {
         Some(device) => Ok(device),
         None => {
-            //let device_ip_str = device_ip.to_string();
             sqlx::query!(
                 r#"
         INSERT INTO devices (device_ip, is_allowed)
@@ -47,7 +38,6 @@ pub async fn update_device(
     device_ip: &String,
     is_allowed: bool,
 ) -> Result<(), sqlx::Error> {
-    //let device_ip_str = device_ip.to_string();
     sqlx::query!(
         r#"
 UPDATE devices
@@ -65,8 +55,6 @@ pub async fn get_device(
     pool: &SqlitePool,
     device_ip: &String,
 ) -> Result<Option<Device>, sqlx::Error> {
-    //let mut conn = pool.acquire().await?;
-    //let device_ip_str = device_ip.to_string();
     let row = sqlx::query_as!(
         Device,
         r#"
