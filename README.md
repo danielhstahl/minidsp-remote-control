@@ -55,3 +55,18 @@ A Bluetooth interface for the [Fosi VOL20](https://fosiaudio.com/products/vol20-
 From a terminal, run `bluetoothctl`.  Type `list` to view controllers.  Pick your preferred controller by typing `select [controlleraddress]`.  Then, with the Fosi volume control on, run `scan on`.  This will find nearby bluetooth devices.  The VOL20 should be found.  Once it is, type `scan off`.  Then type `devices` to confirm that the VOL20 is still showing up.  Type `connect [deviceaddress]` and it will connect and "pair" with the VOL20 device.  Exit the CLI tool by typing `exit` or `quit`.
 
 Next, run the [bluetoothserver](./server/bt.js) as root.  It should show a list of bluetooth controller IDs.  This is different from the controller address.  By default, the server will select the first controller ID.  It will then print the address.  If you want a different controller, pass in the environment variable `BLUETOOTH_DEVICE_ID`.  For example, `sudo BLUETOOTH_DEVICE_ID=hci1 node server/bt.js`.
+
+## Use with Dante
+
+Set up a Dante/AES67 sink with Pipewire
+
+linuxptp is required for network clock sync
+* `sudo apt install pipewire wireplumber pipewire-alsa linuxptp`
+* Config file is in `/usr/share/pipewire/pipewire-aes67.conf`
+
+Test that your clock is working
+* `sudo ptp4l -i eth0 -s -l 7 -m -q`
+
+
+With wireplumber (change the names to match your config),
+* `pw-link aes67_source_name:output_FL alsa_sink_name:playback_FL`

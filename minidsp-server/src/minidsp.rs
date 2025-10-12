@@ -61,7 +61,7 @@ pub fn set_minidsp_source(source: &str) -> Result<(), Box<dyn error::Error>> {
     // but setting the source requires lowercase
     // see https://minidsp-rs.pages.dev/cli/master/source
     Command::new("minidsp")
-        .arg("config")
+        .arg("source")
         .arg(source.to_lowercase())
         .output()?;
     Ok(())

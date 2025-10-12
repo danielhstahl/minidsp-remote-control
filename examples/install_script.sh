@@ -76,4 +76,14 @@ sudo apt-get install -y ufw
 sudo ufw allow "Nginx Full"
 sudo ufw allow OpenSSH
 sudo ufw allow 5333 # minidsp
+sudo ufw allow 319 # dante/aes67
+sudo ufw allow 320 # dante/aes67
+sudo ufw allow 5004 # dante/aes67
+sudo ufw allow 9875 # dante/aes67
+
+sudo ufw allow 4455 # inferno
+sudo ufw allow 8700 # inferno
+sudo ufw allow 4400 # inferno
+sudo ufw allow 8800 # inferno
+
 sudo ufw --force enable
