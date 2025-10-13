@@ -58,15 +58,49 @@ Next, run the [bluetoothserver](./server/bt.js) as root.  It should show a list 
 
 ## Use with Dante
 
-Set up a Dante/AES67 sink with Pipewire
-
+### Pipewire
+Set up a Dante/AES67 sink with Pipewire.  I'm fairly certain this requires a hardware network clock.  The Raspberry pi 5 has a hardware clock.
+This page has instructions on how to set up ptp: https://gitlab.freedesktop.org/pipewire/pipewire/-/wikis/AES67#setting-up-ptp-time-sync.
 linuxptp is required for network clock sync
 * `sudo apt install pipewire wireplumber pipewire-alsa linuxptp`
-* Config file is in `/usr/share/pipewire/pipewire-aes67.conf`
 
-Test that your clock is working
-* `sudo ptp4l -i eth0 -s -l 7 -m -q`
+Update the `/etc/linuxptp/ptp4l.conf` by setting `clientOnly 1`.  Then `sudo systemctl daemon-reload` and `sudo systemctl enable --now ptp4l@eth0.service`
+
+Add a udev rule from here: https://gitlab.freedesktop.org/pipewire/pipewire/-/blob/78642cc53bd84c2ad529f2175cc50a658d1e52c0/src/daemon/90-pipewire-aes67-ptp.rules.  Create a file `sudo nano /etc/udev/rules.d/90-pipewire-aes67-ptp.rules` and add the content.  A restart is likely needed, or a hard retrigger (`udevadm trigger`).  Pipewire runs as a user and thus doesn't have access to ptp unless the udev rule is added.
+
+* Copy the pipewire config file from `/usr/share/pipewire/pipewire-aes67.conf` and put in a local directory (~/.config/pipewire) for testing.  Update the file as needed (eg channel count).
+
+`pipewire -c pipewire-aes67.conf`
+
+This should start up.  Now run `pw-cli list-objects Node` and it should show a sink running as well as a minidsp HTx Alsa device (if you have connected to the MiniDSP via USB).
+
+Now each of the 8 channels between the aes67 source and alsa sink need to be linked.  This can be done manually or can be automated via the [link_aes67_to_minidsp](./examples/link_aes67_to_minidsp.sh) shell script.
+
+#### Manually
+
+For each of the 8 channels, run (changing the channel on each run) `pw-link 'aes67-source:receive_1' 'alsa_output.usb-miniDSP_miniDSP_Flex_HTx-00.analog-surround-71:monitor_FL'`
+
+#### Automatically
+
+`./examples/link_aes67_to_minidsp.sh aes67-source alsa_output.usb-miniDSP_miniDSP_Flex_HTx-00.analog-surround-71`
 
 
 With wireplumber (change the names to match your config),
 * `pw-link aes67_source_name:output_FL alsa_sink_name:playback_FL`
+
+### Inferno
+
+I have forked [Inferno](https://github.com/danielhstahl/inferno) and [Statime](https://github.com/danielhstahl/statime) in order to generate arm binaries.
+
+`curl -L https://github.com/danielhstahl/statime/releases/download/v0.0.4/statime-aarch64-unknown-linux-gnu.tar.gz -o statime.tar.gz`
+
+`curl -L https://github.com/danielhstahl/inferno/releases/download/v0.0.6/inferno2pipe-aarch64-unknown-linux-gnu.tar.gz -o inferno2pipe.tar.gz`
+
+`tar -xzvf statime.tar.gz`
+
+`tar -xzvf inferno2pipe.tar.gz`
+
+In another terminal,
+`sudo ./statime -c inferno-ptpv1.toml`
+
+`./inferno2pipe -c 8 -o plughw:1,0`
