@@ -85,9 +85,6 @@ For each of the 8 channels, run (changing the channel on each run) `pw-link 'aes
 `./examples/link_aes67_to_minidsp.sh aes67-source alsa_output.usb-miniDSP_miniDSP_Flex_HTx-00.analog-surround-71`
 
 
-With wireplumber (change the names to match your config),
-* `pw-link aes67_source_name:output_FL alsa_sink_name:playback_FL`
-
 ### Inferno
 
 I have forked [Inferno](https://github.com/danielhstahl/inferno) and [Statime](https://github.com/danielhstahl/statime) in order to generate arm binaries.
