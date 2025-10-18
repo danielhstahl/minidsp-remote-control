@@ -65,7 +65,9 @@ This page has instructions on how to set up ptp: https://gitlab.freedesktop.org/
 linuxptp is required for network clock sync
 * `sudo apt install pipewire wireplumber pipewire-alsa linuxptp`
 
-On the consumer ONLY update the `/etc/linuxptp/ptp4l.conf` by setting `clientOnly 1`.  Then `sudo systemctl daemon-reload` and `sudo systemctl enable --now ptp4l@eth0.service`.  On the producer, keep `clientOnly 0`.
+On the consumer, `sudo apt install pipewire-audio-client-libraries pipewire-rtp`
+
+On the consumer ONLY update the `/etc/linuxptp/ptp4l.conf` by setting `clientOnly 1` and `BMCA noop` (though I don't think BMCA changes does much).  Then `sudo systemctl daemon-reload` and `sudo systemctl enable --now ptp4l@eth0.service`.  On the producer, keep `clientOnly 0`.
 
 On the producer, update the service to force hardware:
 
@@ -77,6 +79,18 @@ And add
 [Service]
 ExecStart=
 ExecStart=/usr/sbin/ptp4l -i %I -f /etc/linuxptp/ptp4l.conf -2 -m
+```
+
+On the consumer, update the service to force slave:
+
+`sudo systemctl edit ptp4l@eth0.service`
+
+And add
+
+```lang=toml
+[Service]
+ExecStart=
+ExecStart=/usr/sbin/ptp4l -i %I -f /etc/linuxptp/ptp4l.conf -m -s
 ```
 
 Add a udev rule from here: https://gitlab.freedesktop.org/pipewire/pipewire/-/blob/78642cc53bd84c2ad529f2175cc50a658d1e52c0/src/daemon/90-pipewire-aes67-ptp.rules.  Create a file `sudo nano /etc/udev/rules.d/90-pipewire-aes67-ptp.rules` and add the content.  A restart is likely needed, or a hard retrigger (`sudo udevadm trigger`).  Pipewire runs as a user and thus doesn't have access to ptp unless the udev rule is added.
@@ -107,11 +121,14 @@ Check links via `pw-link -l`.
 Test communication by running this on the producer: `speaker-test -c 8 -t wav --format S24_BE -D pipewire`
 
 `pw-play /usr/share/sounds/alsa/Front_Left.wav --target=rtp-sink-osmc`
+`pw-play /usr/share/sounds/alsa/Front_Left.wav --target=rtp_sink`
 
 ### Diagnostics
 Run diagnostics: `pw-top`
 
 `sudo systemctl status ptp4l@eth0.service`
+
+`journalctl -u ptp4l@eth0 -f | grep -E 'port|announce|master'`
 
 On producer, to check for traffic over 5004:
 `sudo tcpdump -n -i eth0 udp port 5004`
