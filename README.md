@@ -59,16 +59,34 @@ Next, run the [bluetoothserver](./server/bt.js) as root.  It should show a list 
 ## Use with Dante
 
 ### Pipewire
-Set up a Dante/AES67 sink with Pipewire.  I'm fairly certain this requires a hardware network clock.  The Raspberry pi 5 has a hardware clock.
+Set up a Dante/AES67 sink with Pipewire.  I'm fairly certain this requires a hardware network clock.  The Raspberry pi 5 has a hardware clock.  Install on Ubuntu Server 25.10.
+
 This page has instructions on how to set up ptp: https://gitlab.freedesktop.org/pipewire/pipewire/-/wikis/AES67#setting-up-ptp-time-sync.
 linuxptp is required for network clock sync
 * `sudo apt install pipewire wireplumber pipewire-alsa linuxptp`
 
-Update the `/etc/linuxptp/ptp4l.conf` by setting `clientOnly 1`.  Then `sudo systemctl daemon-reload` and `sudo systemctl enable --now ptp4l@eth0.service`
+On the consumer ONLY update the `/etc/linuxptp/ptp4l.conf` by setting `clientOnly 1`.  Then `sudo systemctl daemon-reload` and `sudo systemctl enable --now ptp4l@eth0.service`.  On the producer, keep `clientOnly 0`.
 
-Add a udev rule from here: https://gitlab.freedesktop.org/pipewire/pipewire/-/blob/78642cc53bd84c2ad529f2175cc50a658d1e52c0/src/daemon/90-pipewire-aes67-ptp.rules.  Create a file `sudo nano /etc/udev/rules.d/90-pipewire-aes67-ptp.rules` and add the content.  A restart is likely needed, or a hard retrigger (`udevadm trigger`).  Pipewire runs as a user and thus doesn't have access to ptp unless the udev rule is added.
+On the producer, update the service to force hardware:
 
-* Copy the pipewire config file from `/usr/share/pipewire/pipewire-aes67.conf` and put in a local directory (~/.config/pipewire) for testing.  Update the file as needed (eg channel count).
+`sudo systemctl edit ptp4l@eth0.service`
+
+And add
+
+```lang=toml
+[Service]
+ExecStart=
+ExecStart=/usr/sbin/ptp4l -i %I -f /etc/linuxptp/ptp4l.conf -2 -m
+```
+
+Add a udev rule from here: https://gitlab.freedesktop.org/pipewire/pipewire/-/blob/78642cc53bd84c2ad529f2175cc50a658d1e52c0/src/daemon/90-pipewire-aes67-ptp.rules.  Create a file `sudo nano /etc/udev/rules.d/90-pipewire-aes67-ptp.rules` and add the content.  A restart is likely needed, or a hard retrigger (`sudo udevadm trigger`).  Pipewire runs as a user and thus doesn't have access to ptp unless the udev rule is added.
+
+You will also need to start/restart the services associated with pipewire:
+`systemctl --user restart pipewire`, `systemctl --user restart wireplumber`
+
+* Copy the pipewire config file from `/usr/share/pipewire/pipewire-aes67.conf` and put in a local directory (~/.config/pipewire) for testing.  Update the file as needed (eg channel count).  Example configs for both the producer and receiver are in the [examples](./examples/pipewire).  Then copy over to the permanent configs, eg: `sudo cp ~/.config/pipewire/pipewire-aes67-receiver.conf /etc/pipewire/pipewire.conf.d/`, then restart services `systemctl --user daemon-reexec`, `systemctl --user restart pipewire`.  `journalctl --no-hostname --user -u pipewire -f` for logs.
+
+For testing:
 
 `pipewire -c pipewire-aes67.conf`
 
@@ -84,6 +102,19 @@ For each of the 8 channels, run (changing the channel on each run) `pw-link 'aes
 
 `./examples/link_aes67_to_minidsp.sh aes67-source alsa_output.usb-miniDSP_miniDSP_Flex_HTx-00.analog-surround-71`
 
+Check links via `pw-link -l`.
+
+Test communication by running this on the producer: `speaker-test -c 8 -t wav --format S24_BE -D pipewire`
+
+`pw-play /usr/share/sounds/alsa/Front_Left.wav --target=rtp-sink-osmc`
+
+### Diagnostics
+Run diagnostics: `pw-top`
+
+`sudo systemctl status ptp4l@eth0.service`
+
+On producer, to check for traffic over 5004:
+`sudo tcpdump -n -i eth0 udp port 5004`
 
 ### Inferno
 
