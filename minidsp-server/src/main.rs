@@ -229,7 +229,7 @@ async fn get_power(
     }?;
     let power_status = gpio::get_status(&pin);
     drop(pin);
-    Ok(power_status)
+    Ok(Json(power_status))
 }
 
 #[cfg(not(feature = "gpio"))]
