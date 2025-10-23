@@ -1,8 +1,8 @@
 # assumes no package management system
 # DOES assume sqlite and curl are already installed
-## example of running this script: DOMAIN=raspberrypi.local RELEASE_TAG=v4.0.2 ./install_embedded.sh
+## example of running this script: DOMAIN=raspberrypi.local RELEASE_TAG=v6.1.5 ./install_embedded.sh
 base_url="https://github.com/danielhstahl/minidsp-remote-control/releases/download/${RELEASE_TAG}"
-ui_tar_name="minidsp-ui.tar.gz"
+ui_tar_name="minidsp-ui-embedded.tar.gz"
 server_tar_name="minidsp-server-aarch64-unknown-linux-gnu-gpio.tar.gz"
 
 ### handle server
@@ -11,7 +11,7 @@ cd server
 url="${base_url}/${server_tar_name}"
 echo "downloading from ${url}"
 curl -L -O $url
-sudo tar -xzvf /usr/bin/minidsp-ui/${server_tar_name}
+tar -xzvf ${server_tar_name}
 
 ### handle nginx folder
 mkdir -p nginx
@@ -22,11 +22,11 @@ cd client
 url="${base_url}/${ui_tar_name}"
 echo "downloading from ${url}"
 curl -L -O $url
-sudo tar -xzvf /usr/bin/minidsp-ui/${ui_tar_name}
+tar -xzvf ${ui_tar_name}
 mv dist ../
-mv embedded/nginx.conf ../nginx
-mv embedded/minidsp-ui.service /storage/.config/system.d/
-mv embedded/nginx.service /storage/.config/system.d/
+mv nginx.conf ../nginx
+mv minidsp-ui.service /storage/.config/system.d/
+mv nginx.service /storage/.config/system.d/
 cd ../
 rm -r client
 
