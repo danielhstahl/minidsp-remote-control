@@ -24,13 +24,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: 
-        - x86_64-unknown-linux-musl
-        - armv7-unknown-linux-gnueabihf
-        - aarch64-unknown-linux-gnu
+        target:
+          - x86_64-unknown-linux-musl
+          - armv7-unknown-linux-gnueabihf
+          - aarch64-unknown-linux-gnu
         feature_flag:
-        - --features gpio
-        - ""
+          - --features gpio
+          - ""
     steps:
       - uses: actions/checkout@v4
       - name: Install Rust
@@ -41,15 +41,15 @@ jobs:
 
       - name: Compile
         run: |
-          ./cross build --release --target ${{ matrix.target }} ${{ matrix.feature_flag }} 
+          ./cross build --release --target ${{ matrix.target }} ${{ matrix.feature_flag }}
         env:
           SQLX_OFFLINE: true # needed to keep it from trying to connect to a database
 
       - name: Release
         run: |
-          cd target/${{ matrix.target }}/release  
+          cd target/${{ matrix.target }}/release
           tar czvf ../../../minidsp-server-${{ matrix.target }}${{ matrix.feature_flag != '' && '-gpio' || ''}}.tar.gz minidsp-server
-        
+
       - name: upload artifact
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -77,11 +77,20 @@ jobs:
       - name: package
         run: tar czvf minidsp-ui.tar.gz -C client dist -C ../examples minidsp-bt.service minidsp-ui.service nginx.conf nginx.service -C ../server bt.ts minidsp.ts package-lock.json package.json
 
+      - name: package embedded
+        run: tar czvf minidsp-ui-embedded.tar.gz -C client dist -C ../examples/embedded minidsp-ui.service nginx.conf nginx.service
+
       - name: upload ui
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           gh release upload ${{ github.event.release.tag_name }} minidsp-ui.tar.gz
+
+      - name: upload ui embedded
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} minidsp-ui-embedded.tar.gz
 
       - name: upload install_script
         env:
