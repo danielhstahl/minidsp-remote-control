@@ -86,7 +86,7 @@ fn rocket() -> _ {
         expiry
     ];
     #[cfg(feature = "gpio")]
-    let mut gpio_routes = routes![set_power];
+    let mut gpio_routes = routes![set_power, get_power];
     #[cfg(feature = "gpio")]
     base_routes.append(&mut gpio_routes);
 
@@ -215,6 +215,21 @@ async fn get_status(
         minidsp_status,
         power: power_status,
     }))
+}
+
+#[cfg(feature = "gpio")]
+#[get("/power")]
+async fn get_power(
+    _ip_filter: IpAuth,
+    gpio: &State<GpioPin>,
+) -> Result<Json<gpio::PowerStatus>, BadRequest<String>> {
+    let pin = match gpio.pin.lock() {
+        Ok(pin) => Ok(pin),
+        Err(e) => Err(BadRequest(e.to_string())),
+    }?;
+    let power_status = gpio::get_status(&pin);
+    drop(pin);
+    Ok(Json(power_status))
 }
 
 #[cfg(not(feature = "gpio"))]

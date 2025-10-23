@@ -78,7 +78,7 @@ jobs:
         run: tar czvf minidsp-ui.tar.gz -C client dist -C ../examples minidsp-bt.service minidsp-ui.service nginx.conf nginx.service -C ../server bt.ts minidsp.ts package-lock.json package.json
 
       - name: package embedded
-        run: tar czvf minidsp-ui-embedded.tar.gz -C client dist -C ../examples/embedded minidsp-ui.service nginx.conf nginx.service
+        run: tar czvf minidsp-ui-embedded.tar.gz -C client dist -C ../examples/embedded minidsp-ui.service minidsp.service nginx.conf nginx.service
 
       - name: upload ui
         env:
