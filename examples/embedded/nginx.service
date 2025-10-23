@@ -1,0 +1,19 @@
+# put this file in /storage/.config/system.d/minidsp-ui.service
+
+[Unit]
+After=network-online.target remote-fs.target nss-lookup.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/storage/.config/minidsp/nginx/nginx -c /storage/.config/minidsp/nginx/nginx.conf
+Restart=always
+RestartSec=1
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=nginx
+CPUSchedulingPolicy=fifo
+CPUSchedulingPriority=10
+
+[Install]
+WantedBy=multi-user.target
