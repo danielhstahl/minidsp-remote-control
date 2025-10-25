@@ -2,12 +2,12 @@ import Grid from "@mui/material/Grid";
 import StatusCard from "../components/PowerCard";
 import VolumeCard from "../components/VolumeCard";
 import { useRevalidator, useLoaderData } from "react-router";
-import type { HtxWrite } from "../services/api";
+import type { HtxConfig } from "../services/api";
 import { useEffect } from "react";
 const THREE_SECONDS = 3000;
 
 const AppBody = () => {
-  const { power, source, volume, preset } = useLoaderData<HtxWrite>();
+  const { power, source, volume, preset } = useLoaderData<HtxConfig>();
   const { revalidate } = useRevalidator();
   useEffect(() => {
     const timer = setInterval(() => {

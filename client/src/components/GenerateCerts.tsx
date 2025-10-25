@@ -3,10 +3,7 @@ import CachedIcon from "@mui/icons-material/Cached";
 import Message from "./Message";
 import { useEffect, useState } from "react";
 import type { AlertColor } from "@mui/material";
-//import { addBasicAuthHeader, generateCert, getExpiry } from "../services/api";
 import { useFetcher } from "react-router";
-//import { useExpiryParams, SetExpiryEnum } from "../state/expiryActions";
-
 interface MessageHandle {
   isMessageOpen: boolean;
   messageType: AlertColor;
@@ -29,12 +26,12 @@ const GenerateCerts = () => {
       if (fetcher.data.error) {
         setMessage({
           isMessageOpen: true,
-          messageType: "success",
+          messageType: "error",
         });
       } else {
         setMessage({
           isMessageOpen: true,
-          messageType: "error",
+          messageType: "success",
         });
       }
     }

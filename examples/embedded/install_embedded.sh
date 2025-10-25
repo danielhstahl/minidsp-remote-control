@@ -12,6 +12,7 @@ url="${base_url}/${server_tar_name}"
 echo "downloading from ${url}"
 curl -L -O $url
 tar -xzvf ${server_tar_name}
+rm $server_tar_name
 cd ..
 ### handle nginx folder
 mkdir -p nginx
@@ -23,8 +24,11 @@ url="${base_url}/${ui_tar_name}"
 echo "downloading from ${url}"
 curl -L -O $url
 tar -xzvf ${ui_tar_name}
+rm $ui_tar_name
 mv dist ../
 mv nginx.conf ../nginx
+uuid=$(uuidgen)
+sed -i -e "s/ADMIN_PASSWORD/${uuid}/g" minidsp-ui.service
 mv minidsp-ui.service /storage/.config/system.d/
 mv minidsp.service /storage/.config/system.d/
 mv nginx.service /storage/.config/system.d/
@@ -51,13 +55,16 @@ mkdir -p ssl
 mkdir -p minidsprs
 cd minidsprs
 #curl -L -O https://github.com/mrene/minidsp-rs/releases/download/v0.1.12/minidsp.aarch64-unknown-linux-gnu.tar.gz
-curl -L -O https://github.com/danielhstahl/minidsp-rs/releases/download/untagged-9b643cbeff3aa1a3d574/minidsp.aarch64-unknown-linux-gnu.tar.gz
+curl -L -O https://github.com/danielhstahl/minidsp-rs/releases/download/v0.0.4/minidsp.aarch64-unknown-linux-gnu.tar.gz
 tar -xzvf minidsp.aarch64-unknown-linux-gnu.tar.gz
+rm minidsp.aarch64-unknown-linux-gnu.tar.gz
 cd ..
 
 ### Create init SSL cert
-cd ssh
-openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \ -keyout device.key -out device.crt -subj "/CN=$DOMAIN"
+cd ssl
+curl -L -O  https://raw.githubusercontent.com/openssl/openssl/master/apps/openssl.cnf
+# This will get things started until regenerating them from UI
+openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes -keyout device.key -out device.crt -subj "/CN=$DOMAIN" -config openssl.cnf
 cd ..
 
 ### start services
