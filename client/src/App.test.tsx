@@ -35,14 +35,19 @@ describe("access scenarios", () => {
     //dont actually redirect every 3 seconds
     //vi.useFakeTimers();
     const server = setupWorker(
-      http.get("/api/status", () => {
+      http.get("/api/devices/0", () => {
         return HttpResponse.json({
-          power: PowerEnum.On,
-          source: SourceEnum.HDMI,
-          volume: -40,
-          preset: PresetEnum.preset2,
+          master: {
+            source: SourceEnum.HDMI,
+            volume: -40,
+            preset: PresetEnum.preset2,
+          },
         });
       }),
+      http.get("/api/power", () => {
+        return HttpResponse.json(PowerEnum.On);
+      }),
+
       //post since can create if not already registered
       http.post("/api/device", () => {
         return HttpResponse.json({ isAllowed: true });
@@ -60,13 +65,17 @@ describe("access scenarios", () => {
   });
   test("first time registering", async () => {
     const server = setupWorker(
-      http.get("/api/status", () => {
+      http.get("/api/devices/0", () => {
         return HttpResponse.json({
-          power: PowerEnum.On,
-          source: SourceEnum.HDMI,
-          volume: -40,
-          preset: PresetEnum.preset2,
+          master: {
+            source: SourceEnum.HDMI,
+            volume: -40,
+            preset: PresetEnum.preset2,
+          },
         });
+      }),
+      http.get("/api/power", () => {
+        return HttpResponse.json(PowerEnum.On);
       }),
       http.post("/api/device", () => {
         return HttpResponse.json({ isAllowed: false });
@@ -88,13 +97,17 @@ describe("access scenarios", () => {
     //if don't set anything, devicesLoader will fail and redirect to login
     sessionStorage.setItem("admin_password", "something");
     const server = setupWorker(
-      http.get("/api/status", () => {
+      http.get("/api/devices/0", () => {
         return HttpResponse.json({
-          power: PowerEnum.On,
-          source: SourceEnum.HDMI,
-          volume: -40,
-          preset: PresetEnum.preset2,
+          master: {
+            source: SourceEnum.HDMI,
+            volume: -40,
+            preset: PresetEnum.preset2,
+          },
         });
+      }),
+      http.get("/api/power", () => {
+        return HttpResponse.json(PowerEnum.On);
       }),
       //assumes a proper credential
       http.get("/api/device", () => {
@@ -112,13 +125,17 @@ describe("access scenarios", () => {
   });
   test("try to go to settings with no credentials", async () => {
     const server = setupWorker(
-      http.get("/api/status", () => {
+      http.get("/api/devices/0", () => {
         return HttpResponse.json({
-          power: PowerEnum.On,
-          source: SourceEnum.HDMI,
-          volume: -40,
-          preset: PresetEnum.preset2,
+          master: {
+            source: SourceEnum.HDMI,
+            volume: -40,
+            preset: PresetEnum.preset2,
+          },
         });
+      }),
+      http.get("/api/power", () => {
+        return HttpResponse.json(PowerEnum.On);
       }),
       //simulate unauthorized
       http.get("/api/device", () => {
