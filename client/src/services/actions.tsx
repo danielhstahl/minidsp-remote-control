@@ -46,7 +46,6 @@ export const setPresetAction = async ({ request }: ActionFunctionArgs) => {
 };
 
 export const setPowerAction = async ({ request }: ActionFunctionArgs) => {
-  //const { powerToTurnTo } = params;
   const formData = await request.formData();
   const power = formData.get("power") as Power;
   await setPower(power);

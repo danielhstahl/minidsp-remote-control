@@ -15,7 +15,7 @@ import { createFormDataFromValue } from "../../utils/fetcherUtils";
 describe("volumeAction", async () => {
   it("succeeds when hitting volume/up", async () => {
     const server = setupWorker(
-      http.post("/api/volume/up", () => {
+      http.post("/api/devices/0/volume/up", () => {
         return HttpResponse.json({ success: true });
       }),
     );
@@ -34,7 +34,7 @@ describe("volumeAction", async () => {
   });
   it("succeeds when hitting volume/down", async () => {
     const server = setupWorker(
-      http.post("/api/volume/down", () => {
+      http.post("/api/devices/0/volume/down", () => {
         return HttpResponse.json({ success: true });
       }),
     );
@@ -53,7 +53,7 @@ describe("volumeAction", async () => {
   });
   it("succeeds when hitting volume/vol", async () => {
     const server = setupWorker(
-      http.post("/api/volume/:volume", () => {
+      http.post("/api/devices/0/config", () => {
         return HttpResponse.json({ success: true });
       }),
     );
@@ -71,7 +71,7 @@ describe("volumeAction", async () => {
 
 describe("presetAction", async () => {
   const server = setupWorker(
-    http.post("/api/preset/:preset", () => {
+    http.post("/api/devices/0/preset/:preset", () => {
       return HttpResponse.json({});
     }),
   );
@@ -91,7 +91,7 @@ describe("presetAction", async () => {
 
 describe("powerAction", async () => {
   const server = setupWorker(
-    http.post("/api/power/:preset", () => {
+    http.post("/api/power", () => {
       return HttpResponse.json({});
     }),
   );
@@ -111,7 +111,7 @@ describe("powerAction", async () => {
 
 describe("sourceAction", async () => {
   const server = setupWorker(
-    http.post("/api/source/:source", () => {
+    http.post("/api/devices/0/source/:source", () => {
       return HttpResponse.json({});
     }),
   );

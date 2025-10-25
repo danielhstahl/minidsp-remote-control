@@ -45,13 +45,17 @@ describe("authAndExpiryLoader", () => {
 describe("statusLoader", () => {
   it("get status", async () => {
     const server = setupWorker(
-      http.get("/api/status", () => {
+      http.get("/api/devices/0", () => {
         return HttpResponse.json({
-          power: PowerEnum.On,
-          source: SourceEnum.HDMI,
-          volume: -40,
-          preset: PresetEnum.preset2,
+          master: {
+            source: SourceEnum.HDMI,
+            volume: -40,
+            preset: PresetEnum.preset2,
+          },
         });
+      }),
+      http.get("/api/power", () => {
+        return HttpResponse.json(PowerEnum.On);
       }),
     );
     await server.start({ quiet: true });

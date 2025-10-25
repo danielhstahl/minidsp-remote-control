@@ -24,11 +24,18 @@ export const PresetEnum = {
 
 export type Preset = (typeof PresetEnum)[keyof typeof PresetEnum];
 
-export interface HtxWrite {
-  power: Power;
+interface HtxMaster {
   source: Source;
   volume: number;
   preset: Preset;
+}
+
+interface HtxMasterConfig {
+  master: HtxMaster;
+}
+
+export interface HtxConfig extends HtxMaster {
+  power: Power;
 }
 
 export interface SSLCertExpiry {
@@ -54,40 +61,71 @@ const jsonHeaders = {
   "Content-Type": "application/json",
 };
 // eslint-disable-next-line react-refresh/only-export-components
-export const getStatus: () => Promise<HtxWrite> = () => {
-  return fetch("/api/status").then((v) => v.json());
+export const getStatus: () => Promise<HtxConfig> = async () => {
+  const [config, power]: [HtxMasterConfig, Power] = await Promise.all([
+    fetch(`/api/devices/0`, {
+      headers: jsonHeaders,
+    }).then((r) => r.json()),
+    fetch(`/api/power`, {
+      headers: jsonHeaders,
+    }).then((r) => r.json()),
+  ]);
+  return {
+    ...config.master,
+    power,
+  };
 };
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const setVolume = (volume: number) => {
-  return fetch(`/api/volume/${volume}`, { method: "POST" });
+  return fetch(`/api/devices/0/config`, {
+    method: "POST",
+    body: JSON.stringify({ master_status: { volume } }),
+  });
 };
 // eslint-disable-next-line react-refresh/only-export-components
 export const volumeUp = () => {
-  return fetch(`/api/volume/up`, { method: "POST" });
+  return fetch(`/api/devices/0/volume/up`, { method: "POST" });
 };
 // eslint-disable-next-line react-refresh/only-export-components
 export const volumeDown = () => {
-  return fetch(`/api/volume/down`, { method: "POST" });
+  return fetch(`/api/devices/0/volume/down`, { method: "POST" });
 };
 // eslint-disable-next-line react-refresh/only-export-components
 export const setPreset = (preset: Preset) => {
-  return fetch(`/api/preset/${preset}`, { method: "POST" });
+  return fetch(`/api/devices/0/preset/${preset}`, { method: "POST" });
 };
 // eslint-disable-next-line react-refresh/only-export-components
 export const setPower = (powerToTurnTo: Power) => {
   return fetch(`/api/power/${powerToTurnTo}`, { method: "POST" });
 };
+/*export const getPower: () => Promise<Power> = async () => {
+  const response = await fetch(`/api/power`);
+  const result = await response.json();
+  if (response.ok) {
+    return result;
+  } else {
+    throw new Error(result);
+  }
+};*/
 // eslint-disable-next-line react-refresh/only-export-components
 export const setSource = (source: Source) => {
-  return fetch(`/api/source/${source}`, { method: "POST" });
+  return fetch(`/api/devices/0/source/${source.toLowerCase()}`, {
+    method: "POST",
+  });
 };
 // eslint-disable-next-line react-refresh/only-export-components
-export const loadDevice: () => Promise<Device> = () => {
-  return fetch(`/api/device`, {
+export const loadDevice: () => Promise<Device> = async () => {
+  const response = await fetch(`/api/device`, {
     method: "POST",
     headers: jsonHeaders,
-  }).then((v) => v.json());
+  });
+  const result = await response.json();
+  if (response.ok) {
+    return result;
+  } else {
+    throw new Error(result);
+  }
 };
 // eslint-disable-next-line react-refresh/only-export-components
 export const updateDevice: (
@@ -156,7 +194,7 @@ export const getCaPem = () => {
           return new ReadableStream({
             start(controller) {
               return pump();
-              function pump(): Promise<void> {
+              async function pump(): Promise<void> {
                 return reader.read().then(({ done, value }) => {
                   // When no more data needs to be consumed, close the stream
                   if (done) {

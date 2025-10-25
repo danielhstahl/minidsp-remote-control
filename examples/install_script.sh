@@ -32,6 +32,8 @@ sudo tar -xzvf /usr/bin/minidsp-ui/${server_tar_name} -C /usr/bin/minidsp-ui
 # copy services
 sudo sed -i -e "s/HOSTNAME/${DOMAIN}/g" /usr/bin/minidsp-ui/nginx.conf
 sudo sed -i -e "s/HOSTNAME/${DOMAIN}/g" /usr/bin/minidsp-ui/minidsp-ui.service
+uuid=$(uuidgen)
+sudo sed -i -e "s/ADMIN_PASSWORD/${uuid}/g" /usr/bin/minidsp-ui/minidsp-ui.service
 sudo mv /usr/bin/minidsp-ui/minidsp-ui.service /lib/systemd/system/minidsp-ui.service
 sudo mv /usr/bin/minidsp-ui/minidsp-bt.service /lib/systemd/system/minidsp-bt.service
 sudo mv /usr/bin/minidsp-ui/nginx.service /lib/systemd/system/nginx.service

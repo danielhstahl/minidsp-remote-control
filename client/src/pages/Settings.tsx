@@ -10,24 +10,18 @@ import Typography from "@mui/material/Typography";
 const Settings = () => {
   const devices = useLoaderData<Device[]>();
   return (
-    <Grid
-      container
-      spacing={2}
-      style={{ paddingTop: 20, paddingLeft: 24, paddingRight: 24 }}
-    >
-      <Grid size={{ xs: 12 }}>
-        <Typography variant="h6" style={{ paddingBottom: 20 }}>
-          Settings
-        </Typography>
-        <FormGroup>
-          <DownloadCaPem />
-          <br />
-          <GenerateCerts />
-          <br />
-          <Divider />
-          <DeviceList devices={devices} />
-        </FormGroup>
-      </Grid>
+    <Grid size={{ xs: 12 }}>
+      <Typography variant="h6" style={{ paddingBottom: 20 }}>
+        Settings
+      </Typography>
+      <FormGroup>
+        <DownloadCaPem />
+        <br />
+        <GenerateCerts />
+        <br />
+        <Divider />
+        <DeviceList devices={devices} />
+      </FormGroup>
     </Grid>
   );
 };
