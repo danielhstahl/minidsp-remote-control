@@ -1,19 +1,16 @@
-# put this file in /storage/.config/system.d/minidsp-ui.service
+# put this file in /storage/.config/system.d/nginx.service
 
 [Unit]
 After=network-online.target remote-fs.target nss-lookup.target
 Wants=network-online.target
 
 [Service]
-Type=simple
+Type=forking
+PIDFile=/storage/.config/minidsp/nginx/nginx.pid
 ExecStart=/storage/.config/minidsp/nginx/nginx -c /storage/.config/minidsp/nginx/nginx.conf
-Restart=always
-RestartSec=1
-StandardOutput=journal
-StandardError=journal
-SyslogIdentifier=nginx
-CPUSchedulingPolicy=fifo
-CPUSchedulingPriority=10
+ExecReload=/storage/.config/minidsp/nginx/nginx -s reload -c /storage/.config/minidsp/nginx/nginx.conf
+TimeoutStopSec=5
+KillMode=mixed
 
 [Install]
 WantedBy=multi-user.target

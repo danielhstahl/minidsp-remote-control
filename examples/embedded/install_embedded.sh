@@ -5,6 +5,14 @@ base_url="https://github.com/danielhstahl/minidsp-remote-control/releases/downlo
 ui_tar_name="minidsp-ui-embedded.tar.gz"
 server_tar_name="minidsp-server-aarch64-unknown-linux-gnu-gpio.tar.gz"
 
+## start from scratch
+systemctl stop nginx || true
+systemctl disable /storage/.config/system.d/nginx.service || true
+systemctl stop minidsp || true
+systemctl disable /storage/.config/system.d/minidsp.service || true
+systemctl stop minidsp-ui || true
+systemctl disable /storage/.config/system.d/minidsp-ui.service || true
+
 ### handle server
 mkdir -p server
 cd server
@@ -29,6 +37,7 @@ mv dist ../
 mv nginx.conf ../nginx
 uuid=$(uuidgen)
 sed -i -e "s/ADMIN_PASSWORD/${uuid}/g" minidsp-ui.service
+sed -i -e "s/HOSTNAME/${DOMAIN}/g" minidsp-ui.service
 mv minidsp-ui.service /storage/.config/system.d/
 mv minidsp.service /storage/.config/system.d/
 mv nginx.service /storage/.config/system.d/
@@ -71,5 +80,3 @@ cd ..
 systemctl enable /storage/.config/system.d/nginx.service
 systemctl enable /storage/.config/system.d/minidsp-ui.service
 systemctl enable /storage/.config/system.d/minidsp.service
-#systemctl disable /storage/.config/system.d/nginx.service
-#systemctl disable /storage/.config/system.d/minidsp-ui.service
