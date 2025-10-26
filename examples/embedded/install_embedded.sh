@@ -38,6 +38,8 @@ mv nginx.conf ../nginx
 uuid=$(uuidgen)
 sed -i -e "s/ADMIN_PASSWORD/${uuid}/g" minidsp-ui.service
 sed -i -e "s/HOSTNAME/${DOMAIN}/g" minidsp-ui.service
+local_ip=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
+sed -i -e "s/LOCAL_IP/${local_ip}/g" minidsp.toml
 mv minidsp-ui.service /storage/.config/system.d/
 mv minidsp.service /storage/.config/system.d/
 mv nginx.service /storage/.config/system.d/
@@ -67,6 +69,11 @@ cd minidsprs
 curl -L -O https://github.com/danielhstahl/minidsp-rs/releases/download/v0.0.4/minidsp.aarch64-unknown-linux-gnu.tar.gz
 tar -xzvf minidsp.aarch64-unknown-linux-gnu.tar.gz
 rm minidsp.aarch64-unknown-linux-gnu.tar.gz
+mkdir -p /storage/.config/udev.rules.d/
+curl -L -O https://raw.githubusercontent.com/danielhstahl/minidsp-rs/refs/tags/v0.0.4/debian/minidsp.udev
+mv minidsp.udev /storage/.config/udev.rules.d/
+# reload udev
+udevadm control --reload-rules && udevadm trigger
 cd ..
 
 ### Create init SSL cert
