@@ -11,6 +11,7 @@ import {
   certAction,
 } from "../actions";
 import { createFormDataFromValue } from "../../utils/fetcherUtils";
+import { PresetEnum } from "../api";
 
 describe("volumeAction", async () => {
   it("succeeds when hitting volume/up", async () => {
@@ -78,7 +79,7 @@ describe("presetAction", async () => {
   await server.start({ quiet: true });
   it("succeeds when hitting preset", async () => {
     const formData = new FormData();
-    formData.append("preset", "1");
+    formData.append("preset", PresetEnum.preset2);
     const result = await setPresetAction({
       request: new Request("/app/preset", { method: "POST", body: formData }),
       params: {},
