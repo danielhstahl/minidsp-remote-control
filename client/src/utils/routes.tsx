@@ -18,6 +18,7 @@ import {
 } from "../services/actions";
 import AppBody from "../pages/AppBody";
 import ExpiryWrapper from "../pages/ExpiryWrapper";
+import ErrorPage from "../pages/Error";
 
 export const routes = [
   {
@@ -45,6 +46,7 @@ export const routes = [
             ],
           },
         ],
+        ErrorBoundary: ErrorPage,
       },
       {
         path: "/settings/cert",
@@ -58,5 +60,9 @@ export const routes = [
       },
       { path: "/login/:ip?", Component: Login, action: loginAction },
     ],
+  },
+  {
+    path: "*",
+    component: ErrorPage,
   },
 ];
