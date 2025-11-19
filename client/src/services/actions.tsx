@@ -5,13 +5,15 @@ import {
   setPreset,
   setPower,
   setSource,
-  type Source,
-  type Power,
-  type Preset,
   updateDevice,
   addBasicAuthHeader,
   generateCert,
 } from "./api";
+import {
+  type Source,
+  type Power,
+  type Preset,
+} from "../types";
 import { extractValueFromFormData } from "../utils/fetcherUtils";
 import { redirect, type ActionFunctionArgs } from "react-router";
 export const setVolumeAction = async ({ request }: ActionFunctionArgs) => {

@@ -11,7 +11,7 @@ import {
   SourceEnum,
   PowerEnum,
   PresetEnum,
-} from "../services/api";
+} from "../types";
 import Grid from "@mui/material/Grid";
 import Select, { type SelectChangeEvent } from "@mui/material/Select";
 import { applyThemePrimaryType } from "../styles/modes";
@@ -44,9 +44,9 @@ const SelectPreset = ({ preset, theme }: { preset: Preset; theme: Theme }) => {
             borderColor: theme.palette.primary.main, // <------------------ utline-color on hover
           },
           "&.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-            {
-              borderColor: theme.palette.primary.main, // <------------------ outline-color on focus
-            },
+          {
+            borderColor: theme.palette.primary.main, // <------------------ outline-color on focus
+          },
         }}
         labelId="source-select-label"
         id="source-select"
@@ -87,9 +87,9 @@ const SelectSource = ({ theme, source }: { theme: Theme; source: Source }) => {
             borderColor: theme.palette.primary.main, // <------------------ utline-color on hover
           },
           "&.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-            {
-              borderColor: theme.palette.primary.main, // <------------------ outline-color on focus
-            },
+          {
+            borderColor: theme.palette.primary.main, // <------------------ outline-color on focus
+          },
         }}
         labelId="source-select-label"
         id="source-select"

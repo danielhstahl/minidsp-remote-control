@@ -7,7 +7,7 @@ import {
   SourceEnum,
   PresetEnum,
   type SSLCertExpiry,
-} from "./services/api";
+} from "./types";
 import { createRoutesStub } from "react-router";
 import { routes } from "./utils/routes";
 

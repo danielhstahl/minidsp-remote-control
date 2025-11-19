@@ -4,7 +4,7 @@ import Divider from "@mui/material/Divider";
 import GenerateCerts from "../components/GenerateCerts";
 import DownloadCaPem from "../components/DownloadCaPem";
 import { useLoaderData } from "react-router";
-import { type Device } from "../services/api";
+import { type Device } from "../types";
 import DeviceList from "../components/DeviceList";
 import Typography from "@mui/material/Typography";
 const Settings = () => {

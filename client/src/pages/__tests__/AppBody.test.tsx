@@ -2,7 +2,7 @@ import { render } from "vitest-browser-react";
 import { describe, expect, it, vi } from "vitest";
 import AppBody from "../AppBody";
 import { createRoutesStub } from "react-router";
-import { PowerEnum, PresetEnum, SourceEnum } from "../../services/api";
+import { PowerEnum, PresetEnum, SourceEnum } from "../../types";
 describe("AppBody", () => {
   it("renders", async () => {
     vi.useFakeTimers();
