@@ -13,24 +13,25 @@ pub struct Device {
 }
 
 pub async fn upsert_device(pool: &SqlitePool, device_ip: String) -> Result<Device, sqlx::Error> {
-    match get_device(pool, &device_ip).await? {
-        Some(device) => Ok(device),
-        None => {
-            sqlx::query!(
-                r#"
-        INSERT INTO devices (device_ip, is_allowed)
-        VALUES ($1, $2)
-                "#,
-                device_ip,
-                false
-            )
-            .execute(pool)
-            .await?;
-            Ok(Device {
-                device_ip,
-                is_allowed: false,
-            })
-        }
+    sqlx::query!(
+        r#"
+INSERT INTO devices (device_ip, is_allowed)
+VALUES ($1, $2)
+ON CONFLICT(device_ip) DO NOTHING
+        "#,
+        device_ip,
+        false
+    )
+    .execute(pool)
+    .await?;
+
+    let device = get_device(pool, &device_ip).await?;
+    
+    // This should technically not happen if the insert worked or if it already existed,
+    // but we handle the Option just in case.
+    match device {
+        Some(d) => Ok(d),
+        None => Err(sqlx::Error::RowNotFound),
     }
 }
 pub async fn update_device(

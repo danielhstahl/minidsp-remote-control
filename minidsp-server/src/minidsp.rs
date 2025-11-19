@@ -1,6 +1,8 @@
 use rocket::serde::{Deserialize, Deserializer, Serialize, json};
 use std::error;
 use std::process::Command;
+use std::str;
+use rocket::tokio;
 #[derive(Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct MinidspStatusWrapper {
@@ -25,45 +27,56 @@ pub struct MinidspStatus {
     #[serde(deserialize_with = "deserialize_int_as_string")]
     preset: String,
 }
-pub fn get_minidsp_status() -> Result<MinidspStatus, Box<dyn error::Error>> {
-    let result = Command::new("minidsp").arg("-o").arg("json").output()?;
-    let result_str = str::from_utf8(&result.stdout)?;
+pub async fn get_minidsp_status() -> Result<MinidspStatus, Box<dyn error::Error + Send + Sync>> {
+    let output = tokio::task::spawn_blocking(move || {
+        Command::new("minidsp").arg("-o").arg("json").output()
+    }).await??;
+
+    let result_str = str::from_utf8(&output.stdout)?;
     let wrapper: MinidspStatusWrapper = json::from_str(result_str)?;
     Ok(wrapper.master)
 }
 
-pub fn increment_minidsp_vol(gain: f32) -> Result<(), Box<dyn error::Error>> {
-    Command::new("minidsp")
-        .arg("gain")
-        .arg("--relative")
-        .arg("--")
-        .arg(gain.to_string())
-        .output()?;
+pub async fn increment_minidsp_vol(gain: f32) -> Result<(), Box<dyn error::Error + Send + Sync>> {
+    tokio::task::spawn_blocking(move || {
+        Command::new("minidsp")
+            .arg("gain")
+            .arg("--relative")
+            .arg("--")
+            .arg(gain.to_string())
+            .output()
+    }).await??;
     Ok(())
 }
 
-pub fn set_minidsp_vol(gain: f32) -> Result<(), Box<dyn error::Error>> {
-    Command::new("minidsp")
-        .arg("gain")
-        .arg("--")
-        .arg(gain.to_string())
-        .output()?;
+pub async fn set_minidsp_vol(gain: f32) -> Result<(), Box<dyn error::Error + Send + Sync>> {
+    tokio::task::spawn_blocking(move || {
+        Command::new("minidsp")
+            .arg("gain")
+            .arg("--")
+            .arg(gain.to_string())
+            .output()
+    }).await??;
     Ok(())
 }
 
-pub fn set_minidsp_preset(preset: &str) -> Result<(), Box<dyn error::Error>> {
-    Command::new("minidsp").arg("config").arg(preset).output()?;
+pub async fn set_minidsp_preset(preset: String) -> Result<(), Box<dyn error::Error + Send + Sync>> {
+    tokio::task::spawn_blocking(move || {
+        Command::new("minidsp").arg("config").arg(preset).output()
+    }).await??;
     Ok(())
 }
 
-pub fn set_minidsp_source(source: &str) -> Result<(), Box<dyn error::Error>> {
+pub async fn set_minidsp_source(source: String) -> Result<(), Box<dyn error::Error + Send + Sync>> {
     // note that the source output from minidspStatus has first letter capitalized,
     // but setting the source requires lowercase
     // see https://minidsp-rs.pages.dev/cli/master/source
-    Command::new("minidsp")
-        .arg("source")
-        .arg(source.to_lowercase())
-        .output()?;
+    tokio::task::spawn_blocking(move || {
+        Command::new("minidsp")
+            .arg("source")
+            .arg(source.to_lowercase())
+            .output()
+    }).await??;
     Ok(())
 }
 
