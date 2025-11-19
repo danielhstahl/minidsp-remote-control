@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\nINSERT INTO devices (device_ip, is_allowed)\nVALUES ($1, $2)\nON CONFLICT(device_ip) DO NOTHING\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "c3f6703fa5f08db229a11bc611a9dcb12b4d58b1db01ed42e7ac1e1f2fc7041a"
+}
