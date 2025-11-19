@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { http, HttpResponse } from "msw";
 import { setupWorker } from "msw/browser";
-import { PowerEnum, SourceEnum, PresetEnum } from "../../services/api";
+import { PowerEnum, SourceEnum, PresetEnum } from "../../types";
 import { authAndExpiryLoader, statusLoader, devicesLoader } from "../loaders";
 
 describe("authAndExpiryLoader", () => {

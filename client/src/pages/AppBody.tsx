@@ -2,7 +2,7 @@ import Grid from "@mui/material/Grid";
 import StatusCard from "../components/PowerCard";
 import VolumeCard from "../components/VolumeCard";
 import { useRevalidator, useLoaderData } from "react-router";
-import type { HtxConfig } from "../services/api";
+import type { HtxConfig } from "../types";
 import { useEffect } from "react";
 const THREE_SECONDS = 3000;
 

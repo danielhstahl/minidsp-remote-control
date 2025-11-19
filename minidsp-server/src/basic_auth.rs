@@ -2,7 +2,6 @@ use base64::engine::Engine as _;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use rocket::http::Status;
 use rocket::request::{FromRequest, Outcome, Request};
-use std::env;
 use std::fmt;
 #[derive(Debug)]
 pub struct BasicAuth {}
@@ -29,6 +28,8 @@ fn basic_auth(auth_header: &str, compare_string: &str) -> Result<(), BasicAuthEr
         msg: "Invalid Token".to_string(),
     })
 }
+use crate::config::Config;
+
 #[rocket::async_trait]
 impl<'r> FromRequest<'r> for BasicAuth {
     type Error = (); // We'll handle specific errors internally or return a generic unit type.
@@ -41,13 +42,13 @@ impl<'r> FromRequest<'r> for BasicAuth {
                 return Outcome::Error((Status::Unauthorized, ()));
             }
         };
-        let compare_string = match env::var("COMPARE_STRING") {
-            Ok(token) => token,
-            Err(_e) => {
-                return Outcome::Error((Status::Unauthorized, ()));
-            }
+        
+        let config = match req.rocket().state::<Config>() {
+            Some(c) => c,
+            None => return Outcome::Error((Status::InternalServerError, ())),
         };
-        match basic_auth(auth_header, &compare_string) {
+
+        match basic_auth(auth_header, &config.compare_string) {
             Ok(()) => Outcome::Success(BasicAuth {}),
             Err(_e) => Outcome::Error((Status::Unauthorized, ())),
         }

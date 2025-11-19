@@ -4,7 +4,7 @@ import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import ListSubheader from "@mui/material/ListSubheader";
 import Switch from "@mui/material/Switch";
-import { type Device } from "../services/api";
+import { type Device } from "../types";
 import { useFetcher } from "react-router";
 import { CircularProgress } from "@mui/material";
 interface Props {

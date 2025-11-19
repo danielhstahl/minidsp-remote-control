@@ -11,7 +11,7 @@ import {
   certAction,
 } from "../actions";
 import { createFormDataFromValue } from "../../utils/fetcherUtils";
-import { PresetEnum } from "../api";
+import { PresetEnum } from "../../types";
 
 describe("volumeAction", async () => {
   it("succeeds when hitting volume/up", async () => {
