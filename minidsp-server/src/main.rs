@@ -194,12 +194,13 @@ async fn get_status(
     _ip_filter: IpAuth,
     gpio: &State<GpioPin>,
 ) -> Result<Json<FullStatus>, AppError> {
-    let pin = match gpio.pin.lock() {
-        Ok(pin) => Ok(pin),
-        Err(e) => Err(AppError::Unknown(e.to_string())),
-    }?;
-    let power_status = gpio::get_status(&pin);
-    drop(pin);
+    let power_status = {
+        let pin = match gpio.pin.lock() {
+            Ok(pin) => Ok(pin),
+            Err(e) => Err(AppError::Unknown(e.to_string())),
+        }?;
+        gpio::get_status(&pin)
+    };
     let minidsp_status = minidsp::get_minidsp_status().await.map_err(|e| AppError::MiniDsp(e.to_string()))?;
 
     Ok(Json(FullStatus {
@@ -214,12 +215,13 @@ async fn get_power(
     _ip_filter: IpAuth,
     gpio: &State<GpioPin>,
 ) -> Result<Json<gpio::PowerStatus>, AppError> {
-    let pin = match gpio.pin.lock() {
-        Ok(pin) => Ok(pin),
-        Err(e) => Err(AppError::Unknown(e.to_string())),
-    }?;
-    let power_status = gpio::get_status(&pin);
-    drop(pin);
+    let power_status = {
+        let pin = match gpio.pin.lock() {
+            Ok(pin) => Ok(pin),
+            Err(e) => Err(AppError::Unknown(e.to_string())),
+        }?;
+        gpio::get_status(&pin)
+    };
     Ok(Json(power_status))
 }
 
