@@ -2,7 +2,6 @@ use base64::engine::Engine as _;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use rocket::http::Status;
 use rocket::request::{FromRequest, Outcome, Request};
-use rocket::request::{FromRequest, Outcome, Request};
 use std::fmt;
 #[derive(Debug)]
 pub struct BasicAuth {}
