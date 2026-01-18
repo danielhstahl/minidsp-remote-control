@@ -1,0 +1,12 @@
+[[tcp_server]]
+# use the plugin app from another machine
+bind_address = "0.0.0.0:5333"
+
+# If multiple minidsp devices are used, the following options
+# can be used to expose multiple plugin-compatible
+# servers for each devices.
+# device_index = 0 # Use the first device available
+# device_serial = 912345 # Use the device with this serial number
+
+# Advertise the following address for the official minidsp mobile app
+advertise = { ip = "LOCAL_IP", name="Minidsp Remote" }
