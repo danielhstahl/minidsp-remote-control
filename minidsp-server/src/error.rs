@@ -9,9 +9,6 @@ pub enum AppError {
     #[error("Database error: {0}")]
     Database(#[from] rocket_db_pools::sqlx::Error),
 
-    #[error("MiniDSP error: {0}")]
-    MiniDsp(String),
-
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
 
@@ -31,7 +28,6 @@ impl<'r> Responder<'r, 'static> for AppError {
     fn respond_to(self, _: &'r Request<'_>) -> response::Result<'static> {
         let status = match self {
             AppError::Database(_) => Status::InternalServerError,
-            AppError::MiniDsp(_) => Status::InternalServerError,
             AppError::Io(_) => Status::InternalServerError,
             AppError::Config(_) => Status::InternalServerError,
             AppError::Unknown(_) => Status::InternalServerError,

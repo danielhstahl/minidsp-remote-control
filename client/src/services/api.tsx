@@ -1,3 +1,7 @@
+/**
+ *
+ * See https://minidsp-rs.pages.dev/daemon/http for HTTP server api docs
+ */
 import {
   type Power,
   type Source,

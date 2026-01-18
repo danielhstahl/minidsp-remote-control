@@ -11,12 +11,11 @@ mod ip_auth;
 use rppal::gpio::Gpio;
 #[cfg(feature = "gpio")]
 use rppal::gpio::OutputPin;
-mod minidsp;
 mod sslcert;
 use crate::config::Config;
 use crate::error::AppError;
+#[cfg(feature = "gpio")]
 use crate::ip_auth::IpAuth;
-use crate::minidsp::MinidspStatus;
 use rocket::fairing::{self, AdHoc};
 use rocket::response::stream::ReaderStream;
 use rocket::serde::{Serialize, json::Json};
@@ -46,8 +45,6 @@ struct Success {
     success: bool,
 }
 
-const VOLUME_INCREMENT: f32 = 0.5;
-
 async fn run_migrations(rocket: Rocket<Build>) -> fairing::Result {
     match MinidspDb::fetch(&rocket) {
         Some(db) => match sqlx::migrate!("db/migrations").run(&**db).await {
@@ -75,12 +72,6 @@ fn rocket() -> _ {
         update_device,
         get_devices,
         regenerate_cert,
-        get_status,
-        set_volume,
-        set_volume_up,
-        set_volume_down,
-        set_preset,
-        set_source,
         expiry
     ];
     #[cfg(feature = "gpio")]
@@ -90,13 +81,13 @@ fn rocket() -> _ {
 
     #[cfg(feature = "gpio")]
     let gpio_pin = if let Some(pin_num) = config.relay_pin {
-         GpioPin {
+        GpioPin {
             pin: Arc::new(Mutex::new(
                 Gpio::new().unwrap().get(pin_num).unwrap().into_output(),
             )),
         }
     } else {
-         panic!("Relay pin not configured but gpio feature enabled");
+        panic!("Relay pin not configured but gpio feature enabled");
     };
 
     //hacky, but works...use a dummy GpioPin when not using the Gpio feature
@@ -106,8 +97,12 @@ fn rocket() -> _ {
     rocket::build()
         .attach(MinidspDb::init())
         .attach(AdHoc::try_on_ignite("DB Migrations", run_migrations))
-        .manage(db::Domain { domain_name: config.domain.clone() })
-        .manage(sslcert::SSLPath { path: config.ssl_path.clone() })
+        .manage(db::Domain {
+            domain_name: config.domain.clone(),
+        })
+        .manage(sslcert::SSLPath {
+            path: config.ssl_path.clone(),
+        })
         .manage(config)
         .manage(gpio_pin)
         .mount("/api/", base_routes)
@@ -121,9 +116,7 @@ async fn root_pem(ssl_path: &State<sslcert::SSLPath>) -> std::io::Result<ReaderS
 }
 
 #[get("/cert/expiration")]
-async fn expiry(
-    ssl_path: &State<sslcert::SSLPath>,
-) -> Result<Json<sslcert::CertExpiry>, AppError> {
+async fn expiry(ssl_path: &State<sslcert::SSLPath>) -> Result<Json<sslcert::CertExpiry>, AppError> {
     let expiry_date = sslcert::get_certificate_expiry_date_from_file(&ssl_path.path)
         .map_err(|e| AppError::Unknown(e.to_string()))?;
     Ok(Json(sslcert::CertExpiry {
@@ -135,13 +128,12 @@ async fn expiry(
 // with (mostly) trusted users.
 // IP spoofing isn't hard but it would require
 // some effort to script.
+// NOTE that most api calls now bypass this server and
+// go directly to the minidsp http endpoint so that IP
+// calls are not blocked for a large portion of the app.
 #[post("/device", format = "application/json")]
-async fn create_device(
-    db: &MinidspDb,
-    client_ip: IpAddr,
-) -> Result<Json<db::Device>, AppError> {
-    let user = db::upsert_device(&**db, client_ip.to_string())
-        .await?;
+async fn create_device(db: &MinidspDb, client_ip: IpAddr) -> Result<Json<db::Device>, AppError> {
+    let user = db::upsert_device(&**db, client_ip.to_string()).await?;
     Ok(Json(user))
 }
 
@@ -151,8 +143,7 @@ async fn update_device(
     device: Json<db::Device>,
     _basic: basic_auth::BasicAuth, //only admin can set this
 ) -> Result<Json<db::Device>, AppError> {
-    db::update_device(&**db, &device.device_ip, device.is_allowed)
-        .await?;
+    db::update_device(&**db, &device.device_ip, device.is_allowed).await?;
     Ok(device)
 }
 
@@ -161,8 +152,7 @@ async fn get_devices(
     db: &MinidspDb,
     _basic: basic_auth::BasicAuth, //only admin can get this
 ) -> Result<Json<Vec<db::Device>>, AppError> {
-    let device = db::get_all_devices(&**db)
-        .await?;
+    let device = db::get_all_devices(&**db).await?;
     Ok(Json(device))
 }
 
@@ -180,36 +170,6 @@ async fn regenerate_cert(
 }
 
 #[cfg(feature = "gpio")]
-#[derive(Serialize)]
-#[serde(crate = "rocket::serde")]
-pub struct FullStatus {
-    #[serde(flatten)]
-    minidsp_status: MinidspStatus,
-    power: gpio::PowerStatus,
-}
-
-#[cfg(feature = "gpio")]
-#[get("/status")]
-async fn get_status(
-    _ip_filter: IpAuth,
-    gpio: &State<GpioPin>,
-) -> Result<Json<FullStatus>, AppError> {
-    let power_status = {
-        let pin = match gpio.pin.lock() {
-            Ok(pin) => Ok(pin),
-            Err(e) => Err(AppError::Unknown(e.to_string())),
-        }?;
-        gpio::get_status(&pin)
-    };
-    let minidsp_status = minidsp::get_minidsp_status().await.map_err(|e| AppError::MiniDsp(e.to_string()))?;
-
-    Ok(Json(FullStatus {
-        minidsp_status,
-        power: power_status,
-    }))
-}
-
-#[cfg(feature = "gpio")]
 #[get("/power")]
 async fn get_power(
     _ip_filter: IpAuth,
@@ -223,43 +183,6 @@ async fn get_power(
         gpio::get_status(&pin)
     };
     Ok(Json(power_status))
-}
-
-#[cfg(not(feature = "gpio"))]
-#[get("/status")]
-async fn get_status(_ip_filter: IpAuth) -> Result<Json<MinidspStatus>, AppError> {
-    let minidsp_status = minidsp::get_minidsp_status().await.map_err(|e| AppError::MiniDsp(e.to_string()))?;
-    Ok(Json(minidsp_status))
-}
-
-#[post("/volume/up")]
-async fn set_volume_up(_ip_filter: IpAuth) -> Result<Json<Success>, AppError> {
-    minidsp::increment_minidsp_vol(VOLUME_INCREMENT).await.map_err(|e| AppError::MiniDsp(e.to_string()))?;
-    Ok(Json(Success { success: true }))
-}
-
-#[post("/volume/down")]
-async fn set_volume_down(_ip_filter: IpAuth) -> Result<Json<Success>, AppError> {
-    minidsp::increment_minidsp_vol(-VOLUME_INCREMENT).await.map_err(|e| AppError::MiniDsp(e.to_string()))?;
-    Ok(Json(Success { success: true }))
-}
-
-#[post("/volume/<volume>", rank = 2)]
-async fn set_volume(_ip_filter: IpAuth, volume: f32) -> Result<Json<Success>, AppError> {
-    minidsp::set_minidsp_vol(volume).await.map_err(|e| AppError::MiniDsp(e.to_string()))?;
-    Ok(Json(Success { success: true }))
-}
-
-#[post("/preset/<preset>")]
-async fn set_preset(_ip_filter: IpAuth, preset: &str) -> Result<Json<Success>, AppError> {
-    minidsp::set_minidsp_preset(preset.to_string()).await.map_err(|e| AppError::MiniDsp(e.to_string()))?;
-    Ok(Json(Success { success: true }))
-}
-
-#[post("/source/<source>")]
-async fn set_source(_ip_filter: IpAuth, source: &str) -> Result<Json<Success>, AppError> {
-    minidsp::set_minidsp_source(source.to_string()).await.map_err(|e| AppError::MiniDsp(e.to_string()))?;
-    Ok(Json(Success { success: true }))
 }
 
 #[cfg(feature = "gpio")]
