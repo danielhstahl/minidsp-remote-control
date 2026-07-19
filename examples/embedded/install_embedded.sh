@@ -102,8 +102,8 @@ fi
 cd /storage/.config/minidsp
 
 ### start services
-systemctl enable /storage/.config/system.d/nginx.service
-systemctl enable /storage/.config/system.d/minidsp-ui.service
-systemctl enable /storage/.config/system.d/minidsp.service
+systemctl enable --now /storage/.config/system.d/nginx.service
+systemctl enable --now /storage/.config/system.d/minidsp-ui.service
+systemctl enable --now /storage/.config/system.d/minidsp.service
 
 touch "$MARKER"
