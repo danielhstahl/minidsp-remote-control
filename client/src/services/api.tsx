@@ -9,14 +9,7 @@ import {
   type HtxConfig,
   type HtxMasterConfig,
   type Device,
-  type LocalHeaders,
 } from "../types";
-
-export const addBasicAuthHeader = (code: string) => {
-  return {
-    authorization: `Basic ${btoa(`:${code}`)}`,
-  };
-};
 
 const jsonHeaders = {
   "Content-Type": "application/json",
@@ -54,15 +47,7 @@ export const setPreset = (preset: Preset) => {
 export const setPower = (powerToTurnTo: Power) => {
   return fetch(`/api/power/${powerToTurnTo}`, { method: "POST" });
 };
-/*export const getPower: () => Promise<Power> = async () => {
-  const response = await fetch(`/api/power`);
-  const result = await response.json();
-  if (response.ok) {
-    return result;
-  } else {
-    throw new Error(result);
-  }
-};*/
+
 export const setSource = (source: Source) => {
   return fetch(`/api/devices/0/source/${source.toLowerCase()}`, {
     method: "POST",
@@ -80,39 +65,8 @@ export const loadDevice: () => Promise<Device> = async () => {
     throw new Error(result);
   }
 };
-export const updateDevice: (
-  localHeaders: LocalHeaders,
-  device: Device,
-) => Promise<Device> = async (localHeaders: LocalHeaders, device: Device) => {
-  const headers = { ...localHeaders, ...jsonHeaders };
-  const response = await fetch(`/api/device`, {
-    method: "PATCH",
-    headers,
-    body: JSON.stringify(device),
-  });
-  const result = await response.json();
-  if (response.ok) {
-    return result;
-  } else {
-    throw new Error(result);
-  }
-};
-export const getDevices: (
-  localHeaders: LocalHeaders,
-) => Promise<Device[]> = async (localHeaders: LocalHeaders) => {
-  const headers = { ...localHeaders, ...jsonHeaders };
-  const response = await fetch(`/api/device`, {
-    headers,
-  });
-  const result = await response.json();
-  if (response.ok) {
-    return result;
-  } else {
-    throw new Error(result);
-  }
-};
-export const generateCert = async (headers: LocalHeaders) => {
-  const response = await fetch(`/api/cert`, { method: "POST", headers });
+export const generateCert = async () => {
+  const response = await fetch(`/api/cert`, { method: "POST" });
   const result = await response.json();
   if (response.ok) {
     return result;

@@ -1,19 +1,12 @@
 import Settings from "../pages/Settings";
-import Login from "../pages/Login";
 import App from "../App";
 import { redirect } from "react-router";
-import {
-  authAndExpiryLoader,
-  statusLoader,
-  devicesLoader,
-} from "../services/loaders";
+import { expiryLoader, statusLoader } from "../services/loaders";
 import {
   setVolumeAction,
   setPresetAction,
   setPowerAction,
   setSourceAction,
-  loginAction,
-  deviceAction,
   certAction,
 } from "../services/actions";
 import AppBody from "../pages/AppBody";
@@ -32,14 +25,14 @@ export const routes = [
       {
         path: "/app",
         Component: ExpiryWrapper,
-        loader: authAndExpiryLoader, //api/cert/expiration (GET), and //api/device (POST)
+        loader: expiryLoader, //api/cert/expiration (GET)
         children: [
           {
             path: "",
             Component: AppBody, //doesn't have an outlet
             loader: statusLoader, //api/status (GET)
             children: [
-              { path: "volume", action: setVolumeAction }, //how will this work with outlets?  or will it?
+              { path: "volume", action: setVolumeAction },
               { path: "preset", action: setPresetAction },
               { path: "power", action: setPowerAction },
               { path: "source", action: setSourceAction },
@@ -50,15 +43,12 @@ export const routes = [
       },
       {
         path: "/settings/cert",
-        action: certAction, //auth required
+        action: certAction,
       },
       {
         path: "/settings",
         Component: Settings,
-        loader: devicesLoader, //api/device (GET), auth required
-        action: deviceAction,
       },
-      { path: "/login/:ip?", Component: Login, action: loginAction },
     ],
   },
   {

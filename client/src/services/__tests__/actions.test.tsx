@@ -6,8 +6,6 @@ import {
   setPresetAction,
   setPowerAction,
   setSourceAction,
-  loginAction,
-  deviceAction,
   certAction,
 } from "../actions";
 import { createFormDataFromValue } from "../../utils/fetcherUtils";
@@ -128,71 +126,6 @@ describe("sourceAction", async () => {
     expect(result).toEqual("HDMI");
   });
   server.stop();
-});
-
-describe("loginAction", async () => {
-  afterEach(() => {
-    sessionStorage.clear();
-  });
-  it("succeeds when logging in", async () => {
-    const formData = new FormData();
-    formData.append("password", "helloworld");
-    const result = await loginAction({
-      request: new Request("/app/source", { method: "POST", body: formData }),
-      params: {},
-      context: {},
-    });
-    expect(result instanceof Response).toBeTruthy();
-    if (result instanceof Response) {
-      expect(result.headers.get("Location")).toEqual("/settings");
-    }
-  });
-});
-
-describe("deviceAction", async () => {
-  afterEach(() => {
-    sessionStorage.clear();
-  });
-
-  it("succeeds when setting device", async () => {
-    const server = setupWorker(
-      http.patch("/api/device", () => {
-        return HttpResponse.json({ isAllowed: false, deviceIp: "127.0.0.1" });
-      }),
-    );
-    await server.start({ quiet: true });
-    sessionStorage.setItem("admin_password", "helloworld");
-    const formData = createFormDataFromValue("device", {
-      isAllowed: false,
-      deviceIp: "127.0.0.1",
-    });
-    const result = await deviceAction({
-      request: new Request("/app/device", { method: "POST", body: formData }),
-      params: {},
-      context: {},
-    });
-    expect(result).toEqual({ isAllowed: false, deviceIp: "127.0.0.1" });
-    server.stop();
-  });
-  it("fails when no password at route", async () => {
-    const server = setupWorker(
-      http.patch("/api/device", () => {
-        return HttpResponse.json("bad login", { status: 401 });
-      }),
-    );
-    await server.start({ quiet: true });
-    const formData = createFormDataFromValue("device", {
-      isAllowed: false,
-      deviceIp: "127.0.0.1",
-    });
-    const result = await deviceAction({
-      request: new Request("/app/device", { method: "POST", body: formData }),
-      params: {},
-      context: {},
-    });
-    expect(result).toHaveProperty("error");
-    server.stop();
-  });
 });
 
 describe("certAction", async () => {

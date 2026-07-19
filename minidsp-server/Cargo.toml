@@ -19,9 +19,9 @@ version = "0.7"
 default-features = false
 features = ["macros", "migrate"]
 
-[dependencies.rocket_db_pools]
-version = "0.2.0"
-features = ["sqlx_sqlite"]
+#[dependencies.rocket_db_pools]
+#version = "0.2.0"
+#features = ["sqlx_sqlite"]
 
 [features]
 gpio = ["dep:rppal"]
