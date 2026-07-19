@@ -75,10 +75,10 @@ jobs:
         run: npm run build
 
       - name: package
-        run: tar czvf minidsp-ui.tar.gz -C client dist -C ../examples minidsp-bt.service minidsp-ui.service nginx.conf nginx.service -C ../server bt.ts minidsp.ts package-lock.json package.json
+        run: tar czvf minidsp-ui.tar.gz -C client dist -C ../examples minidsp-bt.service minidsp-ui.service nginx.conf nginx.service minidsp.toml -C ../server bt.ts minidsp.ts package-lock.json package.json
 
       - name: package embedded
-        run: tar czvf minidsp-ui-embedded.tar.gz -C client dist -C ../examples/embedded minidsp-ui.service minidsp.service nginx.conf nginx.service
+        run: tar czvf minidsp-ui-embedded.tar.gz -C client dist -C ../examples/embedded minidsp-ui.service minidsp.service nginx.conf nginx.service minidsp.toml
 
       - name: upload ui
         env:
@@ -97,3 +97,9 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           gh release upload ${{ github.event.release.tag_name }} examples/install_script.sh
+
+      - name: upload embedded_install_script
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} examples/embedded/install_embedded.sh

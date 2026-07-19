@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # assumes no package management system
 # DOES assume curl is already installed
 ## example of running this script: DOMAIN=raspberrypi.local RELEASE_TAG=v6.1.5 IP_LIST="192.168.1.1,192.168.1.2" ./install_embedded.sh
@@ -42,11 +44,12 @@ echo "downloading from ${url}"
 curl -L -O $url
 tar -xzvf ${ui_tar_name}
 rm $ui_tar_name
+rm -r /storage/.config/minidsp/dist || true
 mv dist /storage/.config/minidsp/
 mv nginx.conf /storage/.config/minidsp/nginx
 touch /storage/.config/minidsp/nginx/whitelist.conf
-IFS=',' read -r -a items <<< "$IP_LIST"
-for item in "${items[@]}"; do
+IFS=','
+for item in $IP_LIST; do
     echo "allow $item" >> /storage/.config/minidsp/nginx/whitelist.conf
 done
 
@@ -99,8 +102,8 @@ fi
 cd /storage/.config/minidsp
 
 ### start services
-systemctl enable /storage/.config/system.d/nginx.service
-systemctl enable /storage/.config/system.d/minidsp-ui.service
-systemctl enable /storage/.config/system.d/minidsp.service
+systemctl enable --now /storage/.config/system.d/nginx.service
+systemctl enable --now /storage/.config/system.d/minidsp-ui.service
+systemctl enable --now /storage/.config/system.d/minidsp.service
 
 touch "$MARKER"
