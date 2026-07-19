@@ -15,7 +15,7 @@ describe("AppBarMenu", () => {
         Component: () => {
           return (
             <ThemeProvider theme={theme}>
-              <AppBarMenu setMode={mockSetMode} mode={mode} isAdmin={true} />
+              <AppBarMenu setMode={mockSetMode} mode={mode} />
             </ThemeProvider>
           );
         },
@@ -76,14 +76,14 @@ describe("AppBarMenu", () => {
       .element(screen.getByLabelText("Evil Dark Mode"))
       .toHaveAttribute("aria-pressed", "true");
   });
-  it("shows settings when logged in", async () => {
+  it("shows settings", async () => {
     const Stub = createRoutesStub([
       {
         path: "/",
         Component: () => {
           return (
             <ThemeProvider theme={theme}>
-              <AppBarMenu setMode={mockSetMode} mode={"light"} isAdmin={true} />
+              <AppBarMenu setMode={mockSetMode} mode={"light"} />
             </ThemeProvider>
           );
         },
@@ -91,25 +91,5 @@ describe("AppBarMenu", () => {
     ]);
     const screen = render(<Stub />);
     await expect.element(screen.getByLabelText("settings")).toBeInTheDocument();
-  });
-  it("shows settings when logged in", async () => {
-    const Stub = createRoutesStub([
-      {
-        path: "/",
-        Component: () => {
-          return (
-            <ThemeProvider theme={theme}>
-              <AppBarMenu
-                setMode={mockSetMode}
-                mode={"light"}
-                isAdmin={false}
-              />
-            </ThemeProvider>
-          );
-        },
-      },
-    ]);
-    const screen = render(<Stub />);
-    await expect.element(screen.getByLabelText("login")).toBeInTheDocument();
   });
 });
