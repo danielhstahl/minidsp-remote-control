@@ -129,10 +129,6 @@ describe("sourceAction", async () => {
 });
 
 describe("certAction", async () => {
-  afterEach(() => {
-    sessionStorage.clear();
-  });
-
   it("succeeds when hitting cert", async () => {
     const server = setupWorker(
       http.post("/api/cert", () => {
@@ -140,8 +136,6 @@ describe("certAction", async () => {
       }),
     );
     await server.start({ quiet: true });
-    sessionStorage.setItem("admin_password", "helloworld");
-
     const result = await certAction();
     expect(result).toEqual({});
     server.stop();
