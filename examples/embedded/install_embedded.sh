@@ -1,6 +1,15 @@
 # assumes no package management system
 # DOES assume curl is already installed
 ## example of running this script: DOMAIN=raspberrypi.local RELEASE_TAG=v6.1.5 IP_LIST="192.168.1.1,192.168.1.2" ./install_embedded.sh
+
+# don't run this script if already installed
+MARKER=/storage/.config/minidsp/.installed
+
+if [ -f "$MARKER" ]; then
+    echo "minidsp already installed, skipping"
+    exit 0
+fi
+
 base_url="https://github.com/danielhstahl/minidsp-remote-control/releases/download/${RELEASE_TAG}"
 ui_tar_name="minidsp-ui-embedded.tar.gz"
 server_tar_name="minidsp-server-aarch64-unknown-linux-gnu-gpio.tar.gz"
@@ -38,7 +47,7 @@ mv nginx.conf /storage/.config/minidsp/nginx
 touch /storage/.config/minidsp/nginx/whitelist.conf
 IFS=',' read -r -a items <<< "$IP_LIST"
 for item in "${items[@]}"; do
-    echo "$item" >> /storage/.config/minidsp/nginx/whitelist.conf
+    echo "allow $item" >> /storage/.config/minidsp/nginx/whitelist.conf
 done
 
 sed -i -e "s/HOSTNAME/${DOMAIN}/g" minidsp-ui.service
@@ -60,7 +69,6 @@ sed -i -e "s/HOSTNAME/${DOMAIN}/g" nginx.conf
 curl -L -O https://raw.githubusercontent.com/nginx/nginx/master/conf/mime.types
 cd /storage/.config/minidsp/
 
-
 ### handle ssl
 mkdir -p /storage/.config/minidsp/ssl
 
@@ -80,12 +88,19 @@ cd /storage/.config/minidsp
 
 ### Create init SSL cert
 cd /storage/.config/minidsp/ssl
-curl -L -O  https://raw.githubusercontent.com/openssl/openssl/master/apps/openssl.cnf
+
 # This will get things started until regenerating them from UI
-openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes -keyout device.key -out device.crt -subj "/CN=$DOMAIN" -config openssl.cnf
+if [ -f device.key ] && [ -f device.crt ]; then
+    echo "SSL cert already present, skipping generation"
+else
+    curl -L -O  https://raw.githubusercontent.com/openssl/openssl/master/apps/openssl.cnf
+    openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes -keyout device.key -out device.crt -subj "/CN=$DOMAIN" -config openssl.cnf
+fi
 cd /storage/.config/minidsp
 
 ### start services
 systemctl enable /storage/.config/system.d/nginx.service
 systemctl enable /storage/.config/system.d/minidsp-ui.service
 systemctl enable /storage/.config/system.d/minidsp.service
+
+touch "$MARKER"
