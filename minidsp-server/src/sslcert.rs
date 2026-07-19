@@ -16,6 +16,7 @@ pub const ROOT_CA_NAME: &str = "rootCA.pem";
 
 pub struct SSLPath {
     pub path: String,
+    pub domain_name: String,
 }
 
 #[derive(Serialize)]

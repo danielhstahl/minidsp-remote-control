@@ -18,17 +18,12 @@ function App() {
     themeDispatch({ type: SetThemeEnum.UPDATE, value: theme });
     saveColorTheme(theme);
   };
-  const hasAuthSet = sessionStorage.getItem("admin_password") ? true : false;
   const theme = themes[selectedTheme];
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ display: "flex" }}>
         <CssBaseline />
-        <AppBar
-          mode={selectedTheme}
-          setMode={setThemeAndSave}
-          isAdmin={hasAuthSet}
-        />
+        <AppBar mode={selectedTheme} setMode={setThemeAndSave} isAdmin={true} />
         <Box
           component="main"
           sx={{

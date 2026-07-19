@@ -5,17 +5,11 @@ import {
   setPreset,
   setPower,
   setSource,
-  updateDevice,
-  addBasicAuthHeader,
   generateCert,
 } from "./api";
-import {
-  type Source,
-  type Power,
-  type Preset,
-} from "../types";
+import { type Source, type Power, type Preset } from "../types";
 import { extractValueFromFormData } from "../utils/fetcherUtils";
-import { redirect, type ActionFunctionArgs } from "react-router";
+import { type ActionFunctionArgs } from "react-router";
 export const setVolumeAction = async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData();
   const { volume, volumeValue } = extractValueFromFormData(
@@ -61,42 +55,9 @@ export const setSourceAction = async ({ request }: ActionFunctionArgs) => {
   return source;
 };
 
-export const loginAction = async ({ request }: ActionFunctionArgs) => {
-  try {
-    const formData = await request.formData();
-    sessionStorage.setItem(
-      "admin_password",
-      formData.get("password") as string,
-    );
-    return redirect("/settings");
-  } catch (error) {
-    console.log(error);
-    return { error };
-  }
-};
-
-export const deviceAction = async ({ request }: ActionFunctionArgs) => {
-  const formData = await request.formData();
-  const device = JSON.parse(formData.get("device") as string);
-  const adminPassword = sessionStorage.getItem("admin_password");
-  try {
-    const result = await updateDevice(
-      addBasicAuthHeader(adminPassword as string),
-      device,
-    );
-    return result;
-  } catch (error) {
-    console.log(error);
-    return { error };
-  }
-};
-
 export const certAction = async () => {
-  const adminPassword = sessionStorage.getItem("admin_password");
   try {
-    const result = await generateCert(
-      addBasicAuthHeader(adminPassword as string),
-    );
+    const result = await generateCert();
     return result;
   } catch (error) {
     console.log(error);
