@@ -23,7 +23,7 @@ function App() {
     <ThemeProvider theme={theme}>
       <Box sx={{ display: "flex" }}>
         <CssBaseline />
-        <AppBar mode={selectedTheme} setMode={setThemeAndSave} isAdmin={true} />
+        <AppBar mode={selectedTheme} setMode={setThemeAndSave} />
         <Box
           component="main"
           sx={{
