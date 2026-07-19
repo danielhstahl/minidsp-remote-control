@@ -50,7 +50,7 @@ mv nginx.conf /storage/.config/minidsp/nginx
 touch /storage/.config/minidsp/nginx/whitelist.conf
 IFS=','
 for item in $IP_LIST; do
-    echo "allow $item" >> /storage/.config/minidsp/nginx/whitelist.conf
+    echo "allow $item;" >> /storage/.config/minidsp/nginx/whitelist.conf
 done
 
 sed -i -e "s/HOSTNAME/${DOMAIN}/g" minidsp-ui.service
