@@ -1,5 +1,14 @@
 import { render } from "vitest-browser-react";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import {
+  beforeEach,
+  describe,
+  expect,
+  test,
+  vi,
+  beforeAll,
+  afterEach,
+  afterAll,
+} from "vitest";
 import { http, HttpResponse } from "msw";
 import { setupWorker } from "msw/browser";
 import { PowerEnum, SourceEnum, PresetEnum, type SSLCertExpiry } from "./types";
@@ -20,12 +29,18 @@ const createRouter = () => {
   return createRoutesStub(routes);
 };
 
+const server = setupWorker();
+
+beforeAll(() => server.start({ quiet: true }));
+afterEach(() => server.resetHandlers());
+afterAll(() => server.stop());
+
 describe("access scenarios", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
   test("it renders MiniDSP Remote", async () => {
-    const server = setupWorker(
+    server.use(
       http.get("/api/devices/0", () => {
         return HttpResponse.json({
           master: {
@@ -42,15 +57,13 @@ describe("access scenarios", () => {
         return HttpResponse.json(initialExpiryState);
       }),
     );
-    await server.start({ quiet: true });
     const Stub = createRouter();
     const screen = render(<Stub />);
     await expect.element(screen.getByText(/MiniDSP/i)).toBeInTheDocument();
-    server.stop();
   });
 
   test("try to go to settings with credentials", async () => {
-    const server = setupWorker(
+    server.use(
       http.get("/api/devices/0", () => {
         return HttpResponse.json({
           master: {
@@ -71,14 +84,12 @@ describe("access scenarios", () => {
         ]);
       }),
     );
-    await server.start({ quiet: true });
     const Stub = createRouter();
     const screen = render(<Stub initialEntries={["/settings"]} />);
     await expect.element(screen.getByText("Settings")).toBeInTheDocument();
-    server.stop();
   });
   test("try to go to settings", async () => {
-    const server = setupWorker(
+    server.use(
       http.get("/api/devices/0", () => {
         return HttpResponse.json({
           master: {
@@ -92,13 +103,11 @@ describe("access scenarios", () => {
         return HttpResponse.json(PowerEnum.On);
       }),
     );
-    await server.start({ quiet: true });
     const Stub = createRouter();
     const screen = render(<Stub initialEntries={["/settings"]} />);
     //redirects to login page
     await expect
       .element(screen.getByRole("button", { name: "Generate certs" }))
       .toBeInTheDocument();
-    server.stop();
   });
 });
