@@ -4,7 +4,7 @@
 # DOES assume curl is already installed
 ## example of running this script: INSTALL_DIRECTORY=$HOME DOMAIN=raspberrypi.local RELEASE_TAG=v6.1.5 IP_LIST="192.168.1.1,192.168.1.2" ./install_embedded.sh
 
-
+# if INSTALL_DIRECTORY not passed, default to /storage/.config (eg for libreelec).
 install_directory = "${INSTALL_DIRECTORY:-/storage/.config}"
 
 mkdir -p $install_directory/minidsp
