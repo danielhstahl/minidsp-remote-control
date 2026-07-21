@@ -5,7 +5,38 @@
 ## example of running this script: INSTALL_DIRECTORY=$HOME DOMAIN=raspberrypi.local RELEASE_TAG=v6.1.5 IP_LIST="192.168.1.1,192.168.1.2" ./install_embedded.sh
 
 # if INSTALL_DIRECTORY not passed, default to /storage/.config (eg for libreelec).
-install_directory = "${INSTALL_DIRECTORY:-/storage/.config}"
+install_directory="${INSTALL_DIRECTORY:-/storage/.config}"
+
+install_udev_rule() {
+    local rule_src="$1"       # path to the .rules/.udev file to install
+    local rule_name="$2"      # desired filename, e.g. 99-minidsp.rules
+    . /etc/os-release 2>/dev/null
+    if [ "$ID" = "libreelec" ]; then
+        udev_dir="$install_directory/udev.rules.d"
+        mkdir -p $udev_dir
+        mv "$rule_src" "${udev_dir}/${rule_name}"
+        udevadm control --reload-rules
+        udevadm trigger
+    else
+        udev_dir="/etc/udev/rules.d"
+        sudo mv "$rule_src" "${udev_dir}/${rule_name}"
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger
+    fi
+}
+
+service_ctl() {
+    local action="$1"       # e.g. "stop", "disable", "enable --now"
+    local unit="$2"
+
+    . /etc/os-release 2>/dev/null
+    if [ "$ID" = "libreelec" ]; then
+        systemctl $action "$unit"
+    else
+        sudo systemctl $action "$unit"
+    fi
+}
+
 
 mkdir -p $install_directory/minidsp
 # don't run this script if already installed
@@ -21,12 +52,12 @@ ui_tar_name="minidsp-ui-embedded.tar.gz"
 server_tar_name="minidsp-server-aarch64-unknown-linux-gnu-gpio.tar.gz"
 
 ## start from scratch
-systemctl stop nginx || true
-systemctl disable $install_directory/system.d/nginx.service || true
-systemctl stop minidsp || true
-systemctl disable $install_directory/system.d/minidsp.service || true
-systemctl stop minidsp-ui || true
-systemctl disable $install_directory/system.d/minidsp-ui.service || true
+service_ctl stop nginx || true
+service_ctl disable "$install_directory/system.d/nginx.service" || true
+service_ctl stop minidsp || true
+service_ctl disable "$install_directory/system.d/minidsp.service" || true
+service_ctl stop minidsp-ui || true
+service_ctl disable "$install_directory/system.d/minidsp-ui.service" || true
 
 ### handle server
 mkdir -p $install_directory/minidsp/server
@@ -50,19 +81,23 @@ tar -xzvf ${ui_tar_name}
 rm $ui_tar_name
 rm -r $install_directory/minidsp/dist || true
 mv dist $install_directory/minidsp/
+sed -i -e "s|INSTALL_DIRECTORY|${install_directory}|g" nginx.conf
 mv nginx.conf $install_directory/minidsp/nginx
 touch $install_directory/minidsp/nginx/whitelist.conf
+
+old_ifs="$IFS"
 IFS=','
 for item in $IP_LIST; do
     echo "allow $item;" >> $install_directory/minidsp/nginx/whitelist.conf
 done
+IFS="$old_ifs"
 
 sed -i -e "s/HOSTNAME/${DOMAIN}/g" minidsp-ui.service
-sed -i -e "s/INSTALL_DIRECTORY/${install_directory}/g" minidsp-ui.service
+sed -i -e "s|INSTALL_DIRECTORY|${install_directory}|g" minidsp-ui.service
 local_ip=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
 sed -i -e "s/LOCAL_IP/${local_ip}/g" minidsp.toml
-sed -i -e "s/INSTALL_DIRECTORY/${install_directory}/g" nginx.service
-sed -i -e "s/INSTALL_DIRECTORY/${install_directory}/g" minidsp.service
+sed -i -e "s|INSTALL_DIRECTORY|${install_directory}|g" nginx.service
+sed -i -e "s|INSTALL_DIRECTORY|${install_directory}|g" minidsp.service
 
 mkdir -p $install_directory/system.d
 mv minidsp-ui.service $install_directory/system.d/
@@ -91,11 +126,10 @@ cd $install_directory/minidsp/minidsprs
 curl -L -O https://github.com/danielhstahl/minidsp-rs/releases/download/v0.0.4/minidsp.aarch64-unknown-linux-gnu.tar.gz
 tar -xzvf minidsp.aarch64-unknown-linux-gnu.tar.gz
 rm minidsp.aarch64-unknown-linux-gnu.tar.gz
-mkdir -p $install_directory/udev.rules.d/
+
 curl -L -O https://raw.githubusercontent.com/danielhstahl/minidsp-rs/refs/tags/v0.0.4/debian/minidsp.udev
-mv minidsp.udev $install_directory/udev.rules.d/
-# reload udev
-udevadm control --reload-rules && udevadm trigger
+install_udev_rule minidsp.udev minidsp.udev
+
 cd $install_directory/minidsp
 
 ### Create init SSL cert
@@ -110,10 +144,9 @@ else
 fi
 cd $install_directory/minidsp
 
-
 ### start services
-systemctl enable --user --now $install_directory/system.d/nginx.service
-systemctl enable --user --now $install_directory/system.d/minidsp-ui.service
-systemctl enable --user --now $install_directory/system.d/minidsp.service
+service_ctl "enable --now" "$install_directory/system.d/nginx.service"
+service_ctl "enable --now" "$install_directory/system.d/minidsp-ui.service"
+service_ctl "enable --now" "$install_directory/system.d/minidsp.service"
 
 touch "$MARKER"
