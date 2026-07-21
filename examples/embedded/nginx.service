@@ -1,4 +1,4 @@
-# put this file in /storage/.config/system.d/nginx.service
+# put this file in INSTALL_DIRECTORY/system.d/nginx.service
 
 [Unit]
 After=network-online.target remote-fs.target nss-lookup.target
@@ -6,9 +6,9 @@ Wants=network-online.target
 
 [Service]
 Type=forking
-PIDFile=/storage/.config/minidsp/nginx/nginx.pid
-ExecStart=/storage/.config/minidsp/nginx/nginx -c /storage/.config/minidsp/nginx/nginx.conf
-ExecReload=/storage/.config/minidsp/nginx/nginx -s reload -c /storage/.config/minidsp/nginx/nginx.conf
+PIDFile=INSTALL_DIRECTORY/minidsp/nginx/nginx.pid
+ExecStart=INSTALL_DIRECTORY/minidsp/nginx/nginx -c INSTALL_DIRECTORY/minidsp/nginx/nginx.conf
+ExecReload=INSTALL_DIRECTORY/minidsp/nginx/nginx -s reload -c INSTALL_DIRECTORY/minidsp/nginx/nginx.conf
 TimeoutStopSec=5
 KillMode=mixed
 

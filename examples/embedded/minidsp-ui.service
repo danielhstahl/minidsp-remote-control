@@ -1,4 +1,4 @@
-# put this file in /storage/.config/system.d/minidsp-ui.service
+# put this file in INSTALL_DIRECTORY/system.d/minidsp-ui.service
 
 [Unit]
 After=syslog.target
@@ -10,8 +10,8 @@ Type=simple
 Environment="USE_RELAY=1"
 Environment="RELAY_PIN=21"
 Environment="DOMAIN=HOSTNAME"
-Environment="SSL_PATH=/storage/.config/minidsp/ssl"
-ExecStart=/storage/.config/minidsp/server/minidsp-server
+Environment="SSL_PATH=INSTALL_DIRECTORY/minidsp/ssl"
+ExecStart=INSTALL_DIRECTORY/minidsp/server/minidsp-server
 Restart=always
 RestartSec=1
 StandardOutput=journal
