@@ -37,6 +37,15 @@ service_ctl() {
     fi
 }
 
+get_systemd_unit_dir() {
+    . /etc/os-release 2>/dev/null
+    if [ "$ID" = "libreelec" ]; then
+        echo "$install_directory/system.d"
+    else
+        echo "/etc/systemd/system"
+    fi
+}
+
 
 mkdir -p $install_directory/minidsp
 # don't run this script if already installed
@@ -99,10 +108,19 @@ sed -i -e "s/LOCAL_IP/${local_ip}/g" minidsp.toml
 sed -i -e "s|INSTALL_DIRECTORY|${install_directory}|g" nginx.service
 sed -i -e "s|INSTALL_DIRECTORY|${install_directory}|g" minidsp.service
 
-mkdir -p $install_directory/system.d
-mv minidsp-ui.service $install_directory/system.d/
-mv minidsp.service $install_directory/system.d/
-mv nginx.service $install_directory/system.d/
+unit_dir="$(get_systemd_unit_dir)"
+. /etc/os-release 2>/dev/null
+if [ "$ID" = "libreelec" ]; then
+    mkdir -p "$unit_dir"
+    mv minidsp-ui.service "$unit_dir/"
+    mv minidsp.service "$unit_dir/"
+    mv nginx.service "$unit_dir/"
+else
+    sudo mv minidsp-ui.service "$unit_dir/"
+    sudo mv minidsp.service "$unit_dir/"
+    sudo mv nginx.service "$unit_dir/"
+fi
+
 cd $install_directory/minidsp/
 rm -r client
 
