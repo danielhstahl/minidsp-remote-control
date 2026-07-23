@@ -41,12 +41,11 @@ This creates the scripts in db/migrations.  Edit these as neeeded.  Then run
 `DATABASE_URL="sqlite:$(pwd)/minidsp.sqlite" cargo sqlx prepare`
 
 
-
 ## Installing/running
 
 Download the packaged static UI and server code `minidsp-ui.tar.gz` from `releases`.  Extract the tar.gz.  It is recommended to run the server as a service.  See [examples/install_script.sh](./examples/install_script.sh) for an example of how to install server.  See [examples/minidsp-ui.service](./examples/minidsp-ui.service) for an example of how to run the server as a service.
 
-For devices that aren't standard Ubuntu such as LibreElec, the [embedded](./examples/embedded) examples provide scripts to automate the installation and provisioning of services.
+For standalone binaries (no package manager), the [embedded](./examples/embedded) examples provide scripts to automate the installation and provisioning of services.
 
 There is a "power/on" and "power/off" endpoint as well as the ability to query the RPBI pin that controls this.  This is to power an external amp using a 12v trigger (in reality, 5v but this is typically sufficient).  To enable this, set the environment variable "USE_RELAY" to anything, and set the "RELAY_PIN" to the value of the GPIO pin controlling the relay.  To get a mapping of the GPIO pins, run `cat /sys/kernel/debug/gpio`.
 
