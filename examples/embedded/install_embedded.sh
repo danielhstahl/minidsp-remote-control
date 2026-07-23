@@ -4,6 +4,13 @@
 # DOES assume curl is already installed
 ## example of running this script: INSTALL_DIRECTORY=$HOME DOMAIN=raspberrypi.local RELEASE_TAG=v6.1.5 IP_LIST="192.168.1.1,192.168.1.2" ./install_embedded.sh
 
+
+. /etc/os-release 2>/dev/null
+if [ "$ID" != "libreelec" ] && [ "$EUID" -ne 0 ]; then
+    echo "This script must be run as root on Debian (try: sudo $0)" >&2
+    exit 1
+fi
+
 # if INSTALL_DIRECTORY not passed, default to /storage/.config (eg for libreelec).
 install_directory="${INSTALL_DIRECTORY:-/storage/.config}"
 
@@ -13,28 +20,14 @@ install_udev_rule() {
     . /etc/os-release 2>/dev/null
     if [ "$ID" = "libreelec" ]; then
         udev_dir="$install_directory/udev.rules.d"
-        mkdir -p $udev_dir
-        mv "$rule_src" "${udev_dir}/${rule_name}"
-        udevadm control --reload-rules
-        udevadm trigger
     else
         udev_dir="/etc/udev/rules.d"
-        sudo mv "$rule_src" "${udev_dir}/${rule_name}"
-        sudo udevadm control --reload-rules
-        sudo udevadm trigger
     fi
-}
 
-service_ctl() {
-    local action="$1"       # e.g. "stop", "disable", "enable --now"
-    local unit="$2"
-
-    . /etc/os-release 2>/dev/null
-    if [ "$ID" = "libreelec" ]; then
-        systemctl $action "$unit"
-    else
-        sudo systemctl $action "$unit"
-    fi
+    mkdir -p $udev_dir
+    mv "$rule_src" "${udev_dir}/${rule_name}"
+    udevadm control --reload-rules
+    udevadm trigger
 }
 
 get_systemd_unit_dir() {
@@ -60,13 +53,15 @@ base_url="https://github.com/danielhstahl/minidsp-remote-control/releases/downlo
 ui_tar_name="minidsp-ui-embedded.tar.gz"
 server_tar_name="minidsp-server-aarch64-unknown-linux-gnu-gpio.tar.gz"
 
+
 ## start from scratch
-service_ctl stop nginx || true
-service_ctl disable "$install_directory/system.d/nginx.service" || true
-service_ctl stop minidsp || true
-service_ctl disable "$install_directory/system.d/minidsp.service" || true
-service_ctl stop minidsp-ui || true
-service_ctl disable "$install_directory/system.d/minidsp-ui.service" || true
+unit_dir="$(get_systemd_unit_dir)"
+systemctl stop nginx || true
+systemctl disable "$unit_dir/nginx.service" || true
+systemctl stop minidsp || true
+systemctl disable "$unit_dir/minidsp.service" || true
+systemctl stop minidsp-ui || true
+systemctl disable "$unit_dir/minidsp-ui.service" || true
 
 ### handle server
 mkdir -p $install_directory/minidsp/server
@@ -82,6 +77,7 @@ mkdir -p $install_directory/minidsp/nginx
 
 ### handle client and nginx conf
 mkdir -p $install_directory/minidsp/client
+mkdir -p $install_directory/minidsp/minidsprs
 cd $install_directory/minidsp/client
 url="${base_url}/${ui_tar_name}"
 echo "downloading from ${url}"
@@ -105,21 +101,15 @@ sed -i -e "s/HOSTNAME/${DOMAIN}/g" minidsp-ui.service
 sed -i -e "s|INSTALL_DIRECTORY|${install_directory}|g" minidsp-ui.service
 local_ip=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
 sed -i -e "s/LOCAL_IP/${local_ip}/g" minidsp.toml
+cp minidsp.toml $install_directory/minidsp/minidsprs/
 sed -i -e "s|INSTALL_DIRECTORY|${install_directory}|g" nginx.service
 sed -i -e "s|INSTALL_DIRECTORY|${install_directory}|g" minidsp.service
 
-unit_dir="$(get_systemd_unit_dir)"
-. /etc/os-release 2>/dev/null
-if [ "$ID" = "libreelec" ]; then
-    mkdir -p "$unit_dir"
-    mv minidsp-ui.service "$unit_dir/"
-    mv minidsp.service "$unit_dir/"
-    mv nginx.service "$unit_dir/"
-else
-    sudo mv minidsp-ui.service "$unit_dir/"
-    sudo mv minidsp.service "$unit_dir/"
-    sudo mv nginx.service "$unit_dir/"
-fi
+
+mkdir -p "$unit_dir"
+mv minidsp-ui.service "$unit_dir/"
+mv minidsp.service "$unit_dir/"
+mv nginx.service "$unit_dir/"
 
 cd $install_directory/minidsp/
 rm -r client
@@ -138,7 +128,6 @@ cd $install_directory/minidsp/
 mkdir -p $install_directory/minidsp/ssl
 
 ### handle minidsp-rs
-mkdir -p $install_directory/minidsp/minidsprs
 cd $install_directory/minidsp/minidsprs
 #curl -L -O https://github.com/mrene/minidsp-rs/releases/download/v0.1.12/minidsp.aarch64-unknown-linux-gnu.tar.gz
 curl -L -O https://github.com/danielhstahl/minidsp-rs/releases/download/v0.0.4/minidsp.aarch64-unknown-linux-gnu.tar.gz
@@ -157,14 +146,22 @@ cd $install_directory/minidsp/ssl
 if [ -f device.key ] && [ -f device.crt ]; then
     echo "SSL cert already present, skipping generation"
 else
-    curl -L -O  https://raw.githubusercontent.com/openssl/openssl/master/apps/openssl.cnf
-    openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes -keyout device.key -out device.crt -subj "/CN=$DOMAIN" -config openssl.cnf
+    system_cnf="/etc/ssl/openssl.cnf"
+
+    if [ -f "$system_cnf" ]; then
+        cnf_path="$system_cnf"
+    else
+        curl -L -O https://raw.githubusercontent.com/openssl/openssl/master/apps/openssl.cnf
+        cnf_path="openssl.cnf"
+    fi
+    openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
+        -keyout device.key -out device.crt -subj "/CN=$DOMAIN" -config "$cnf_path"
 fi
 cd $install_directory/minidsp
 
 ### start services
-service_ctl "enable --now" "$install_directory/system.d/nginx.service"
-service_ctl "enable --now" "$install_directory/system.d/minidsp-ui.service"
-service_ctl "enable --now" "$install_directory/system.d/minidsp.service"
+systemctl enable --now "$unit_dir/nginx.service"
+systemctl enable --now "$unit_dir/minidsp-ui.service"
+systemctl enable --now "$unit_dir/minidsp.service"
 
 touch "$MARKER"
