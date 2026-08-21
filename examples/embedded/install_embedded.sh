@@ -2,7 +2,7 @@
 #
 # assumes no package management system
 # DOES assume curl is already installed
-## example of running this script: INSTALL_DIRECTORY=$HOME DOMAIN=raspberrypi.local RELEASE_TAG=v6.1.5 IP_LIST="192.168.1.1,192.168.1.2" ./install_embedded.sh
+## example of running this script: INSTALL_DIRECTORY=/opt/ DOMAIN=raspberrypi.local RELEASE_TAG=v7.1.4 IP_LIST="192.168.1.1,192.168.1.2" ./install_embedded.sh
 
 
 . /etc/os-release 2>/dev/null
