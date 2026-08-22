@@ -31,10 +31,9 @@ jobs:
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Generate code coverage
         run: |
-          cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+          # Parallelism is 1 to ensure that the tests run sequentially (manipulate env variables)
+          cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info --jobs 1
           cat lcov.info
-        env:
-          SQLX_OFFLINE: true # needed to keep it from trying to connect to a database
 
   run_rust_builds:
     name: Run rust builds
@@ -45,26 +44,26 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: 
-        - x86_64-unknown-linux-musl
-        - armv7-unknown-linux-gnueabihf
-        - aarch64-unknown-linux-gnu
+        target:
+          - x86_64-unknown-linux-musl
+          - armv7-unknown-linux-gnueabihf
+          - aarch64-unknown-linux-gnu
         feature_flag:
-        - --features gpio
-        - ""
+          - --features gpio
+          - ""
     steps:
-    - uses: actions/checkout@v4
-    - name: Install Rust
-      run: |
-        curl -L https://github.com/cross-rs/cross/releases/download/v0.2.5/cross-x86_64-unknown-linux-gnu.tar.gz -o cross-x86_64-unknown-linux-gnu.tar.gz
-        tar -xvzf cross-x86_64-unknown-linux-gnu.tar.gz
-        rustup update stable
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        run: |
+          curl -L https://github.com/cross-rs/cross/releases/download/v0.2.5/cross-x86_64-unknown-linux-gnu.tar.gz -o cross-x86_64-unknown-linux-gnu.tar.gz
+          tar -xvzf cross-x86_64-unknown-linux-gnu.tar.gz
+          rustup update stable
 
-    - name: Compile
-      run: |
-        ./cross build --release --target ${{ matrix.target }} ${{ matrix.feature_flag }}
-      env:
-        SQLX_OFFLINE: true # needed to keep it from trying to connect to a database
+      - name: Compile
+        run: |
+          ./cross build --release --target ${{ matrix.target }} ${{ matrix.feature_flag }}
+        env:
+          SQLX_OFFLINE: true # needed to keep it from trying to connect to a database
 
   run_ui_tests:
     name: Run UI tests
@@ -74,7 +73,7 @@ jobs:
         working-directory: ./client
     env:
       NODE_OPTIONS: "--max_old_space_size=4096"
-      VITEST_SEGFAULT_RETRY: '5'
+      VITEST_SEGFAULT_RETRY: "5"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
