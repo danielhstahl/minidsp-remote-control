@@ -94,6 +94,14 @@ StandardOutput=journal
 WantedBy=multi-user.target
 ```
 
+[Mounting network drive in RPI](https://discourse.osmc.tv/t/mounting-network-shares-with-autofs-alternative-to-fstab/74228)
+
+OSMC Skins:
+
+```sh
+wget https://ftp.fau.de/osmc/osmc/download/kodi/skin/repository.osmcskin.zip
+```
+
 ## NOT WORKING: Use with Dante
 
 NOTE that this is not currently working.  In principle this would work between two RPI 5s.
