@@ -29,17 +29,21 @@ Server is a simple Rust server.  It makes call directly to the underlying binari
 ### Rust prep
 In `minidsp-server`:
 
-`cargo sqlx migrate add users --source db/migrations`
-`cargo sqlx migrate add settings --source db/migrations`
+```sh
+cargo sqlx migrate add users --source db/migrations
+```
+
+```sh
+cargo sqlx migrate add settings --source db/migrations
+```
 
 This creates the scripts in db/migrations.  Edit these as neeeded.  Then run
 
-`cargo sqlx database create --database-url sqlite:$(pwd)/minidsp.sqlite`
-
-`DATABASE_URL="sqlite:$(pwd)/minidsp.sqlite" cargo sqlx migrate run --source db/migrations`
-
-`DATABASE_URL="sqlite:$(pwd)/minidsp.sqlite" cargo sqlx prepare`
-
+```sh
+cargo sqlx database create --database-url sqlite:$(pwd)/minidsp.sqlite
+DATABASE_URL="sqlite:$(pwd)/minidsp.sqlite" cargo sqlx migrate run --source db/migrations
+DATABASE_URL="sqlite:$(pwd)/minidsp.sqlite" cargo sqlx prepare
+```
 
 ## Installing/running
 
@@ -56,6 +60,39 @@ A Bluetooth interface for the [Fosi VOL20](https://fosiaudio.com/products/vol20-
 From a terminal, run `bluetoothctl`.  Type `list` to view controllers.  Pick your preferred controller by typing `select [controlleraddress]`.  Then, with the Fosi volume control on, run `scan on`.  This will find nearby bluetooth devices.  The VOL20 should be found.  Once it is, type `scan off`.  Then type `devices` to confirm that the VOL20 is still showing up.  Type `connect [deviceaddress]` and it will connect and "pair" with the VOL20 device.  Exit the CLI tool by typing `exit` or `quit`.
 
 Next, run the [bluetoothserver](./server/bt.js) as root.  It should show a list of bluetooth controller IDs.  This is different from the controller address.  By default, the server will select the first controller ID.  It will then print the address.  If you want a different controller, pass in the environment variable `BLUETOOTH_DEVICE_ID`.  For example, `sudo BLUETOOTH_DEVICE_ID=hci1 node server/bt.js`.
+
+## Kodi on RaspberryPi OS: Notes
+
+If using Kodi on RPI OS (not on Libreelec), use the following to create Kodi as a service and auto-boot into Kodi.
+
+```sh
+sudo systemctl disable getty@tty1
+sudo systemctl mask getty@tty1
+```
+
+Service:
+
+```
+[Unit]
+Description=Kodi standalone
+After=remote-fs.target systemd-user-sessions.service network-online.target sound.target
+Wants=network-online.target
+Conflicts=getty@tty1.service
+
+[Service]
+User=[user]
+Group=[user]
+PAMName=login
+TTYPath=/dev/tty1
+ExecStart=/usr/bin/kodi-standalone
+ExecStop=/usr/bin/killall --exact --wait kodi.bin
+Restart=on-abort
+StandardInput=tty
+StandardOutput=journal
+
+[Install]
+WantedBy=multi-user.target
+```
 
 ## NOT WORKING: Use with Dante
 
