@@ -6,7 +6,7 @@ describe("SSNNotification", () => {
   it("shows notification", async () => {
     const currDate = new Date("2025-05-05");
     const expiryDate = new Date("2025-06-03");
-    const screen = render(
+    const screen = await render(
       <SSLNotification currentDate={currDate} expiryDate={expiryDate} />,
     );
     await expect
@@ -16,7 +16,7 @@ describe("SSNNotification", () => {
   it("does not show notification", async () => {
     const currDate = new Date("2025-05-05");
     const expiryDate = new Date("2025-08-05");
-    const screen = render(
+    const screen = await render(
       <SSLNotification currentDate={currDate} expiryDate={expiryDate} />,
     );
     await expect

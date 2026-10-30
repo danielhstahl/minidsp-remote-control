@@ -1,12 +1,12 @@
 /// <reference types="vitest" />
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
-
+import { playwright } from "@vitest/browser-playwright";
 export default defineConfig({
   plugins: [react()],
   test: {
     browser: {
-      provider: "playwright", // or 'webdriverio'
+      provider: playwright(), // or 'webdriverio'
       enabled: true,
       headless: true,
       // at least one instance is required

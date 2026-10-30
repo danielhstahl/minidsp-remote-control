@@ -18,7 +18,7 @@ describe("AppBody", () => {
         Component: AppBody,
       },
     ]);
-    const screen = render(<Stub initialEntries={["/"]} />);
+    const screen = await render(<Stub initialEntries={["/"]} />);
     await expect.element(screen.getByText("Preset 1")).toBeInTheDocument();
     vi.clearAllTimers();
   });
@@ -43,7 +43,7 @@ describe("AppBody", () => {
       },
     ]);
     //after 3 seconds, redirects to /app
-    const screen = render(<Stub initialEntries={["/"]} />);
+    const screen = await render(<Stub initialEntries={["/"]} />);
     //immediate
     await expect.element(screen.getByText("Preset 3")).toBeInTheDocument();
     //after 3 seconds
