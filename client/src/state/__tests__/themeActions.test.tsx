@@ -46,6 +46,6 @@ describe("UserProvider and useProvider", () => {
       </ThemeProvider>,
     );
 
-    await expect.element(getByTestId("test")).toHaveTextContent("light");
+    await expect.element(getByTestId("test")).toHaveTextContent("\"light\"");
   });
 });

@@ -58,21 +58,17 @@ export const loadDevice: () => Promise<Device> = async () => {
     method: "POST",
     headers: jsonHeaders,
   });
-  const result = await response.json();
-  if (response.ok) {
-    return result;
-  } else {
-    throw new Error(result);
+  if (!response.ok) {
+    throw new Error(`Device request failed: ${response.status}`);
   }
+  return response.json();
 };
 export const generateCert = async () => {
   const response = await fetch(`/api/cert`, { method: "POST" });
-  const result = await response.json();
-  if (response.ok) {
-    return result;
-  } else {
-    throw new Error(result);
+  if (!response.ok) {
+    throw new Error(`Cert request failed: ${response.status}`);
   }
+  return response.json();
 };
 export const getExpiry = async () => {
   const response = await fetch(`/api/cert/expiration`);

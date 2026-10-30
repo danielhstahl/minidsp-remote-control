@@ -40,5 +40,10 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router": "^7.18.2"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }
