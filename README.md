@@ -16,7 +16,7 @@ Client runs tests using a headless browser.
 
 ### MiniDSP version
 
-Version 7.0 and uses the Minidsp HTTP dameon directly instead of using the MiniDSP CLI.  This improves performance and simplifies the server side.  See [examples](./examples) for the nginx and MiniDSP configs to enable this.
+Version 7.0 and up uses the Minidsp HTTP dameon directly instead of using the MiniDSP CLI.  This improves performance and simplifies the server side.  See [examples](./examples) for the nginx and MiniDSP configs to enable this.
 
 Version 1.0 and up only supports `minidsp-rs` 1.10 and up. This version allows sources to be selected through the UI.
 
