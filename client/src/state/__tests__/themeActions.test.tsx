@@ -40,12 +40,12 @@ describe("UserProvider and useProvider", () => {
       return <div data-testid="test">{JSON.stringify(state)}</div>;
     };
 
-    const { getByTestId } = render(
+    const { getByTestId } = await render(
       <ThemeProvider>
         <TestComponent />
       </ThemeProvider>,
     );
 
-    await expect.element(getByTestId("test")).toHaveTextContent("light");
+    await expect.element(getByTestId("test")).toHaveTextContent("\"light\"");
   });
 });

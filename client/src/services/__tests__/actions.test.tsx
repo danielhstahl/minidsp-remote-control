@@ -39,12 +39,11 @@ describe("volumeAction", async () => {
     expect(result).toEqual(2);
   });
   it("succeeds when hitting volume/down", async () => {
-    const server = setupWorker(
+    server.use(
       http.post("/api/devices/0/volume/down", () => {
         return HttpResponse.json({ success: true });
       }),
     );
-    await server.start({ quiet: true });
     const body = createFormDataFromValue("volume", {
       volume: "down",
       volumeValue: 2,
@@ -145,11 +144,11 @@ describe("certAction", async () => {
   it("succeeds when hitting cert", async () => {
     server.use(
       http.post("/api/cert", () => {
-        return HttpResponse.json({});
+        return HttpResponse.json({hi:"hello"});
       }),
     );
     const result = await certAction();
-    expect(result).toEqual({});
+    expect(result).toEqual({hi:"hello"});
   });
   it("fails if not authenticated", async () => {
     server.use(

@@ -36,7 +36,7 @@ describe("ExpiryWrapper", () => {
         ],
       },
     ]);
-    const screen = render(<Stub />);
+    const screen = await render(<Stub />);
     await expect.element(screen.getByText("hello world")).toBeInTheDocument();
   });
   it("SSL notifies", async () => {
@@ -70,7 +70,7 @@ describe("ExpiryWrapper", () => {
         ],
       },
     ]);
-    const screen = render(<Stub />);
+    const screen = await render(<Stub />);
     await expect
       .element(screen.getByText("SSL Certificate has expired!"))
       .toBeInTheDocument();

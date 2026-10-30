@@ -28,7 +28,7 @@ describe("AppBarMenu", () => {
 
   it("renders the title correctly", async () => {
     const Stub = getRouterStub("light");
-    const screen = render(<Stub />);
+    const screen = await render(<Stub />);
     await expect
       .element(screen.getByText("MiniDSP", { exact: true }))
       .toBeInTheDocument();
@@ -36,7 +36,7 @@ describe("AppBarMenu", () => {
 
   it("renders all three theme toggle buttons", async () => {
     const Stub = getRouterStub("light");
-    const screen = render(<Stub />);
+    const screen = await render(<Stub />);
     await expect
       .element(screen.getByLabelText("Light Mode"))
       .toBeInTheDocument();
@@ -50,28 +50,28 @@ describe("AppBarMenu", () => {
 
   it("calls setMode with correct value when light mode is selected", async () => {
     const Stub = getRouterStub("dark");
-    const screen = render(<Stub />);
+    const screen = await render(<Stub />);
     await screen.getByLabelText("Light Mode").click();
     expect(mockSetMode).toHaveBeenCalledWith("light");
   });
 
   it("calls setMode with correct value when dark mode is selected", async () => {
     const Stub = getRouterStub("light");
-    const screen = render(<Stub />);
+    const screen = await render(<Stub />);
     await screen.getByLabelText("Dark Mode", { exact: true }).click();
     expect(mockSetMode).toHaveBeenCalledWith("dark");
   });
 
   it("calls setMode with correct value when evil dark mode is selected", async () => {
     const Stub = getRouterStub("light");
-    const screen = render(<Stub />);
+    const screen = await render(<Stub />);
     await screen.getByLabelText("Evil Dark Mode").click();
     expect(mockSetMode).toHaveBeenCalledWith("dark_evil");
   });
 
   it("highlights the current mode button", async () => {
     const Stub = getRouterStub("dark_evil");
-    const screen = render(<Stub />);
+    const screen = await render(<Stub />);
     await expect
       .element(screen.getByLabelText("Evil Dark Mode"))
       .toHaveAttribute("aria-pressed", "true");
@@ -89,7 +89,7 @@ describe("AppBarMenu", () => {
         },
       },
     ]);
-    const screen = render(<Stub />);
+    const screen = await render(<Stub />);
     await expect.element(screen.getByLabelText("settings")).toBeInTheDocument();
   });
 });

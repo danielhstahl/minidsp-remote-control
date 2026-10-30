@@ -58,7 +58,7 @@ describe("access scenarios", () => {
       }),
     );
     const Stub = createRouter();
-    const screen = render(<Stub />);
+    const screen = await render(<Stub />);
     await expect.element(screen.getByText(/MiniDSP/i)).toBeInTheDocument();
   });
 
@@ -85,7 +85,7 @@ describe("access scenarios", () => {
       }),
     );
     const Stub = createRouter();
-    const screen = render(<Stub initialEntries={["/settings"]} />);
+    const screen = await render(<Stub initialEntries={["/settings"]} />);
     await expect.element(screen.getByText("Settings")).toBeInTheDocument();
   });
   test("try to go to settings", async () => {
@@ -104,7 +104,7 @@ describe("access scenarios", () => {
       }),
     );
     const Stub = createRouter();
-    const screen = render(<Stub initialEntries={["/settings"]} />);
+    const screen = await render(<Stub initialEntries={["/settings"]} />);
     //redirects to login page
     await expect
       .element(screen.getByRole("button", { name: "Generate certs" }))
